@@ -1,3 +1,4 @@
+^\.vscode$
 ^\.github$
 ^LICENSE\.md$
 ^.pr_agent.toml$
