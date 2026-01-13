@@ -53,6 +53,80 @@ PMProject <- R6Class("PMProject",
         private$at(constants$ANALYSES_DIR),
         x_name = "Analyses folder"
       )
+    },
+
+    #' @description
+    #' Parse inputs.yaml and inputs.local.yaml into PMData objects.
+    #' Reads the inputs definition file and the local paths file
+    #' and combines them to create a list of PMData objects.
+    #'
+    #' @return A list of PMData objects, one for each input defined in inputs.yaml
+    #'   that has a corresponding path in inputs.local.yaml
+    #'
+    #' @examples
+    #' folder <- withr::local_tempdir()
+    #' pm <- pm_create_project(folder)
+    #'
+    #' # After configuring inputs.yaml and inputs.local.yaml:
+    #' # data_list <- pm$parse_inputs()
+    parse_inputs = function() {
+      # Read inputs.yaml (portable definitions)
+      inputs_file <- private$at(constants$INPUTS_FILENAME)
+      chk::check_files(inputs_file, x_name = "Inputs definition file")
+      inputs_def <- tryCatch(
+        yaml::read_yaml(inputs_file),
+        error = function(e) {
+          stop("inputs.yaml must be a YAML object (key-value pairs): ", conditionMessage(e))
+        }
+      )
+
+      # Validate inputs.yaml schema
+      .validate_inputs_schema(inputs_def)
+
+      # Read inputs.local.yaml (local paths)
+      local_inputs_file <- private$at(constants$LOCAL_INPUTS_FILENAME)
+      chk::check_files(local_inputs_file, x_name = "Local inputs mapping file")
+      local_inputs <- tryCatch(
+        yaml::read_yaml(local_inputs_file),
+        error = function(e) {
+          stop("inputs.local.yaml must be a YAML object (key-value pairs): ", conditionMessage(e))
+        }
+      )
+
+      # Validate inputs.local.yaml schema
+      .validate_local_inputs_schema(local_inputs)
+
+      # Extract input IDs from inputs.yaml
+      # Inputs are defined under "inputs" key with format "inputs.<id>"
+      input_ids <- .extract_input_ids(inputs_def)
+
+      # Create PMData objects by combining IDs with paths from local file
+      data_list <- list()
+      for (id in input_ids) {
+        if (!id %in% names(local_inputs$paths)) {
+          stop(sprintf(
+            "Input ID '%s' is defined in inputs.yaml but missing from inputs.local.yaml paths",
+            id
+          ))
+        }
+
+        path <- local_inputs$paths[[id]]
+        chk::chk_scalar(path)
+        chk::chk_character(path, x_name = sprintf("Path for input '%s'", id))
+
+        # Convert to absolute path if relative
+        # Check if path is absolute (starts with / on Unix, or drive letter on Windows)
+        is_absolute <- grepl("^(/|[A-Za-z]:)", path)
+        if (!is_absolute) {
+          path <- normalizePath(file.path(self$path, path), mustWork = FALSE)
+        } else {
+          path <- normalizePath(path, mustWork = FALSE)
+        }
+
+        data_list[[id]] <- PMData$new(id = id, path = path)
+      }
+
+      data_list
     }
   ),
   private = list(

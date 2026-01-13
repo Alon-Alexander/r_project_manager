@@ -16,6 +16,16 @@ invisible(pm_create_project(folder))
 pm <- PMProject$new(folder)
 pm
 
+
+## ------------------------------------------------
+## Method `PMProject$parse_inputs`
+## ------------------------------------------------
+
+folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+
+# After configuring inputs.yaml and inputs.local.yaml:
+# data_list <- pm$parse_inputs()
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -29,6 +39,7 @@ pm
 \itemize{
 \item \href{#method-PMProject-new}{\code{PMProject$new()}}
 \item \href{#method-PMProject-validate}{\code{PMProject$validate()}}
+\item \href{#method-PMProject-parse_inputs}{\code{PMProject$parse_inputs()}}
 \item \href{#method-PMProject-clone}{\code{PMProject$clone()}}
 }
 }
@@ -57,6 +68,34 @@ Validate the project folder.
 Makes sure all expected files and folder exist and are valid.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PMProject$validate()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PMProject-parse_inputs"></a>}}
+\if{latex}{\out{\hypertarget{method-PMProject-parse_inputs}{}}}
+\subsection{Method \code{parse_inputs()}}{
+Parse inputs.yaml and inputs.local.yaml into PMData objects.
+Reads the inputs definition file and the local paths file
+and combines them to create a list of PMData objects.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PMProject$parse_inputs()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+A list of PMData objects, one for each input defined in inputs.yaml
+that has a corresponding path in inputs.local.yaml
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+
+# After configuring inputs.yaml and inputs.local.yaml:
+# data_list <- pm$parse_inputs()
+}
+\if{html}{\out{</div>}}
+
 }
 
 }

@@ -13,4 +13,5 @@ Suggests:
     withr
 Imports:
     R6,
-    chk
+    chk,
+    yaml
