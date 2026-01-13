@@ -2,4 +2,3 @@
 ^\.github$
 ^LICENSE\.md$
 ^.pr_agent.toml$
-.gitkeep$

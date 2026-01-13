@@ -152,6 +152,10 @@ pm_create_project <- function(path) {
   )
 
   for (file in list.files(from_dir)) {
+    if (identical(basename(file), "dont_copy")) {
+      next
+    }
+
     file.copy(file.path(from_dir, file), to_dir, overwrite = TRUE)
   }
 
