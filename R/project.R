@@ -97,7 +97,7 @@ PMProject <- R6Class("PMProject",
       .validate_local_inputs_schema(local_inputs)
 
       # Extract input IDs from inputs.yaml
-      # Inputs are defined under "inputs" key with format "inputs.<id>"
+      # Inputs are defined under "inputs" key as a named list
       input_ids <- .extract_input_ids(inputs_def)
 
       # Create PMData objects by combining IDs with paths from local file

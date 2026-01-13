@@ -14,7 +14,6 @@ Character vector of input IDs
 }
 \description{
 Extracts the canonical input IDs from the inputs.yaml structure.
-Inputs are defined with keys like "inputs.feature_table", and this function
-extracts "feature_table" as the ID.
+Supports both array format (list of strings/objects) and object format (named list).
 }
 \keyword{internal}

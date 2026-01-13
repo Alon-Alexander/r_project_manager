@@ -1,3 +1,18 @@
+# pm 0.1.0
+
+## New Features
+
+- Add `PMData` R6 class to represent input data files with ID and path
+- Add `parse_inputs()` method to `PMProject` for parsing inputs.yaml and inputs.local.yaml
+- Implement YAML schema validation for inputs.yaml (supports both array and object formats)
+- Implement YAML schema validation for inputs.local.yaml
+- Support flexible input definitions: inputs can be just IDs (strings) or objects with metadata fields
+- Support extra fields in input definitions (md5, size, description)
+- Handle relative and absolute paths in inputs.local.yaml (automatic conversion to absolute paths)
+- Add comprehensive edge case tests for input parsing
+- Add great error messages for invalid YAML structures
+- Add yaml package as dependency
+
 # pm 0.0.1
 
 - Implement `PMProject` R6 class for project folder management with validation

@@ -15,8 +15,11 @@ Validates that the inputs.yaml structure follows the expected schema.
 \details{
 Expected schema:
 \itemize{
-\item Top-level keys should start with "inputs." prefix
-\item Each input definition should have a "type" field
+\item Must have a top-level "inputs" key
+\item "inputs" must be a YAML list (array) or object (named list)
+\item If array: each element can be a string (ID only) or an object with ID as key
+\item If object: maps input IDs to their definitions
+\item Each input definition can be an empty object ({}) or null (just an ID)
 \item Optional fields: "expected" (for validation), fingerprint fields (md5, size, etc.)
 }
 }
