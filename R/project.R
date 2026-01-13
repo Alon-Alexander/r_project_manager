@@ -112,7 +112,7 @@ pm_create_project <- function(path) {
     }
 
     # Check if empty folder (and then we'll populate it)
-    files <- list.files(path)
+    files <- list.files(path, all.files = TRUE, no.. = TRUE)
     if (length(files) > 0) {
       # Folder exists but invalid, raise error
       stop(sprintf(
@@ -132,10 +132,13 @@ pm_create_project <- function(path) {
 
   # Manually copy gitignore (otherwise I would be missing files in the package :)
   template_gitignore <- system.file("extdata", constants$TEMPLATE_GITIGNORE_FILENAME, package = "pm")
-  file.copy(
+  success <- file.copy(
     template_gitignore,
     file.path(path, ".gitignore")
   )
+  if (!success) {
+    stop("Failed to copy .gitignore template file")
+  }
 
   pm_project(path)
 }
