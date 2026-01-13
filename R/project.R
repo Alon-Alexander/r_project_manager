@@ -115,9 +115,7 @@ PMProject <- R6Class("PMProject",
         chk::chk_character(path, x_name = sprintf("Path for input '%s'", id))
 
         # Convert to absolute path if relative
-        # Check if path is absolute (starts with / on Unix, or drive letter on Windows)
-        is_absolute <- grepl("^(/|[A-Za-z]:)", path)
-        if (!is_absolute) {
+        if (!fs::is_absolute_path(path)) {
           path <- normalizePath(file.path(self$path, path), mustWork = FALSE)
         } else {
           path <- normalizePath(path, mustWork = FALSE)

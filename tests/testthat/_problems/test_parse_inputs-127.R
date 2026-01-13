@@ -45,9 +45,9 @@ it("Can parse valid inputs.yaml and inputs.local.yaml", {
     expect_s3_class(data_list$feature_table, "PMData")
     expect_s3_class(data_list$sample_metadata, "PMData")
     expect_equal(data_list$feature_table$id, "feature_table")
-    expect_equal(data_list$feature_table$path, "/path/to/feature_table.biom")
+    expect_equal(data_list$feature_table$path, normalizePath("/path/to/feature_table.biom", mustWork = FALSE))
     expect_equal(data_list$sample_metadata$id, "sample_metadata")
-    expect_equal(data_list$sample_metadata$path, "/path/to/metadata.tsv")
+    expect_equal(data_list$sample_metadata$path, normalizePath("/path/to/metadata.tsv", mustWork = FALSE))
   })
 it("Handles relative paths in inputs.local.yaml", {
     dir <- .get_good_project_path()
@@ -135,5 +135,5 @@ it("Allows inputs with just an ID (empty object)", {
     expect_true("minimal_input" %in% names(data_list))
     expect_s3_class(data_list$minimal_input, "PMData")
     expect_equal(data_list$minimal_input$id, "minimal_input")
-    expect_equal(data_list$minimal_input$path, "/path/to/minimal.tsv")
+    expect_equal(data_list$minimal_input$path, normalizePath("/path/to/minimal.tsv", mustWork = FALSE))
   })

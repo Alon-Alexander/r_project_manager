@@ -26,16 +26,11 @@
 
   inputs_list <- inputs_def$inputs
 
-  # Handle case where single-item list is parsed as the value itself
+  # Handle YAML simplification: single-item lists are parsed as the value itself
   # Only convert if it looks like a valid identifier (alphanumeric + underscore, no spaces)
   if (is.character(inputs_list) && length(inputs_list) == 1) {
-    # Check if it's a valid identifier (simple ID, not a descriptive string)
     if (grepl("^[a-zA-Z_][a-zA-Z0-9_]*$", inputs_list)) {
-      # Single string ID - convert to list format
       inputs_list <- list(inputs_list)
-    } else {
-      # Not a valid ID format, treat as error
-      stop("'inputs' in inputs.yaml must be a YAML list or object")
     }
   }
 
@@ -207,10 +202,12 @@
   }
   inputs_list <- inputs_def$inputs
 
-  # Handle case where single-item list is parsed as the value itself
+  # Handle YAML simplification: single-item lists are parsed as the value itself
+  # Only convert if it looks like a valid identifier (alphanumeric + underscore, no spaces)
   if (is.character(inputs_list) && length(inputs_list) == 1) {
-    # Single string - convert to list format
-    inputs_list <- list(inputs_list)
+    if (grepl("^[a-zA-Z_][a-zA-Z0-9_]*$", inputs_list)) {
+      inputs_list <- list(inputs_list)
+    }
   }
 
   if (!is.list(inputs_list)) {

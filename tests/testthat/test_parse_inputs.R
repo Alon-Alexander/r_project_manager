@@ -38,9 +38,9 @@ describe("parse_inputs method works correctly", {
     expect_s3_class(data_list$feature_table, "PMData")
     expect_s3_class(data_list$sample_metadata, "PMData")
     expect_equal(data_list$feature_table$id, "feature_table")
-    expect_equal(data_list$feature_table$path, "/path/to/feature_table.biom")
+    expect_equal(data_list$feature_table$path, normalizePath("/path/to/feature_table.biom", mustWork = FALSE))
     expect_equal(data_list$sample_metadata$id, "sample_metadata")
-    expect_equal(data_list$sample_metadata$path, "/path/to/metadata.tsv")
+    expect_equal(data_list$sample_metadata$path, normalizePath("/path/to/metadata.tsv", mustWork = FALSE))
   })
 
   it("Handles relative paths in inputs.local.yaml", {
@@ -131,7 +131,7 @@ describe("parse_inputs method works correctly", {
     expect_true("minimal_input" %in% names(data_list))
     expect_s3_class(data_list$minimal_input, "PMData")
     expect_equal(data_list$minimal_input$id, "minimal_input")
-    expect_equal(data_list$minimal_input$path, "/path/to/minimal.tsv")
+    expect_equal(data_list$minimal_input$path, normalizePath("/path/to/minimal.tsv", mustWork = FALSE))
   })
 
   it("Allows inputs with just an ID (null value)", {
@@ -162,7 +162,7 @@ describe("parse_inputs method works correctly", {
     expect_true("null_input" %in% names(data_list))
     expect_s3_class(data_list$null_input, "PMData")
     expect_equal(data_list$null_input$id, "null_input")
-    expect_equal(data_list$null_input$path, "/path/to/null.tsv")
+    expect_equal(data_list$null_input$path, normalizePath("/path/to/null.tsv", mustWork = FALSE))
   })
 
   it("Errors when input ID is missing from inputs.local.yaml", {
@@ -466,14 +466,15 @@ describe("parse_inputs method works correctly", {
 
 describe("Edge cases and additional coverage", {
   it("PMData print method works correctly", {
-    data <- pm::PMData$new(id = "test_input", path = "/path/to/test.tsv")
+    test_path <- normalizePath("/path/to/test.tsv", mustWork = FALSE)
+    data <- pm::PMData$new(id = "test_input", path = test_path)
     
     # Capture output
     output <- capture.output(print(data))
     
     expect_true(any(grepl("PMData:", output)))
     expect_true(any(grepl("ID: test_input", output)))
-    expect_true(any(grepl("Path: /path/to/test.tsv", output)))
+    expect_true(any(grepl(paste0("Path: ", test_path), output, fixed = TRUE)))
     
     # Should return self invisibly
     result <- print(data)
@@ -723,20 +724,21 @@ describe("Edge cases and additional coverage", {
   })
 
   it("Handles extraction when inputs is not a list", {
-    # When inputs is a string, it gets converted in validation, but extraction
-    # happens after, so let's test the actual behavior
-    # If it's a valid identifier, it gets converted to list
+    # Valid identifier strings are converted to lists (YAML simplification handling)
     result <- pm:::.extract_input_ids(list(inputs = "valid_id"))
     expect_equal(result, "valid_id")
     
-    # If inputs is truly not a list and not a valid identifier, extraction returns empty
-    # But this case is handled in validation, so extraction won't see it
-    # Let's test with a non-list that would pass initial checks
+    # Invalid strings return empty
+    result_invalid <- pm:::.extract_input_ids(list(inputs = "not a valid id"))
+    expect_equal(result_invalid, character(0))
+    
+    # Empty list returns empty
     result2 <- pm:::.extract_input_ids(list(inputs = list()))
     expect_equal(result2, character(0))
   })
 
   it("Handles extraction with single string input", {
+    # Valid identifier strings are converted to lists (YAML simplification handling)
     result <- pm:::.extract_input_ids(list(inputs = "test_id"))
     expect_equal(result, "test_id")
   })

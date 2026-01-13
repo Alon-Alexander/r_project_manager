@@ -1,8 +1,15 @@
 describe("Creating project objects works as expected", {
 
   it("Can create project object on a valid directory", {
-    proj <- pm::PMProject$new(.get_good_project_path())
-    proj <- pm::pm_project(.get_good_project_path())
+    dir <- .get_good_project_path()
+    proj <- pm::PMProject$new(dir)
+    expect_s3_class(proj, "PMProject")
+    expect_equal(proj$path, normalizePath(dir))
+
+    # Also test the wrapper
+    proj <- pm::pm_project(dir)
+    expect_s3_class(proj, "PMProject")
+    expect_equal(proj$path, normalizePath(dir))
   })
 
   it("Errors when there is a missing important file", {
@@ -55,7 +62,15 @@ describe("Creating new project with pm_create_project works", {
 
   it("Works when output directory exists and empty", {
     dir <- withr::local_tempdir()
-    pm_create_project(dir)
+    proj <- pm_create_project(dir)
+    expect_s3_class(proj, "PMProject")
+    expect_equal(proj$path, normalizePath(dir))
+
+    expect_true(file.exists(file.path(dir, "inputs.yaml")))
+    expect_true(file.exists(file.path(dir, "inputs.local.yaml")))
+    expect_true(file.exists(file.path(dir, "README.md")))
+    expect_true(file.exists(file.path(dir, ".gitignore")))
+    expect_true(dir.exists(file.path(dir, "analyses")))
   })
 
   it("Fails if there is irrelevant content in the folder", {
