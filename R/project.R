@@ -1,8 +1,30 @@
+#' @title Project class to manage a project folder
+#'
+#' @description
+#' This object can be used to manage a project folder.
+#' Use it to create analyses, freeze input files, etc.
+#' 
+#' @field path Full path to the project's folder
+#' 
+#' @examples
+#' # Create a valid project to load
+#' folder <- withr::local_tempdir()
+#' invisible(pm_create_project(folder))
+#'
+#' # Load the project
+#' pm <- PMProject$new(folder)
+#' pm
+#'
 #' @importFrom R6 R6Class
 #' @export
 PMProject <- R6Class("PMProject",
   public = list(
     path = NULL,
+
+    #' @description
+    #' Create a PMProject object in an existing project's folder
+    #'
+    #' @param path Path to the project
     initialize = function(path) {
       chk::check_dirs(path)
       path <- normalizePath(path)
@@ -10,6 +32,10 @@ PMProject <- R6Class("PMProject",
 
       self$validate()
     },
+
+    #' @description
+    #' Validate the project folder.
+    #' Makes sure all expected files and folder exist and are valid.
     validate = function() {
       chk::check_files(
         private$at(constants$INPUTS_FILENAME),
@@ -36,11 +62,46 @@ PMProject <- R6Class("PMProject",
   )
 )
 
+#' @title Create a PMProject object for a given project folder
+#'
+#' @param path Path to the project
+#'
+#' @return \code{PMProject} object representing the given project folder
+#'
+#' @examples
+#' # Create a valid project to load
+#' folder <- withr::local_tempdir()
+#' invisible(pm_create_project(folder))
+#'
+#' # Load the project
+#' pm <- pm_project(folder)
+#' pm
+#'
 #' @export
 pm_project <- function(path) {
   PMProject$new(path)
 }
 
+#' @title Create a new project from template in the given folder
+#'
+#' @description
+#' Creates a new clean project in the given folder and returns a
+#' PMProject object.
+#' Also works on an empty folder, but fails if the folder contains
+#' irrelevant content.
+#'
+#' @param path Path to the folder in which to create the project
+#'
+#' @return \code{PMProject} object representing the newly created project
+#'
+#' @note If the folder already exists and has contents, does not override it,
+#' but instead returns the existing project from that folder.
+#'
+#' @examples
+#' empty_folder <- withr::local_tempdir()
+#' pm <- pm_create_project(empty_folder)
+#' pm
+#'
 #' @export
 pm_create_project <- function(path) {
   if (dir.exists(path)) {
