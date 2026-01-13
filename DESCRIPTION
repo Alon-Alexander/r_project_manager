@@ -12,4 +12,5 @@ Suggests:
     testthat,
     withr
 Imports:
+    R6,
     chk
