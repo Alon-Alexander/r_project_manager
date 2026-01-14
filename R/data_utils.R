@@ -262,6 +262,154 @@
   }
 }
 
+#' @title Check for missing entries in inputs.local.yaml
+#'
+#' @description
+#' Checks which input IDs from inputs.yaml are missing from inputs.local.yaml paths.
+#'
+#' @param input_ids Character vector. Input IDs from inputs.yaml
+#' @param local_paths Named list. Paths from inputs.local.yaml
+#'
+#' @return Character vector of missing input IDs
+#'
+#' @keywords internal
+.check_missing_entries <- function(input_ids, local_paths) {
+  missing_entries <- character(0)
+  for (id in input_ids) {
+    if (!id %in% names(local_paths)) {
+      missing_entries <- c(missing_entries, id)
+    }
+  }
+  missing_entries
+}
+
+#' @title Check for missing files
+#'
+#' @description
+#' Checks which files referenced in inputs.local.yaml do not exist.
+#'
+#' @param local_paths Named list. Paths from inputs.local.yaml (input ID -> path)
+#' @param project_path Character. Path to the project directory
+#'
+#' @return List with components:
+#'   - ids: Character vector of input IDs with missing files
+#'   - abs_paths: Character vector of resolved absolute paths
+#'   - original_paths: Character vector of original paths from YAML
+#'
+#' @keywords internal
+.check_missing_files <- function(local_paths, project_path) {
+  missing_ids <- character(0)
+  missing_abs_paths <- character(0)
+  missing_original_paths <- character(0)
+
+  for (id in names(local_paths)) {
+    path <- local_paths[[id]]
+    original_path <- path
+    
+    # Convert to absolute path if relative
+    if (!fs::is_absolute_path(path)) {
+      abs_path <- normalizePath(file.path(project_path, path), mustWork = FALSE)
+    } else {
+      abs_path <- normalizePath(path, mustWork = FALSE)
+    }
+
+    if (!file.exists(abs_path)) {
+      missing_ids <- c(missing_ids, id)
+      missing_abs_paths <- c(missing_abs_paths, abs_path)
+      missing_original_paths <- c(missing_original_paths, original_path)
+    }
+  }
+
+  list(
+    ids = missing_ids,
+    abs_paths = missing_abs_paths,
+    original_paths = missing_original_paths
+  )
+}
+
+#' @title Format validation error message
+#'
+#' @description
+#' Formats a helpful error message for input validation failures.
+#'
+#' @param missing_entries Character vector. Input IDs missing from inputs.local.yaml
+#' @param missing_files_details List. Output from .check_missing_files()
+#'
+#' @return Character. Formatted error message
+#'
+#' @keywords internal
+.format_validation_error <- function(missing_entries, missing_files_details) {
+  error_parts <- character(0)
+
+  if (length(missing_entries) > 0) {
+    entry_plural <- if (length(missing_entries) == 1) "ID" else "IDs"
+    error_parts <- c(
+      error_parts,
+      sprintf(
+        "Input validation failed: %d input %s defined in inputs.yaml but missing from inputs.local.yaml:\n  %s",
+        length(missing_entries),
+        entry_plural,
+        paste(sprintf("'%s'", missing_entries), collapse = ", ")
+      ),
+      "",
+      "To fix this, add the following entries to inputs.local.yaml under the 'paths' key:",
+      paste(sprintf("  %s: <path_to_your_file>", missing_entries), collapse = "\n"),
+      "",
+      sprintf(
+        "Example:\n  paths:\n    %s: data/your_file.csv",
+        missing_entries[1]
+      )
+    )
+  }
+
+  if (length(missing_files_details$ids) > 0) {
+    file_details <- character(0)
+    for (i in seq_along(missing_files_details$ids)) {
+      # Show both original path (from YAML) and resolved absolute path
+      if (missing_files_details$original_paths[i] != missing_files_details$abs_paths[i]) {
+        file_details <- c(
+          file_details,
+          sprintf(
+            "  - Input ID '%s':\n    Path in inputs.local.yaml: '%s'\n    Resolved to: '%s'\n    Status: File not found",
+            missing_files_details$ids[i],
+            missing_files_details$original_paths[i],
+            missing_files_details$abs_paths[i]
+          )
+        )
+      } else {
+        file_details <- c(
+          file_details,
+          sprintf(
+            "  - Input ID '%s':\n    Path: '%s'\n    Status: File not found",
+            missing_files_details$ids[i],
+            missing_files_details$abs_paths[i]
+          )
+        )
+      }
+    }
+    
+    file_plural <- if (length(missing_files_details$ids) == 1) "file" else "files"
+    error_parts <- c(
+      error_parts,
+      sprintf(
+        "Input validation failed: %d input %s referenced in inputs.local.yaml do not exist:",
+        length(missing_files_details$ids),
+        file_plural
+      ),
+      "",
+      paste(file_details, collapse = "\n\n"),
+      "",
+      "To fix this, you can either:",
+      "  1. Update the path in inputs.local.yaml to point to the correct file location",
+      "  2. Create the file at the specified path",
+      "",
+      "Note: If using relative paths, they are resolved relative to the project directory."
+    )
+  }
+
+  paste(error_parts, collapse = "\n")
+}
+
 #' @title Validate input files exist
 #'
 #' @description
@@ -297,12 +445,8 @@
     return(invisible(TRUE))
   }
 
-  # Validate inputs.yaml schema only if it has content
-  if (is.null(inputs_def) || length(inputs_def) == 0) {
-    return(invisible(TRUE))
-  } else {
-    .validate_inputs_schema(inputs_def)
-  }
+  # Validate inputs.yaml schema
+  .validate_inputs_schema(inputs_def)
 
   # Read inputs.local.yaml
   local_inputs <- tryCatch(
@@ -321,20 +465,10 @@
   }
 
   # Handle inputs.local.yaml - validate schema if present
-  if (is.null(local_inputs) || length(local_inputs) == 0) {
-    # If inputs.local.yaml is empty but we have inputs, all entries are missing
+  if (is.null(local_inputs) || length(local_inputs) == 0 || !is.list(local_inputs)) {
     local_inputs <- list(paths = list())
   } else {
-    # Validate inputs.local.yaml schema only if it has content
-    if (is.list(local_inputs) && "paths" %in% names(local_inputs)) {
-      .validate_local_inputs_schema(local_inputs)
-    } else if (is.list(local_inputs) && length(local_inputs) > 0) {
-      # If it's a list but doesn't have "paths" key, validate schema will catch it
-      .validate_local_inputs_schema(local_inputs)
-    } else {
-      # Invalid structure, treat as empty
-      local_inputs <- list(paths = list())
-    }
+    .validate_local_inputs_schema(local_inputs)
   }
 
   # Ensure paths key exists
@@ -342,111 +476,14 @@
     local_inputs$paths <- list()
   }
 
-  # Collect all errors
-  missing_entries <- character(0)
-  missing_files <- character(0)
-  missing_file_paths <- character(0)
-  missing_file_original_paths <- character(0)
+  # Check for missing entries and files
+  missing_entries <- .check_missing_entries(input_ids, local_inputs$paths)
+  missing_files_details <- .check_missing_files(local_inputs$paths, project_path)
 
-  # Check that all inputs from inputs.yaml have entries in inputs.local.yaml
-  for (id in input_ids) {
-    if (!id %in% names(local_inputs$paths)) {
-      missing_entries <- c(missing_entries, id)
-    }
-  }
-
-  # Check that all files referenced in inputs.local.yaml exist
-  for (id in names(local_inputs$paths)) {
-    path <- local_inputs$paths[[id]]
-    
-    # Store original path for error message
-    original_path <- path
-    
-    # Convert to absolute path if relative
-    if (!fs::is_absolute_path(path)) {
-      abs_path <- normalizePath(file.path(project_path, path), mustWork = FALSE)
-    } else {
-      abs_path <- normalizePath(path, mustWork = FALSE)
-    }
-
-    if (!file.exists(abs_path)) {
-      missing_files <- c(missing_files, id)
-      missing_file_paths <- c(missing_file_paths, abs_path)
-      missing_file_original_paths <- c(missing_file_original_paths, original_path)
-    }
-  }
-
-  # If there are any errors, construct helpful error messages
-  if (length(missing_entries) > 0 || length(missing_files) > 0) {
-    error_parts <- character(0)
-
-    if (length(missing_entries) > 0) {
-      entry_plural <- if (length(missing_entries) == 1) "ID" else "IDs"
-      error_parts <- c(
-        error_parts,
-        sprintf(
-          "Input validation failed: %d input %s defined in inputs.yaml but missing from inputs.local.yaml:\n  %s",
-          length(missing_entries),
-          entry_plural,
-          paste(sprintf("'%s'", missing_entries), collapse = ", ")
-        ),
-        "",
-        "To fix this, add the following entries to inputs.local.yaml under the 'paths' key:",
-        paste(sprintf("  %s: <path_to_your_file>", missing_entries), collapse = "\n"),
-        "",
-        sprintf(
-          "Example:\n  paths:\n    %s: data/your_file.csv",
-          missing_entries[1]
-        )
-      )
-    }
-
-    if (length(missing_files) > 0) {
-      file_details <- character(0)
-      for (i in seq_along(missing_files)) {
-        # Show both original path (from YAML) and resolved absolute path
-        if (missing_file_original_paths[i] != missing_file_paths[i]) {
-          file_details <- c(
-            file_details,
-            sprintf(
-              "  - Input ID '%s':\n    Path in inputs.local.yaml: '%s'\n    Resolved to: '%s'\n    Status: File not found",
-              missing_files[i],
-              missing_file_original_paths[i],
-              missing_file_paths[i]
-            )
-          )
-        } else {
-          file_details <- c(
-            file_details,
-            sprintf(
-              "  - Input ID '%s':\n    Path: '%s'\n    Status: File not found",
-              missing_files[i],
-              missing_file_paths[i]
-            )
-          )
-        }
-      }
-      
-      file_plural <- if (length(missing_files) == 1) "file" else "files"
-      error_parts <- c(
-        error_parts,
-        sprintf(
-          "Input validation failed: %d input %s referenced in inputs.local.yaml do not exist:",
-          length(missing_files),
-          file_plural
-        ),
-        "",
-        paste(file_details, collapse = "\n\n"),
-        "",
-        "To fix this, you can either:",
-        "  1. Update the path in inputs.local.yaml to point to the correct file location",
-        "  2. Create the file at the specified path",
-        "",
-        "Note: If using relative paths, they are resolved relative to the project directory."
-      )
-    }
-
-    stop(paste(error_parts, collapse = "\n"))
+  # If there are any errors, format and throw error
+  if (length(missing_entries) > 0 || length(missing_files_details$ids) > 0) {
+    error_message <- .format_validation_error(missing_entries, missing_files_details)
+    stop(error_message)
   }
 
   invisible(TRUE)
@@ -493,6 +530,7 @@
 #' my_object <- env$my_object
 #' }
 #'
+#' @importFrom utils read.csv read.table
 #' @export
 pm_read_file <- function(file, ...) {
   chk::chk_scalar(file)
@@ -594,6 +632,7 @@ pm_read_file <- function(file, ...) {
 #' 
 #' })
 #'
+#' @importFrom utils write.csv write.table
 #' @export
 pm_write_file <- function(file, x, ..., object_names = NULL) {
   chk::chk_scalar(file)

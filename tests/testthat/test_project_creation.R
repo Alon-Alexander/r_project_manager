@@ -284,9 +284,10 @@ describe("Input file validation in PMProject$validate()", {
       pm::PMProject$new(dir),
       regexp = "missing_file"
     )
+    # Check for the filename in the error message (path may be normalized)
     expect_error(
       pm::PMProject$new(dir),
-      regexp = nonexistent_path
+      regexp = "nonexistent_file"
     )
   })
 
