@@ -26,7 +26,7 @@ Supported file formats:
 \itemize{
 \item \strong{CSV}: Comma-separated values files (\code{.csv}) - uses \code{read.csv()}
 \item \strong{TSV}: Tab-separated values files (\code{.tsv}) - uses \code{read.table()} with \code{sep = "\\t"}
-\item \strong{Parquet}: Apache Parquet files (\code{.parquet}) - requires the \code{arrow} package
+\item \strong{Parquet}: Apache Parquet files (\code{.parquet}, \code{.pqt}) - requires the \code{arrow} package
 \item \strong{RDS}: R serialized data files (\code{.rds}) - uses \code{readRDS()}
 \item \strong{RData/RData/Rda}: R data files (\code{.rdata}, \code{.RData}, \code{.rda}, \code{.Rda}) - uses \code{load()} into a new environment
 }

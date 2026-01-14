@@ -22,6 +22,22 @@ data$path
 data <- PMData$new(id = "feature_table", path = "/path/to/file.csv")
 contents <- data$read()
 }
+
+## ------------------------------------------------
+## Method `PMData$write`
+## ------------------------------------------------
+
+withr::with_tempdir({
+  data <- PMData$new(id = "feature_table", path = "file.csv")
+  df <- data.frame(x = 1:5, y = letters[1:5])
+  data$write(df)
+
+  # For RData files, can write multiple objects
+  data_rdata <- PMData$new(id = "results", path = "results.RData")
+  obj1 <- data.frame(x = 1:3)
+  obj2 <- c("a", "b", "c")
+  data_rdata$write(obj1, obj2, obj3 = 42)
+})
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -38,6 +54,7 @@ contents <- data$read()
 \item \href{#method-PMData-new}{\code{PMData$new()}}
 \item \href{#method-PMData-print}{\code{PMData$print()}}
 \item \href{#method-PMData-read}{\code{PMData$read()}}
+\item \href{#method-PMData-write}{\code{PMData$write()}}
 \item \href{#method-PMData-clone}{\code{PMData$clone()}}
 }
 }
@@ -96,6 +113,48 @@ containing all objects from the file.
 data <- PMData$new(id = "feature_table", path = "/path/to/file.csv")
 contents <- data$read()
 }
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PMData-write"></a>}}
+\if{latex}{\out{\hypertarget{method-PMData-write}{}}}
+\subsection{Method \code{write()}}{
+Write data to the file
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PMData$write(x, ...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{x}}{The object to write. For tabular formats (CSV, TSV, Parquet), must be
+a data.frame. For RData files, can accept multiple objects via \code{...}.}
+
+\item{\code{...}}{Additional arguments passed to \code{\link{pm_write_file}}.
+For RData files, additional objects can be provided here.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+Invisibly returns the file path.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{withr::with_tempdir({
+  data <- PMData$new(id = "feature_table", path = "file.csv")
+  df <- data.frame(x = 1:5, y = letters[1:5])
+  data$write(df)
+
+  # For RData files, can write multiple objects
+  data_rdata <- PMData$new(id = "results", path = "results.RData")
+  obj1 <- data.frame(x = 1:3)
+  obj2 <- c("a", "b", "c")
+  data_rdata$write(obj1, obj2, obj3 = 42)
+})
 }
 \if{html}{\out{</div>}}
 

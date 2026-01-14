@@ -330,3 +330,174 @@ pm_read_file <- function(file, ...) {
   )
 }
 
+#' @title Write an object to a file based on its extension
+#'
+#' @description
+#' Writes an object to a file based on the file extension. Supports multiple file formats
+#' including tabular data (CSV, TSV), serialized R objects (RDS), and
+#' R data files (RData/RData).
+#'
+#' @param file Character. Path to the file to write
+#' @param x The object to write. For tabular formats (CSV, TSV, Parquet), must be
+#'   a data.frame or similar tabular object. For RData files, can accept multiple
+#'   objects via `...`.
+#' @param ... Additional arguments passed to the underlying write function.
+#'   For RData files, additional objects can be provided here.
+#' @param object_names Character vector. Optional. **Internal parameter.** For RData files, explicitly
+#'   specify the names for objects. If provided, must match the number of objects
+#'   (x + objects in ...). If not provided, names are extracted from the call.
+#'   This parameter is intended for use when forwarding a `...` call from a parent frame
+#'   where object names need to be preserved. See `PMData$write()` for example usage.
+#'
+#' @return Invisibly returns the file path.
+#'
+#' @details
+#' Supported file formats:
+#' - **CSV**: Comma-separated values files (`.csv`) - uses `write.csv()`. Requires a data.frame.
+#' - **TSV**: Tab-separated values files (`.tsv`) - uses `write.table()` with `sep = "\t"`. Requires a data.frame.
+#' - **Parquet**: Apache Parquet files (`.parquet`, `.pqt`) - requires the `arrow` package. Requires a data.frame.
+#' - **RDS**: R serialized data files (`.rds`) - uses `saveRDS()`. Accepts any R object.
+#' - **RData/RData/Rda**: R data files (`.rdata`, `.RData`, `.rda`, `.Rda`) - uses `save()`.
+#'   Can accept multiple objects: `pm_write_file("file.RData", obj1, obj2, obj3)`.
+#'
+#' For tabular formats (CSV, TSV, Parquet), the function validates that the object
+#' is a data.frame or similar tabular structure.
+#'
+#' The `object_names` parameter is an internal parameter used when forwarding `...` calls
+#' from a parent frame. When a wrapper function (like `PMData$write()`) needs to preserve
+#' object names from the original call, it can capture the names and pass them via
+#' `object_names`. This ensures that RData files contain objects with the correct names
+#' even when called through wrapper functions. See the implementation of `PMData$write()`
+#' for an example of how to use this parameter.
+#'
+#' @examples
+#' # Example usage:
+#' withr::with_tempdir({
+#'
+#' # Write a data.frame to CSV
+#' df <- data.frame(x = 1:5, y = letters[1:5])
+#' pm_write_file("data.csv", df)
+#'
+#' # Write a data.frame to TSV
+#' pm_write_file("data.tsv", df)
+#'
+#' # Write any object to RDS
+#' my_list <- list(a = 1, b = 2)
+#' pm_write_file("data.rds", my_list)
+#'
+#' # Write multiple objects to RData
+#' obj1 <- data.frame(x = 1:3)
+#' obj2 <- c("a", "b", "c")
+#' pm_write_file("data.RData", obj1, obj2, obj3 = 42)
+#' 
+#' })
+#'
+#' @export
+pm_write_file <- function(file, x, ..., object_names = NULL) {
+  chk::chk_scalar(file)
+  chk::chk_character(file)
+
+  # Get file extension (case-insensitive)
+  ext <- tolower(tools::file_ext(file))
+
+  # Write based on extension
+  switch(ext,
+    csv = {
+      if (!is.data.frame(x)) {
+        stop("For CSV files, 'x' must be a data.frame")
+      }
+      write.csv(x, file, row.names = FALSE, ...)
+    },
+    tsv = {
+      if (!is.data.frame(x)) {
+        stop("For TSV files, 'x' must be a data.frame")
+      }
+      write.table(x, file, sep = "\t", row.names = FALSE, quote = FALSE, ...)
+    },
+    parquet =,
+    pqt = {
+      if (!is.data.frame(x)) {
+        stop("For Parquet files, 'x' must be a data.frame")
+      }
+      if (!requireNamespace("arrow", quietly = TRUE)) {
+        stop("Writing Parquet files requires the 'arrow' package. ",
+             "Install it with: install.packages('arrow')")
+      }
+      arrow::write_parquet(x, file, ...)
+    },
+    rds = {
+      saveRDS(x, file, ...)
+    },
+    rdata =,
+    rda = {
+      # For RData files, collect all objects from x and ...
+      dots_values <- list(...)
+
+      # Use provided object_names if available, otherwise extract from call
+      if (!is.null(object_names)) {
+        # Use provided names
+        if (length(object_names) != 1 + length(dots_values)) {
+          stop("object_names must have length equal to number of objects (x + objects in ...)")
+        }
+        obj_names <- object_names
+        obj_values <- c(list(x), dots_values)
+      } else {
+        # Extract names from call
+        call_obj <- match.call(expand.dots = FALSE)
+        first_name <- deparse(call_obj$x)
+        dots_call <- call_obj$...
+        
+        # Collect all object names and values
+        obj_names <- character(0)
+        obj_values <- list()
+
+        # Add the first object
+        obj_names <- c(obj_names, first_name)
+        obj_values <- c(obj_values, list(x))
+
+        # Handle additional objects from ...
+        if (length(dots_values) > 0) {
+          dots_names <- names(dots_values)
+
+          for (i in seq_along(dots_values)) {
+            if (is.null(dots_names) || dots_names[i] == "") {
+              # Unnamed argument, extract name from the call
+              if (is.pairlist(dots_call)) {
+                obj_name <- deparse(dots_call[[i]])
+              } else if (is.call(dots_call) && dots_call[[1]] == as.name("list")) {
+                # If ... was expanded, it might be a list call
+                obj_name <- deparse(dots_call[[i + 1]])
+              } else if (!is.null(dots_call)) {
+                # Fallback: try to get name from the call
+                obj_name <- deparse(dots_call[[i]])
+              } else {
+                # Last resort: use a default name
+                obj_name <- paste0("obj", i)
+              }
+            } else {
+              # Named argument, use the name
+              obj_name <- dots_names[i]
+            }
+            obj_names <- c(obj_names, obj_name)
+            obj_values <- c(obj_values, list(dots_values[[i]]))
+          }
+        }
+      }
+
+      # Create a temporary environment to store objects
+      env <- new.env(parent = emptyenv())
+      for (i in seq_along(obj_names)) {
+        assign(obj_names[i], obj_values[[i]], envir = env)
+      }
+
+      # Save all objects
+      # Note: ... might contain arguments for save(), but we'll ignore them
+      # since we're using do.call with explicit arguments
+      save(list = obj_names, file = file, envir = env)
+    },
+    stop(sprintf("Unsupported file extension: .%s. Supported formats: csv, tsv, parquet, pqt, rds, rdata, rda", ext))
+  )
+
+  invisible(file)
+}
+

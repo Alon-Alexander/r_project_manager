@@ -6,7 +6,13 @@
 - Support reading CSV, TSV, Parquet (`.parquet`, `.pqt`), RDS, and RData (`.rdata`, `.rda`) files
 - Add `read()` method to `PMData` class for reading data files
 - For RData files, objects are loaded into a new environment and returned
-- Add comprehensive tests for file reading functionality
+- Add `pm_write_file()` function to write files based on their extension
+- Support writing CSV, TSV, Parquet (`.parquet`, `.pqt`), RDS, and RData (`.rdata`, `.rda`) files
+- Add `write()` method to `PMData` class for writing data files
+- For RData files, can write multiple objects using `...` (named or unnamed)
+- Validate object types: tabular formats (CSV, TSV, Parquet) require data.frame objects
+- Add comprehensive tests for file reading and writing functionality
+- Add round-trip integration tests for read/write operations through PMData
 - Add `arrow` package as suggested dependency for Parquet file support
 
 # pm 0.1.0
