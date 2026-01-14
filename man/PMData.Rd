@@ -13,6 +13,15 @@ data <- PMData$new(id = "feature_table", path = "/path/to/file.biom")
 data$id
 data$path
 
+
+## ------------------------------------------------
+## Method `PMData$read`
+## ------------------------------------------------
+
+\dontrun{
+data <- PMData$new(id = "feature_table", path = "/path/to/file.csv")
+contents <- data$read()
+}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -28,6 +37,7 @@ data$path
 \itemize{
 \item \href{#method-PMData-new}{\code{PMData$new()}}
 \item \href{#method-PMData-print}{\code{PMData$print()}}
+\item \href{#method-PMData-read}{\code{PMData$read()}}
 \item \href{#method-PMData-clone}{\code{PMData$clone()}}
 }
 }
@@ -57,6 +67,38 @@ Create a PMData object
 Print method for PMData
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PMData$print()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PMData-read"></a>}}
+\if{latex}{\out{\hypertarget{method-PMData-read}{}}}
+\subsection{Method \code{read()}}{
+Read the data file
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PMData$read(...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{...}}{Additional arguments passed to \code{\link{pm_read_file}}}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+The contents of the file. For RData files, returns a new environment
+containing all objects from the file.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{\dontrun{
+data <- PMData$new(id = "feature_table", path = "/path/to/file.csv")
+contents <- data$read()
+}
+}
+\if{html}{\out{</div>}}
+
 }
 
 }

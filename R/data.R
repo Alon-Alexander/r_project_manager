@@ -41,6 +41,23 @@ PMData <- R6Class("PMData",
       cat("  ID: ", self$id, "\n", sep = "")
       cat("  Path: ", self$path, "\n", sep = "")
       invisible(self)
+    },
+
+    #' @description
+    #' Read the data file
+    #'
+    #' @param ... Additional arguments passed to \code{\link{pm_read_file}}
+    #'
+    #' @return The contents of the file. For RData files, returns a new environment
+    #'   containing all objects from the file.
+    #'
+    #' @examples
+    #' \dontrun{
+    #' data <- PMData$new(id = "feature_table", path = "/path/to/file.csv")
+    #' contents <- data$read()
+    #' }
+    read = function(...) {
+      pm_read_file(self$path, ...)
     }
   )
 )

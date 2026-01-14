@@ -1,6 +1,6 @@
 Package: pm
 Title: Project and Analysis Manager
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: 
     person("Alon", "Alexander", , "alon008@gmail.com", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
@@ -10,7 +10,9 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Suggests:
     testthat,
-    withr
+    arrow,
+    withr,
+    mockery
 Imports:
     R6,
     chk,

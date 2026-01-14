@@ -250,3 +250,83 @@
   }
 }
 
+#' @title Read a file based on its extension
+#'
+#' @description
+#' Reads a file based on its file extension. Supports multiple file formats
+#' including tabular data (CSV, TSV), serialized R objects (RDS), and
+#' R data files (RData/RData).
+#'
+#' @param file Character. Path to the file to read
+#' @param ... Additional arguments passed to the underlying read function
+#'   (e.g., `header`, `sep`, `stringsAsFactors` for CSV/TSV files)
+#'
+#' @return The contents of the file. For RData files, returns a new environment
+#'   containing all objects from the file.
+#'
+#' @details
+#' Supported file formats:
+#' - **CSV**: Comma-separated values files (`.csv`) - uses `read.csv()`
+#' - **TSV**: Tab-separated values files (`.tsv`) - uses `read.table()` with `sep = "\t"`
+#' - **Parquet**: Apache Parquet files (`.parquet`, `.pqt`) - requires the `arrow` package
+#' - **RDS**: R serialized data files (`.rds`) - uses `readRDS()`
+#' - **RData/RData/Rda**: R data files (`.rdata`, `.RData`, `.rda`, `.Rda`) - uses `load()` into a new environment
+#'
+#' For RData files, all objects are loaded into a new environment which is returned.
+#' You can access objects using `env$object_name` or `as.list(env)`.
+#'
+#' @examples
+#' \dontrun{
+#' # Read a CSV file
+#' data <- pm_read_file("data.csv")
+#'
+#' # Read a TSV file
+#' data <- pm_read_file("data.tsv")
+#'
+#' # Read an RDS file
+#' obj <- pm_read_file("data.rds")
+#'
+#' # Read an RData file (returns environment)
+#' env <- pm_read_file("data.RData")
+#' my_object <- env$my_object
+#' }
+#'
+#' @export
+pm_read_file <- function(file, ...) {
+  chk::chk_scalar(file)
+  chk::chk_character(file)
+  chk::check_files(file, x_name = "File")
+
+  # Get file extension (case-insensitive)
+  ext <- tolower(tools::file_ext(file))
+
+  # Read based on extension
+  switch(ext,
+    csv = {
+      read.csv(file, ...)
+    },
+    tsv = {
+      read.table(file, sep = "\t", header = TRUE, ...)
+    },
+    parquet =,
+    pqt = {
+      if (!requireNamespace("arrow", quietly = TRUE)) {
+        stop("Reading Parquet files requires the 'arrow' package. ",
+             "Install it with: install.packages('arrow')")
+      }
+      arrow::read_parquet(file, ...)
+    },
+    rds = {
+      readRDS(file, ...)
+    },
+    rdata =,
+    rda = {
+      # Load into a new environment
+      env <- new.env(parent = emptyenv())
+      load(file, envir = env, ...)
+      env
+    },
+    stop(sprintf("Unsupported file extension: .%s. Supported formats: csv, tsv, parquet, pqt, rds, rdata, rda", ext))
+  )
+}
+

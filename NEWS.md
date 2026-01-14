@@ -1,3 +1,14 @@
+# pm 0.1.1
+
+## New Features
+
+- Add `pm_read_file()` function to read files based on their extension
+- Support reading CSV, TSV, Parquet (`.parquet`, `.pqt`), RDS, and RData (`.rdata`, `.rda`) files
+- Add `read()` method to `PMData` class for reading data files
+- For RData files, objects are loaded into a new environment and returned
+- Add comprehensive tests for file reading functionality
+- Add `arrow` package as suggested dependency for Parquet file support
+
 # pm 0.1.0
 
 ## New Features
