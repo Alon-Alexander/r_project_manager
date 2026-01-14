@@ -66,6 +66,7 @@ Create a PMProject object in an existing project's folder
 \subsection{Method \code{validate()}}{
 Validate the project folder.
 Makes sure all expected files and folder exist and are valid.
+Also validates that all input files referenced in inputs.local.yaml exist.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PMProject$validate()}\if{html}{\out{</div>}}
 }

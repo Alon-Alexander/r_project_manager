@@ -1,3 +1,16 @@
+# pm 0.1.2
+
+## Improvements
+
+- Enhanced input file validation in `PMProject$validate()` method
+- Improved error messages for missing input files with detailed information:
+  - Shows both original path (from YAML) and resolved absolute path
+  - Provides actionable guidance on how to fix issues
+  - Includes examples for adding missing entries
+  - Better handling of edge cases (empty inputs.local.yaml, missing paths key)
+- Fixed bug where validation could fail when inputs.local.yaml is empty or missing paths key
+- Added comprehensive test coverage for validation edge cases and error message formats
+
 # pm 0.1.1
 
 ## New Features

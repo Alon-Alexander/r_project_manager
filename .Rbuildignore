@@ -1,5 +1,6 @@
 ^\.vscode$
 ^\.github$
 ^LICENSE\.md$
+^PRODUCT.md$
 ^.pr_agent.toml$
 ^codecov.yml$

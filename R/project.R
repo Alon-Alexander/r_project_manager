@@ -36,6 +36,7 @@ PMProject <- R6Class("PMProject",
     #' @description
     #' Validate the project folder.
     #' Makes sure all expected files and folder exist and are valid.
+    #' Also validates that all input files referenced in inputs.local.yaml exist.
     validate = function() {
       chk::check_files(
         private$at(constants$INPUTS_FILENAME),
@@ -52,6 +53,13 @@ PMProject <- R6Class("PMProject",
       chk::check_dirs(
         private$at(constants$ANALYSES_DIR),
         x_name = "Analyses folder"
+      )
+
+      # Validate input files exist
+      .validate_input_files(
+        project_path = self$path,
+        inputs_file = private$at(constants$INPUTS_FILENAME),
+        local_inputs_file = private$at(constants$LOCAL_INPUTS_FILENAME)
       )
     },
 

@@ -15,11 +15,17 @@ describe("parse_inputs method works correctly", {
       file.path(dir, "inputs.yaml")
     )
 
-    # Create valid inputs.local.yaml
+    # Create test files
+    file1 <- file.path(dir, "feature_table.biom")
+    file2 <- file.path(dir, "metadata.tsv")
+    file.create(file1)
+    file.create(file2)
+
+    # Create valid inputs.local.yaml with relative paths
     local_inputs_yaml <- list(
       paths = list(
-        feature_table = "/path/to/feature_table.biom",
-        sample_metadata = "/path/to/metadata.tsv"
+        feature_table = "feature_table.biom",
+        sample_metadata = "metadata.tsv"
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
@@ -38,9 +44,9 @@ describe("parse_inputs method works correctly", {
     expect_s3_class(data_list$feature_table, "PMData")
     expect_s3_class(data_list$sample_metadata, "PMData")
     expect_equal(data_list$feature_table$id, "feature_table")
-    expect_equal(data_list$feature_table$path, normalizePath("/path/to/feature_table.biom", mustWork = FALSE))
+    expect_equal(data_list$feature_table$path, normalizePath(file1, mustWork = FALSE))
     expect_equal(data_list$sample_metadata$id, "sample_metadata")
-    expect_equal(data_list$sample_metadata$path, normalizePath("/path/to/metadata.tsv", mustWork = FALSE))
+    expect_equal(data_list$sample_metadata$path, normalizePath(file2, mustWork = FALSE))
   })
 
   it("Handles relative paths in inputs.local.yaml", {
@@ -91,10 +97,14 @@ describe("parse_inputs method works correctly", {
     )
     yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
 
-    # Create inputs.local.yaml
+    # Create test file
+    test_file <- file.path(dir, "test.tsv")
+    file.create(test_file)
+
+    # Create inputs.local.yaml with relative path
     local_inputs_yaml <- list(
       paths = list(
-        test_input = "/path/to/test.tsv"
+        test_input = "test.tsv"
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
@@ -114,10 +124,14 @@ describe("parse_inputs method works correctly", {
       "  - minimal_input"
     ), file.path(dir, "inputs.yaml"))
 
-    # Create inputs.local.yaml
+    # Create test file
+    test_file <- file.path(dir, "minimal.tsv")
+    file.create(test_file)
+
+    # Create inputs.local.yaml with relative path
     local_inputs_yaml <- list(
       paths = list(
-        minimal_input = "/path/to/minimal.tsv"
+        minimal_input = "minimal.tsv"
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
@@ -131,7 +145,7 @@ describe("parse_inputs method works correctly", {
     expect_true("minimal_input" %in% names(data_list))
     expect_s3_class(data_list$minimal_input, "PMData")
     expect_equal(data_list$minimal_input$id, "minimal_input")
-    expect_equal(data_list$minimal_input$path, normalizePath("/path/to/minimal.tsv", mustWork = FALSE))
+    expect_equal(data_list$minimal_input$path, normalizePath(test_file, mustWork = FALSE))
   })
 
   it("Allows inputs with just an ID (null value)", {
@@ -145,10 +159,14 @@ describe("parse_inputs method works correctly", {
     )
     yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
 
-    # Create inputs.local.yaml
+    # Create test file
+    test_file <- file.path(dir, "null.tsv")
+    file.create(test_file)
+
+    # Create inputs.local.yaml with relative path
     local_inputs_yaml <- list(
       paths = list(
-        null_input = "/path/to/null.tsv"
+        null_input = "null.tsv"
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
@@ -162,7 +180,7 @@ describe("parse_inputs method works correctly", {
     expect_true("null_input" %in% names(data_list))
     expect_s3_class(data_list$null_input, "PMData")
     expect_equal(data_list$null_input$id, "null_input")
-    expect_equal(data_list$null_input$path, normalizePath("/path/to/null.tsv", mustWork = FALSE))
+    expect_equal(data_list$null_input$path, normalizePath(test_file, mustWork = FALSE))
   })
 
   it("Errors when input ID is missing from inputs.local.yaml", {
@@ -177,19 +195,22 @@ describe("parse_inputs method works correctly", {
     )
     yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
 
-    # Create inputs.local.yaml with only one input
+    # Create test file for input1
+    test_file <- file.path(dir, "input1.tsv")
+    file.create(test_file)
+
+    # Create inputs.local.yaml with only one input (relative path)
     local_inputs_yaml <- list(
       paths = list(
-        input1 = "/path/to/input1.tsv"
+        input1 = test_file
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
 
     # Should error
-    proj <- pm::PMProject$new(dir)
     expect_error(
-      proj$parse_inputs(),
-      regexp = "is defined in inputs.yaml but missing from inputs.local.yaml paths"
+      pm::PMProject$new(dir),
+      regexp = "defined in inputs.yaml but missing from inputs.local.yaml"
     )
   })
 
@@ -199,18 +220,21 @@ describe("parse_inputs method works correctly", {
     # Create invalid inputs.yaml (malformed YAML)
     writeLines("invalid: yaml: content: bad", file.path(dir, "inputs.yaml"))
 
-    # Create valid inputs.local.yaml
+    # Create test file
+    test_file <- file.path(dir, "test.tsv")
+    file.create(test_file)
+
+    # Create valid inputs.local.yaml with relative path
     local_inputs_yaml <- list(
       paths = list(
-        test_input = "/path/to/test.tsv"
+        test_input = test_file
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
 
-    proj <- pm::PMProject$new(dir)
     expect_error(
-      proj$parse_inputs(),
-      regexp = "must be a YAML object"
+      pm::PMProject$new(dir),
+      regexp = "Failed to read and parse inputs.yaml"
     )
   })
 
@@ -223,17 +247,20 @@ describe("parse_inputs method works correctly", {
     )
     yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
 
-    # Create valid inputs.local.yaml
+    # Create test file
+    test_file <- file.path(dir, "test.tsv")
+    file.create(test_file)
+
+    # Create valid inputs.local.yaml with relative path
     local_inputs_yaml <- list(
       paths = list(
-        test_input = "/path/to/test.tsv"
+        test_input = test_file
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
 
-    proj <- pm::PMProject$new(dir)
     expect_error(
-      proj$parse_inputs(),
+      pm::PMProject$new(dir),
       regexp = "must have a top-level 'inputs' key"
     )
   })
@@ -247,17 +274,20 @@ describe("parse_inputs method works correctly", {
     )
     yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
 
-    # Create valid inputs.local.yaml
+    # Create test file
+    test_file <- file.path(dir, "test.tsv")
+    file.create(test_file)
+
+    # Create valid inputs.local.yaml with relative path
     local_inputs_yaml <- list(
       paths = list(
-        test_input = "/path/to/test.tsv"
+        test_input = test_file
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
 
-    proj <- pm::PMProject$new(dir)
     expect_error(
-      proj$parse_inputs(),
+      pm::PMProject$new(dir),
       regexp = "'inputs' in inputs.yaml must be a YAML list or object"
     )
   })
@@ -271,17 +301,20 @@ describe("parse_inputs method works correctly", {
     )
     yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
 
-    # Create valid inputs.local.yaml
+    # Create test file
+    test_file <- file.path(dir, "test.tsv")
+    file.create(test_file)
+
+    # Create valid inputs.local.yaml with relative path
     local_inputs_yaml <- list(
       paths = list(
-        test_input = "/path/to/test.tsv"
+        test_input = test_file
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
 
-    proj <- pm::PMProject$new(dir)
     expect_error(
-      proj$parse_inputs(),
+      pm::PMProject$new(dir),
       regexp = "'inputs' in inputs.yaml must contain at least one input definition"
     )
   })
@@ -297,17 +330,20 @@ describe("parse_inputs method works correctly", {
     )
     yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
 
-    # Create valid inputs.local.yaml
+    # Create test file
+    test_file <- file.path(dir, "test.tsv")
+    file.create(test_file)
+
+    # Create valid inputs.local.yaml with relative path
     local_inputs_yaml <- list(
       paths = list(
-        test_input = "/path/to/test.tsv"
+        test_input = test_file
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
 
-    proj <- pm::PMProject$new(dir)
     expect_error(
-      proj$parse_inputs(),
+      pm::PMProject$new(dir),
       regexp = "must be a YAML object"
     )
   })
@@ -326,10 +362,9 @@ describe("parse_inputs method works correctly", {
     # Create invalid inputs.local.yaml (malformed YAML)
     writeLines("invalid: yaml: content: bad", file.path(dir, "inputs.local.yaml"))
 
-    proj <- pm::PMProject$new(dir)
     expect_error(
-      proj$parse_inputs(),
-      regexp = "must be a YAML object"
+      pm::PMProject$new(dir),
+      regexp = "Failed to read and parse inputs.local.yaml"
     )
   })
 
@@ -350,9 +385,8 @@ describe("parse_inputs method works correctly", {
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
 
-    proj <- pm::PMProject$new(dir)
     expect_error(
-      proj$parse_inputs(),
+      pm::PMProject$new(dir),
       regexp = "must have a top-level 'paths' key"
     )
   })
@@ -374,9 +408,8 @@ describe("parse_inputs method works correctly", {
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
 
-    proj <- pm::PMProject$new(dir)
     expect_error(
-      proj$parse_inputs(),
+      pm::PMProject$new(dir),
       regexp = "'paths' in inputs.local.yaml must be a YAML object"
     )
   })
@@ -400,9 +433,8 @@ describe("parse_inputs method works correctly", {
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
 
-    proj <- pm::PMProject$new(dir)
     expect_error(
-      proj$parse_inputs(),
+      pm::PMProject$new(dir),
       regexp = "must be character"
     )
   })
@@ -420,17 +452,20 @@ describe("parse_inputs method works correctly", {
     )
     yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
 
-    # Create valid inputs.local.yaml
+    # Create test file
+    test_file <- file.path(dir, "test.tsv")
+    file.create(test_file)
+
+    # Create valid inputs.local.yaml with relative path
     local_inputs_yaml <- list(
       paths = list(
-        test_input = "/path/to/test.tsv"
+        test_input = test_file
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
 
-    proj <- pm::PMProject$new(dir)
     expect_error(
-      proj$parse_inputs(),
+      pm::PMProject$new(dir),
       regexp = "must be character"
     )
   })
@@ -448,17 +483,20 @@ describe("parse_inputs method works correctly", {
     )
     yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
 
-    # Create valid inputs.local.yaml
+    # Create test file
+    test_file <- file.path(dir, "test.tsv")
+    file.create(test_file)
+
+    # Create valid inputs.local.yaml with relative path
     local_inputs_yaml <- list(
       paths = list(
-        test_input = "/path/to/test.tsv"
+        test_input = test_file
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
 
-    proj <- pm::PMProject$new(dir)
     expect_error(
-      proj$parse_inputs(),
+      pm::PMProject$new(dir),
       regexp = "must be a number"
     )
   })
@@ -477,7 +515,7 @@ describe("Edge cases and additional coverage", {
     expect_true(any(grepl(paste0("Path: ", test_path), output, fixed = TRUE)))
     
     # Should return self invisibly
-    result <- print(data)
+    capture.output(result <- print(data))
     expect_identical(result, data)
   })
 
@@ -487,17 +525,20 @@ describe("Edge cases and additional coverage", {
     # Create invalid inputs.yaml (not a list - just a string)
     writeLines("just a string", file.path(dir, "inputs.yaml"))
     
-    # Create valid inputs.local.yaml
+    # Create test file
+    test_file <- file.path(dir, "test.tsv")
+    file.create(test_file)
+
+    # Create valid inputs.local.yaml with relative path
     local_inputs_yaml <- list(
       paths = list(
-        test_input = "/path/to/test.tsv"
+        test_input = test_file
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
-    
-    proj <- pm::PMProject$new(dir)
+
     expect_error(
-      proj$parse_inputs(),
+      pm::PMProject$new(dir),
       regexp = "must be a YAML object"
     )
   })
@@ -511,17 +552,20 @@ describe("Edge cases and additional coverage", {
     )
     yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
     
-    # Create valid inputs.local.yaml
+    # Create test file
+    test_file <- file.path(dir, "test.tsv")
+    file.create(test_file)
+
+    # Create valid inputs.local.yaml with relative path
     local_inputs_yaml <- list(
       paths = list(
-        test_input = "/path/to/test.tsv"
+        test_input = test_file
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
     
-    proj <- pm::PMProject$new(dir)
     expect_error(
-      proj$parse_inputs(),
+      pm::PMProject$new(dir),
       regexp = "must be a YAML list or object"
     )
   })
@@ -537,18 +581,21 @@ describe("Edge cases and additional coverage", {
     )
     yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
     
-    # Create valid inputs.local.yaml
+    # Create test file
+    test_file <- file.path(dir, "test.tsv")
+    file.create(test_file)
+
+    # Create valid inputs.local.yaml with relative path
     local_inputs_yaml <- list(
       paths = list(
-        test_input = "/path/to/test.tsv"
+        test_input = test_file
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
     
-    proj <- pm::PMProject$new(dir)
     # This should error with the correct message
     expect_error(
-      proj$parse_inputs(),
+      pm::PMProject$new(dir),
       regexp = "has fields but no ID key"
     )
   })
@@ -566,18 +613,21 @@ describe("Edge cases and additional coverage", {
       file.path(dir, "inputs.yaml")
     )
     
-    # Create valid inputs.local.yaml
+    # Create test file
+    test_file <- file.path(dir, "test.tsv")
+    file.create(test_file)
+
+    # Create valid inputs.local.yaml with relative path
     local_inputs_yaml <- list(
       paths = list(
-        test_input = "/path/to/test.tsv"
+        test_input = test_file
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
     
-    proj <- pm::PMProject$new(dir)
     # Numeric values will fail validation
     expect_error(
-      proj$parse_inputs()
+      pm::PMProject$new(dir)$parse_inputs()
     )
   })
 
@@ -596,14 +646,18 @@ describe("Edge cases and additional coverage", {
     )
     yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
     
-    # Create valid inputs.local.yaml
+    # Create test file
+    test_file <- file.path(dir, "test.tsv")
+    file.create(test_file)
+
+    # Create valid inputs.local.yaml with relative path
     local_inputs_yaml <- list(
       paths = list(
-        test_input = "/path/to/test.tsv"
+        test_input = test_file
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
-    
+
     proj <- pm::PMProject$new(dir)
     data_list <- proj$parse_inputs()
     
@@ -622,14 +676,18 @@ describe("Edge cases and additional coverage", {
     )
     yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
     
-    # Create valid inputs.local.yaml
+    # Create test file
+    test_file <- file.path(dir, "test.tsv")
+    file.create(test_file)
+
+    # Create valid inputs.local.yaml with relative path
     local_inputs_yaml <- list(
       paths = list(
-        test_input = "/path/to/test.tsv"
+        test_input = "test.tsv"
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
-    
+
     proj <- pm::PMProject$new(dir)
     data_list <- proj$parse_inputs()
     
@@ -651,14 +709,18 @@ describe("Edge cases and additional coverage", {
       file.path(dir, "inputs.yaml")
     )
     
-    # Create valid inputs.local.yaml
+    # Create test file
+    test_file <- file.path(dir, "test.tsv")
+    file.create(test_file)
+
+    # Create valid inputs.local.yaml with relative path
     local_inputs_yaml <- list(
       paths = list(
-        test_input = "/path/to/test.tsv"
+        test_input = test_file
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
-    
+
     proj <- pm::PMProject$new(dir)
     data_list <- proj$parse_inputs()
     
@@ -678,13 +740,15 @@ describe("Edge cases and additional coverage", {
     yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
     
     # Create valid inputs.local.yaml
+    test_path <- file.path(dir, "test.tsv")
     local_inputs_yaml <- list(
       paths = list(
-        test_input = "/path/to/test.tsv"
+        test_input = test_path
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
-    
+    file.create(test_path)
+
     proj <- pm::PMProject$new(dir)
     data_list <- proj$parse_inputs()
     
@@ -703,18 +767,21 @@ describe("Edge cases and additional coverage", {
     )
     yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
     
-    # Create valid inputs.local.yaml
+    # Create test file
+    test_file <- file.path(dir, "test.tsv")
+    file.create(test_file)
+
+    # Create valid inputs.local.yaml with relative path
     local_inputs_yaml <- list(
       paths = list(
-        test_input = "/path/to/test.tsv"
+        test_input = test_file
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
     
-    proj <- pm::PMProject$new(dir)
     # The error might be different - it could hit the "has fields but no ID key" first
     expect_error(
-      proj$parse_inputs()
+      pm::PMProject$new(dir)
     )
   })
 
@@ -801,13 +868,16 @@ describe("Edge cases and additional coverage", {
     )
     
     # Create valid inputs.local.yaml
+    id1_path <- file.path(dir, "id1.tsv")
     local_inputs_yaml <- list(
       paths = list(
-        id1 = "/path/to/id1.tsv"
+        id1 = id1_path
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
-    
+
+    file.create(id1_path)
+
     proj <- pm::PMProject$new(dir)
     # This should work - it will use the null key (id1)
     data_list <- proj$parse_inputs()
@@ -851,13 +921,19 @@ describe("Edge cases and additional coverage", {
     }
     
     # Create valid inputs.local.yaml
+    test1_path <- file.path(dir, "test1.tsv")
+    test2_path <- file.path(dir, "test2.tsv")
     local_inputs_yaml <- list(
       paths = list(
-        test1 = "/path/to/test1.tsv",
-        test2 = "/path/to/test2.tsv"
+        test1 = test1_path,
+        test2 = test2_path
       )
     )
     yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
+
+    # Create dummy files for test1 and test2
+    file.create(test1_path)
+    file.create(test2_path)
     
     proj <- pm::PMProject$new(dir)
     data_list <- proj$parse_inputs()
