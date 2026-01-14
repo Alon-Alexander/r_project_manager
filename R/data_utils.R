@@ -26,11 +26,17 @@
 
   inputs_list <- inputs_def$inputs
 
-  # Handle YAML simplification: single-item lists are parsed as the value itself
-  # Only convert if it looks like a valid identifier (alphanumeric + underscore, no spaces)
-  if (is.character(inputs_list) && length(inputs_list) == 1) {
-    if (grepl("^[a-zA-Z_][a-zA-Z0-9_]*$", inputs_list)) {
-      inputs_list <- list(inputs_list)
+  # Handle YAML simplification: arrays are parsed as character vectors
+  # Convert character vectors to lists for consistent processing
+  if (is.character(inputs_list)) {
+    if (length(inputs_list) == 1) {
+      # Single-item: only convert if it looks like a valid identifier
+      if (grepl("^[a-zA-Z_][a-zA-Z0-9_]*$", inputs_list)) {
+        inputs_list <- list(inputs_list)
+      }
+    } else {
+      # Multiple items: convert to list
+      inputs_list <- as.list(inputs_list)
     }
   }
 
@@ -202,11 +208,17 @@
   }
   inputs_list <- inputs_def$inputs
 
-  # Handle YAML simplification: single-item lists are parsed as the value itself
-  # Only convert if it looks like a valid identifier (alphanumeric + underscore, no spaces)
-  if (is.character(inputs_list) && length(inputs_list) == 1) {
-    if (grepl("^[a-zA-Z_][a-zA-Z0-9_]*$", inputs_list)) {
-      inputs_list <- list(inputs_list)
+  # Handle YAML simplification: arrays are parsed as character vectors
+  # Convert character vectors to lists for consistent processing
+  if (is.character(inputs_list)) {
+    if (length(inputs_list) == 1) {
+      # Single-item: only convert if it looks like a valid identifier
+      if (grepl("^[a-zA-Z_][a-zA-Z0-9_]*$", inputs_list)) {
+        inputs_list <- list(inputs_list)
+      }
+    } else {
+      # Multiple items: convert to list
+      inputs_list <- as.list(inputs_list)
     }
   }
 
@@ -248,6 +260,196 @@
     # Object format: use names as IDs
     names(inputs_list)
   }
+}
+
+#' @title Validate input files exist
+#'
+#' @description
+#' Validates that all input files referenced in inputs.local.yaml actually exist.
+#' Also checks that all inputs defined in inputs.yaml have corresponding entries
+#' in inputs.local.yaml.
+#'
+#' @param project_path Character. Path to the project directory
+#' @param inputs_file Character. Path to inputs.yaml file
+#' @param local_inputs_file Character. Path to inputs.local.yaml file
+#'
+#' @details
+#' This function:
+#' - Reads and validates the schema of both YAML files
+#' - Checks that all input IDs from inputs.yaml have entries in inputs.local.yaml
+#' - Checks that all files referenced in inputs.local.yaml exist
+#' - Provides helpful error messages with guidance on how to fix issues
+#'
+#' @return Invisibly returns TRUE if validation passes
+#'
+#' @keywords internal
+.validate_input_files <- function(project_path, inputs_file, local_inputs_file) {
+  # Read inputs.yaml
+  inputs_def <- tryCatch(
+    yaml::read_yaml(inputs_file),
+    error = function(e) {
+      stop("Failed to read and parse inputs.yaml: ", conditionMessage(e))
+    }
+  )
+
+  # If inputs.yaml is empty or NULL, skip validation
+  if (is.null(inputs_def) || length(inputs_def) == 0) {
+    return(invisible(TRUE))
+  }
+
+  # Validate inputs.yaml schema only if it has content
+  if (is.null(inputs_def) || length(inputs_def) == 0) {
+    return(invisible(TRUE))
+  } else {
+    .validate_inputs_schema(inputs_def)
+  }
+
+  # Read inputs.local.yaml
+  local_inputs <- tryCatch(
+    yaml::read_yaml(local_inputs_file),
+    error = function(e) {
+      stop("Failed to read and parse inputs.local.yaml: ", conditionMessage(e))
+    }
+  )
+
+  # Extract input IDs from inputs.yaml
+  input_ids <- .extract_input_ids(inputs_def)
+  
+  # If no inputs are defined, skip file validation
+  if (length(input_ids) == 0) {
+    return(invisible(TRUE))
+  }
+
+  # Handle inputs.local.yaml - validate schema if present
+  if (is.null(local_inputs) || length(local_inputs) == 0) {
+    # If inputs.local.yaml is empty but we have inputs, all entries are missing
+    local_inputs <- list(paths = list())
+  } else {
+    # Validate inputs.local.yaml schema only if it has content
+    if (is.list(local_inputs) && "paths" %in% names(local_inputs)) {
+      .validate_local_inputs_schema(local_inputs)
+    } else if (is.list(local_inputs) && length(local_inputs) > 0) {
+      # If it's a list but doesn't have "paths" key, validate schema will catch it
+      .validate_local_inputs_schema(local_inputs)
+    } else {
+      # Invalid structure, treat as empty
+      local_inputs <- list(paths = list())
+    }
+  }
+
+  # Ensure paths key exists
+  if (!"paths" %in% names(local_inputs) || is.null(local_inputs$paths)) {
+    local_inputs$paths <- list()
+  }
+
+  # Collect all errors
+  missing_entries <- character(0)
+  missing_files <- character(0)
+  missing_file_paths <- character(0)
+  missing_file_original_paths <- character(0)
+
+  # Check that all inputs from inputs.yaml have entries in inputs.local.yaml
+  for (id in input_ids) {
+    if (!id %in% names(local_inputs$paths)) {
+      missing_entries <- c(missing_entries, id)
+    }
+  }
+
+  # Check that all files referenced in inputs.local.yaml exist
+  for (id in names(local_inputs$paths)) {
+    path <- local_inputs$paths[[id]]
+    
+    # Store original path for error message
+    original_path <- path
+    
+    # Convert to absolute path if relative
+    if (!fs::is_absolute_path(path)) {
+      abs_path <- normalizePath(file.path(project_path, path), mustWork = FALSE)
+    } else {
+      abs_path <- normalizePath(path, mustWork = FALSE)
+    }
+
+    if (!file.exists(abs_path)) {
+      missing_files <- c(missing_files, id)
+      missing_file_paths <- c(missing_file_paths, abs_path)
+      missing_file_original_paths <- c(missing_file_original_paths, original_path)
+    }
+  }
+
+  # If there are any errors, construct helpful error messages
+  if (length(missing_entries) > 0 || length(missing_files) > 0) {
+    error_parts <- character(0)
+
+    if (length(missing_entries) > 0) {
+      entry_plural <- if (length(missing_entries) == 1) "ID" else "IDs"
+      error_parts <- c(
+        error_parts,
+        sprintf(
+          "Input validation failed: %d input %s defined in inputs.yaml but missing from inputs.local.yaml:\n  %s",
+          length(missing_entries),
+          entry_plural,
+          paste(sprintf("'%s'", missing_entries), collapse = ", ")
+        ),
+        "",
+        "To fix this, add the following entries to inputs.local.yaml under the 'paths' key:",
+        paste(sprintf("  %s: <path_to_your_file>", missing_entries), collapse = "\n"),
+        "",
+        sprintf(
+          "Example:\n  paths:\n    %s: data/your_file.csv",
+          missing_entries[1]
+        )
+      )
+    }
+
+    if (length(missing_files) > 0) {
+      file_details <- character(0)
+      for (i in seq_along(missing_files)) {
+        # Show both original path (from YAML) and resolved absolute path
+        if (missing_file_original_paths[i] != missing_file_paths[i]) {
+          file_details <- c(
+            file_details,
+            sprintf(
+              "  - Input ID '%s':\n    Path in inputs.local.yaml: '%s'\n    Resolved to: '%s'\n    Status: File not found",
+              missing_files[i],
+              missing_file_original_paths[i],
+              missing_file_paths[i]
+            )
+          )
+        } else {
+          file_details <- c(
+            file_details,
+            sprintf(
+              "  - Input ID '%s':\n    Path: '%s'\n    Status: File not found",
+              missing_files[i],
+              missing_file_paths[i]
+            )
+          )
+        }
+      }
+      
+      file_plural <- if (length(missing_files) == 1) "file" else "files"
+      error_parts <- c(
+        error_parts,
+        sprintf(
+          "Input validation failed: %d input %s referenced in inputs.local.yaml do not exist:",
+          length(missing_files),
+          file_plural
+        ),
+        "",
+        paste(file_details, collapse = "\n\n"),
+        "",
+        "To fix this, you can either:",
+        "  1. Update the path in inputs.local.yaml to point to the correct file location",
+        "  2. Create the file at the specified path",
+        "",
+        "Note: If using relative paths, they are resolved relative to the project directory."
+      )
+    }
+
+    stop(paste(error_parts, collapse = "\n"))
+  }
+
+  invisible(TRUE)
 }
 
 #' @title Read a file based on its extension
