@@ -257,7 +257,7 @@ PMProject <- R6Class("PMProject",
       readme_path <- file.path(analysis_path, constants$README_FILENAME)
       if (file.exists(readme_path)) {
         readme_content <- readLines(readme_path)
-        readme_content <- gsub("\\{\\{ANALYSIS_NAME\\}\\}", name, readme_content)
+        readme_content <- gsub("\\{\\{ANALYSIS_NAME\\}\\}", name, readme_content, fixed = TRUE)
         writeLines(readme_content, readme_path)
       }
 
@@ -387,7 +387,7 @@ pm_create_project <- function(path) {
     file.copy(file_path, dest_path, overwrite = TRUE)
   }
 
-  for (inner_source_dir in list.dirs(from_dir)) {
+  for (inner_source_dir in list.dirs(from_dir, recursive = FALSE)) {
     if (identical(inner_source_dir, from_dir)) {
       next
     }
