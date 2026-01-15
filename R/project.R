@@ -3,9 +3,9 @@
 #' @description
 #' This object can be used to manage a project folder.
 #' Use it to create analyses, freeze input files, etc.
-#' 
+#'
 #' @field path Full path to the project's folder
-#' 
+#'
 #' @examples
 #' # Create a valid project to load
 #' folder <- withr::local_tempdir()
@@ -133,6 +133,136 @@ PMProject <- R6Class("PMProject",
       }
 
       data_list
+    },
+
+    #' @description
+    #' Get all analysis names from the project.
+    #' Returns the names of all valid analysis folders in the analyses directory.
+    #'
+    #' @return Character vector of analysis names
+    #'
+    #' @examples
+    #' folder <- withr::local_tempdir()
+    #' pm <- pm_create_project(folder)
+    #' invisible(pm$create_analysis("data_preparation"))
+    #' invisible(pm$create_analysis("modeling"))
+    #' pm$list_analyses()
+    list_analyses = function() {
+      analyses_dir <- private$at(constants$ANALYSES_DIR)
+      if (!dir.exists(analyses_dir)) {
+        return(character(0))
+      }
+
+      # Get all subdirectories in analyses folder
+      all_dirs <- list.dirs(analyses_dir, full.names = FALSE, recursive = FALSE)
+
+      # Filter to only valid analyses
+      valid_analyses <- character(0)
+      for (dir_name in all_dirs) {
+        analysis_path <- file.path(analyses_dir, dir_name)
+        # Check if it's a valid analysis by trying to create it (validation happens in initialize)
+        analysis <- tryCatch(
+          PMAnalysis$new(path = analysis_path),
+          error = function(e) NULL
+        )
+        if (!is.null(analysis)) {
+          valid_analyses <- c(valid_analyses, dir_name)
+        }
+      }
+
+      valid_analyses
+    },
+
+    #' @description
+    #' Get an analysis object by name.
+    #' Returns a PMAnalysis object for the specified analysis name.
+    #'
+    #' @param name Character. Name of the analysis (folder name within analyses/).
+    #'
+    #' @return \code{PMAnalysis} object for the specified analysis
+    #'
+    #' @examples
+    #' folder <- withr::local_tempdir()
+    #' pm <- pm_create_project(folder)
+    #' invisible(pm$create_analysis("data_preparation"))
+    #' analysis <- pm$get_analysis("data_preparation")
+    #' analysis
+    get_analysis = function(name) {
+      chk::chk_scalar(name)
+      chk::chk_character(name)
+
+      analysis_path <- private$at(constants$ANALYSES_DIR, name)
+
+      if (!dir.exists(analysis_path)) {
+        stop(sprintf("Analysis '%s' does not exist in project", name))
+      }
+
+      # Try to create the analysis (validation happens in initialize)
+      analysis <- tryCatch(
+        PMAnalysis$new(project = self, name = name),
+        error = function(e) {
+          stop(sprintf("Analysis '%s' exists but is not valid: %s", name, conditionMessage(e)))
+        }
+      )
+
+      analysis
+    },
+
+    #' @description
+    #' Create a new analysis from template.
+    #' Creates a new analysis folder with template structure including
+    #' README.md, directories (code/, outputs/, intermediate/, logs/),
+    #' and .gitignore file.
+    #'
+    #' @param name Character. Name of the analysis (will be the folder name).
+    #'
+    #' @return \code{PMAnalysis} object representing the newly created analysis
+    #'
+    #' @examples
+    #' folder <- withr::local_tempdir()
+    #' pm <- pm_create_project(folder)
+    #' analysis <- pm$create_analysis("data_preparation")
+    #' analysis
+    create_analysis = function(name) {
+      chk::chk_scalar(name)
+      chk::chk_character(name)
+
+      # Check if analysis already exists
+      analysis_path <- private$at(constants$ANALYSES_DIR, name)
+      if (dir.exists(analysis_path)) {
+        # Check if it's a valid analysis
+        analysis <- tryCatch(
+          PMAnalysis$new(project = self, name = name),
+          error = function(e) NULL
+        )
+        if (!is.null(analysis)) {
+          return(analysis)
+        }
+
+        # Folder exists but invalid, raise error
+        stop(sprintf(
+          "Analysis folder '%s' already exists but is not a valid analysis",
+          name
+        ))
+      }
+
+      # Create analysis directory
+      dir.create(analysis_path, showWarnings = FALSE, recursive = TRUE)
+
+      # Copy template structure
+      template_dir <- system.file("extdata", constants$TEMPLATE_ANALYSIS_DIR, package = "pm")
+      .recursive_copy(template_dir, analysis_path)
+
+      # Replace {{ANALYSIS_NAME}} placeholder in README.md
+      readme_path <- file.path(analysis_path, constants$README_FILENAME)
+      if (file.exists(readme_path)) {
+        readme_content <- readLines(readme_path)
+        readme_content <- gsub("\\{\\{ANALYSIS_NAME\\}\\}", name, readme_content)
+        writeLines(readme_content, readme_path)
+      }
+
+      # Return PMAnalysis object
+      PMAnalysis$new(project = self, name = name)
     }
   ),
   private = list(
@@ -234,12 +364,27 @@ pm_create_project <- function(path) {
     x_name = "Destination of copy"
   )
 
-  for (file in list.files(from_dir)) {
+  for (file in list.files(from_dir, all.files = TRUE, no.. = TRUE)) {
     if (identical(basename(file), "dont_copy")) {
       next
     }
 
-    file.copy(file.path(from_dir, file), to_dir, overwrite = TRUE)
+    file_path <- file.path(from_dir, file)
+    # Skip directories - they are handled recursively below
+    if (dir.exists(file_path)) {
+      next
+    }
+
+    # Handle files starting with "dot_" - rename to "." prefix
+    file_basename <- basename(file)
+    if (startsWith(file_basename, "dot_")) {
+      dest_name <- sub("^dot_", ".", file_basename)
+      dest_path <- file.path(to_dir, dest_name)
+    } else {
+      dest_path <- file.path(to_dir, file_basename)
+    }
+
+    file.copy(file_path, dest_path, overwrite = TRUE)
   }
 
   for (inner_source_dir in list.dirs(from_dir)) {

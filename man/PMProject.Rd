@@ -26,6 +26,35 @@ pm <- pm_create_project(folder)
 
 # After configuring inputs.yaml and inputs.local.yaml:
 # data_list <- pm$parse_inputs()
+
+## ------------------------------------------------
+## Method `PMProject$list_analyses`
+## ------------------------------------------------
+
+folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+invisible(pm$create_analysis("data_preparation"))
+invisible(pm$create_analysis("modeling"))
+pm$list_analyses()
+
+## ------------------------------------------------
+## Method `PMProject$get_analysis`
+## ------------------------------------------------
+
+folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+invisible(pm$create_analysis("data_preparation"))
+analysis <- pm$get_analysis("data_preparation")
+analysis
+
+## ------------------------------------------------
+## Method `PMProject$create_analysis`
+## ------------------------------------------------
+
+folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+analysis <- pm$create_analysis("data_preparation")
+analysis
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -40,6 +69,9 @@ pm <- pm_create_project(folder)
 \item \href{#method-PMProject-new}{\code{PMProject$new()}}
 \item \href{#method-PMProject-validate}{\code{PMProject$validate()}}
 \item \href{#method-PMProject-parse_inputs}{\code{PMProject$parse_inputs()}}
+\item \href{#method-PMProject-list_analyses}{\code{PMProject$list_analyses()}}
+\item \href{#method-PMProject-get_analysis}{\code{PMProject$get_analysis()}}
+\item \href{#method-PMProject-create_analysis}{\code{PMProject$create_analysis()}}
 \item \href{#method-PMProject-clone}{\code{PMProject$clone()}}
 }
 }
@@ -94,6 +126,99 @@ pm <- pm_create_project(folder)
 
 # After configuring inputs.yaml and inputs.local.yaml:
 # data_list <- pm$parse_inputs()
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PMProject-list_analyses"></a>}}
+\if{latex}{\out{\hypertarget{method-PMProject-list_analyses}{}}}
+\subsection{Method \code{list_analyses()}}{
+Get all analysis names from the project.
+Returns the names of all valid analysis folders in the analyses directory.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PMProject$list_analyses()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+Character vector of analysis names
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+invisible(pm$create_analysis("data_preparation"))
+invisible(pm$create_analysis("modeling"))
+pm$list_analyses()
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PMProject-get_analysis"></a>}}
+\if{latex}{\out{\hypertarget{method-PMProject-get_analysis}{}}}
+\subsection{Method \code{get_analysis()}}{
+Get an analysis object by name.
+Returns a PMAnalysis object for the specified analysis name.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PMProject$get_analysis(name)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{name}}{Character. Name of the analysis (folder name within analyses/).}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+\code{PMAnalysis} object for the specified analysis
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+invisible(pm$create_analysis("data_preparation"))
+analysis <- pm$get_analysis("data_preparation")
+analysis
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PMProject-create_analysis"></a>}}
+\if{latex}{\out{\hypertarget{method-PMProject-create_analysis}{}}}
+\subsection{Method \code{create_analysis()}}{
+Create a new analysis from template.
+Creates a new analysis folder with template structure including
+README.md, directories (code/, outputs/, intermediate/, logs/),
+and .gitignore file.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PMProject$create_analysis(name)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{name}}{Character. Name of the analysis (will be the folder name).}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+\code{PMAnalysis} object representing the newly created analysis
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+analysis <- pm$create_analysis("data_preparation")
+analysis
 }
 \if{html}{\out{</div>}}
 

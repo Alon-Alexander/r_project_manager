@@ -1,3 +1,17 @@
+# pm 0.1.3
+
+## New Features
+
+- Add `PMAnalysis` R6 class to manage analysis folders within projects
+- Add `create_analysis()` method to `PMProject` for creating new analyses from template
+- Add `list_analyses()` method to `PMProject` to get all analysis names
+- Add `get_analysis()` method to `PMProject` to retrieve analysis objects by name
+- Analysis template structure includes: README.md, code/, outputs/, intermediate/, logs/, and .gitignore
+- Template-based analysis creation using `inst/extdata/template_analysis` directory
+- Support for `dot_` prefix convention in templates (files starting with `dot_` are renamed to start with `.` when copied)
+- `PMAnalysis` can be constructed from project object + name, or directly from path
+- `PMAnalysis$new()` automatically validates the analysis structure on initialization
+
 # pm 0.1.2
 
 ## Improvements

@@ -1,0 +1,9 @@
+# Analysis outputs
+outputs/
+
+# Intermediate results
+intermediate/
+
+# Logs
+logs/
+
