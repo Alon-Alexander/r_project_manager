@@ -3,23 +3,23 @@
 #' @description
 #' This object can be used to manage an analysis folder within a project.
 #' Each analysis contains code, outputs, intermediate results, and logs.
-#' 
+#'
 #' @field path Full path to the analysis's folder
 #' @field name Name of the analysis (folder name within analyses/)
 #' @field project_path Full path to the project's folder (if created from project)
-#' 
+#'
 #' @examples
 #' # Create a project and analysis
 #' folder <- withr::local_tempdir()
 #' pm <- pm_create_project(folder)
-#' 
+#'
 #' # Create a new analysis
 #' analysis <- pm$create_analysis("data_preparation")
 #' analysis
 #'
 #' # Load an existing analysis from project
 #' analysis <- pm$get_analysis("data_preparation")
-#' 
+#'
 #' # Load an existing analysis from path
 #' analysis <- PMAnalysis$new(path = file.path(folder, "analyses", "data_preparation"))
 #'
@@ -43,7 +43,7 @@ PMAnalysis <- R6Class("PMAnalysis",
         chk::chk_s3_class(project, "PMProject")
         chk::chk_scalar(name)
         chk::chk_character(name)
-        
+
         self$project_path <- project$path
         self$name <- name
         self$path <- file.path(project$path, constants$ANALYSES_DIR, name)
@@ -52,19 +52,19 @@ PMAnalysis <- R6Class("PMAnalysis",
         # Construct from path
         chk::chk_scalar(path)
         chk::chk_character(path)
-        
+
         self$path <- normalizePath(path, mustWork = FALSE)
         self$name <- basename(path)
-        
+
         # Try to infer project path (parent of analyses directory)
         parent <- dirname(path)
         if (basename(parent) == constants$ANALYSES_DIR) {
-          self$project_path <- dirname(parent)
+          self$project_path <- normalizePath(dirname(parent), mustWork = FALSE)
         }
       } else {
         stop("Must provide either 'project' and 'name', or 'path'")
       }
-      
+
       self$validate()
     },
 
@@ -108,4 +108,3 @@ PMAnalysis <- R6Class("PMAnalysis",
     }
   )
 )
-
