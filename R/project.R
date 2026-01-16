@@ -222,7 +222,7 @@ PMProject <- R6Class("PMProject",
     #' folder <- withr::local_tempdir()
     #' pm <- pm_create_project(folder)
     #' analysis <- pm$create_analysis("data_preparation")
-    #' 
+    #'
     #' # Create a test output file
     #' output <- analysis$get_output_path("results.csv", type = "table")
     #' output$write(data.frame(x = 1:5))
@@ -235,7 +235,7 @@ PMProject <- R6Class("PMProject",
     get_artifact = function(id, analysis_name = NULL) {
       chk::chk_scalar(id)
       chk::chk_character(id)
-      
+
       # Determine which analyses to search
       if (!is.null(analysis_name)) {
         chk::chk_scalar(analysis_name)
@@ -247,24 +247,22 @@ PMProject <- R6Class("PMProject",
           stop("No analyses found in project")
         }
       }
-      
+
       # Search through all specified analyses
-      matching_artifacts <- list()
-      for (aname in analysis_names) {
+      matching_artifacts <- lapply(analysis_names, function(aname) {
         analysis <- self$get_analysis(aname)
         outputs <- analysis$list_outputs(intermediate = FALSE)
-        
-        # Find outputs matching the ID
-        for (output in outputs) {
-          if (identical(output$id, id)) {
-            matching_artifacts[[length(matching_artifacts) + 1]] <- list(
-              analysis = aname,
-              output = output
-            )
-          }
-        }
-      }
-      
+
+        # Filter outputs matching the ID
+        matching_outputs <- Filter(function(output) identical(output$id, id), outputs)
+
+        # Create list entries for each matching output
+        lapply(matching_outputs, function(output) list(analysis = aname, output = output))
+      })
+
+      # Flatten the nested list structure
+      matching_artifacts <- unlist(matching_artifacts, recursive = FALSE)
+
       # Handle results
       if (length(matching_artifacts) == 0) {
         if (!is.null(analysis_name)) {
@@ -273,7 +271,7 @@ PMProject <- R6Class("PMProject",
           stop(sprintf("No artifact with ID '%s' found in any analysis", id))
         }
       }
-      
+
       if (length(matching_artifacts) > 1) {
         if (!is.null(analysis_name)) {
           # Multiple files with same ID in single analysis

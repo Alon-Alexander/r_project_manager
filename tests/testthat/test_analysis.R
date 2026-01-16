@@ -550,8 +550,8 @@ describe("Analysis output paths", {
       result <- analysis$get_output_path(comb$name, type = comb$type, intermediate = FALSE)
 
       expect_s3_class(result, "PMData")
-      expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path, label=as.character(comb))
-      expect_equal(result$id, expected_id, label=as.character(comb))
+      expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path, label = as.character(comb))
+      expect_equal(result$id, expected_id, label = as.character(comb))
     }
   })
 

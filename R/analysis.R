@@ -122,7 +122,7 @@ PMAnalysis <- R6Class("PMAnalysis",
     #' pm <- pm_create_project(folder)
     #' analysis1 <- pm$create_analysis("data_preparation")
     #' analysis2 <- pm$create_analysis("modeling")
-    #' 
+    #'
     #' # Create a test output file in analysis1
     #' output <- analysis1$get_output_path("results.csv", type = "table")
     #' write.csv(data.frame(x = 1:5), output$path)
@@ -136,7 +136,7 @@ PMAnalysis <- R6Class("PMAnalysis",
       if (is.null(self$project_path)) {
         stop("Cannot get artifact: analysis is not associated with a project")
       }
-      
+
       project <- PMProject$new(self$project_path)
       project$get_artifact(id = id, analysis_name = analysis_name)
     },
@@ -170,25 +170,33 @@ PMAnalysis <- R6Class("PMAnalysis",
     list_outputs = function(intermediate = FALSE) {
       folder <- if (intermediate) constants$ANALYSIS_INTERMEDIATE_DIR else constants$ANALYSIS_OUTPUT_DIR
       outputs_dir <- file.path(self$path, folder)
-      
+
       if (!dir.exists(outputs_dir)) {
         return(list())
       }
-      
+
       # Get all files in the directory
       files <- list.files(outputs_dir, full.names = TRUE)
-      
-      # Filter to only files (not directories) and create PMData objects
-      output_list <- list()
-      for (file in files) {
-        if (!dir.exists(file)) {
-          file_id <- tools::file_path_sans_ext(basename(file))
-          full_path <- normalizePath(file, mustWork = FALSE)
-          output_list[[length(output_list) + 1]] <- PMData$new(id = file_id, path = full_path)
-        }
+      if (length(files) == 0) {
+        return(list())
       }
-      
-      output_list
+
+      # Filter to only files (not directories) using vectorized approach
+      file_info <- file.info(files)
+      is_file <- !is.na(file_info$isdir) & !file_info$isdir
+      files_only <- files[is_file]
+
+      if (length(files_only) == 0) {
+        return(list())
+      }
+
+      # Create PMData objects using lapply
+      file_ids <- tools::file_path_sans_ext(basename(files_only))
+      file_paths <- normalizePath(files_only, mustWork = FALSE)
+
+      lapply(seq_along(files_only), function(i) {
+        PMData$new(id = file_ids[i], path = file_paths[i])
+      })
     },
 
     #' @description
@@ -260,7 +268,7 @@ PMAnalysis <- R6Class("PMAnalysis",
       folder <- if (intermediate) constants$ANALYSIS_INTERMEDIATE_DIR else constants$ANALYSIS_OUTPUT_DIR
 
       full_path <- normalizePath(file.path(self$path, folder, name), mustWork = FALSE)
-      
+
       PMData$new(id = id, path = full_path)
     }
   )
