@@ -85,6 +85,7 @@ analysis
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-PMProject-new}{\code{PMProject$new()}}
+\item \href{#method-PMProject-print}{\code{PMProject$print()}}
 \item \href{#method-PMProject-validate}{\code{PMProject$validate()}}
 \item \href{#method-PMProject-parse_inputs}{\code{PMProject$parse_inputs()}}
 \item \href{#method-PMProject-list_analyses}{\code{PMProject$list_analyses()}}
@@ -110,6 +111,16 @@ Create a PMProject object in an existing project's folder
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PMProject-print"></a>}}
+\if{latex}{\out{\hypertarget{method-PMProject-print}{}}}
+\subsection{Method \code{print()}}{
+Print method for PMProject
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PMProject$print()}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-PMProject-validate"></a>}}

@@ -814,3 +814,109 @@ describe("Input file validation in PMProject$validate()", {
     )
   })
 })
+
+describe("PMProject print method works correctly", {
+  it("Prints basic project information with no analyses", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+
+    # Capture output
+    output <- capture.output(print(pm))
+
+    expect_true(any(grepl("PMProject:", output)))
+    expect_true(any(grepl("Path:", output)))
+    expect_true(any(grepl(normalizePath(dir), output, fixed = TRUE)))
+    expect_true(any(grepl("Analyses: 0", output)))
+  })
+
+  it("Prints project information with analyses", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    pm$create_analysis("analysis1")
+    pm$create_analysis("analysis2")
+
+    # Capture output
+    output <- capture.output(print(pm))
+
+    expect_true(any(grepl("PMProject:", output)))
+    expect_true(any(grepl("Analyses: 2", output)))
+    expect_true(any(grepl("- analysis1", output)))
+    expect_true(any(grepl("- analysis2", output)))
+  })
+
+  it("Truncates analysis list when there are more than 5 analyses", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+
+    # Create 7 analyses
+    for (i in 1:7) {
+      pm$create_analysis(paste0("analysis", i))
+    }
+
+    # Capture output
+    output <- capture.output(print(pm))
+
+    expect_true(any(grepl("Analyses: 7", output)))
+    expect_true(any(grepl("- analysis1", output)))
+    expect_true(any(grepl("- analysis2", output)))
+    expect_true(any(grepl("- analysis3", output)))
+    expect_true(any(grepl("- analysis4", output)))
+    expect_false(any(grepl("- analysis5", output)))  # Should not show 5th
+    expect_true(any(grepl("... and 3 more", output)))
+  })
+
+  it("Shows inputs count when inputs are configured", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+
+    # Capture output
+    output <- capture.output(print(pm))
+
+    expect_true(any(grepl("PMProject:", output)))
+    expect_true(any(grepl("Inputs:", output)))
+    # Should show 2 inputs (test_input and test_tsv from helper)
+    expect_true(any(grepl("Inputs: 2", output)))
+  })
+
+  it("Returns self invisibly", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+
+    # Should return self invisibly
+    capture.output(result <- print(pm))
+    expect_identical(result, pm)
+  })
+
+  it("Handles errors gracefully when listing analyses fails", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+
+    # Remove analyses directory to simulate error
+    unlink(file.path(dir, "analyses"), recursive = TRUE)
+
+    # Should not error, but show 0 analyses
+    output <- capture.output(print(pm))
+    expect_true(any(grepl("Analyses: 0", output)))
+  })
+
+  it("Shows exactly 5 analyses when there are exactly 5", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+
+    # Create exactly 5 analyses
+    for (i in 1:5) {
+      pm$create_analysis(paste0("analysis", i))
+    }
+
+    # Capture output
+    output <- capture.output(print(pm))
+
+    expect_true(any(grepl("Analyses: 5", output)))
+    expect_true(any(grepl("- analysis1", output)))
+    expect_true(any(grepl("- analysis2", output)))
+    expect_true(any(grepl("- analysis3", output)))
+    expect_true(any(grepl("- analysis4", output)))
+    expect_true(any(grepl("- analysis5", output)))
+    expect_false(any(grepl("... and", output)))  # Should not show truncation
+  })
+})

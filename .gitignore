@@ -1,2 +1,5 @@
 .vscode
 tests/testthat/_problems
+inst/doc
+/doc/
+/Meta/

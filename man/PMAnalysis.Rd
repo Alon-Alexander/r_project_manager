@@ -39,8 +39,21 @@ write.csv(data.frame(x = 1:5), output$path)
 # Get artifact from analysis2 (which gets it from analysis1)
 artifact <- analysis2$get_artifact("results", analysis_name = "data_preparation")
 
+# Get artifact from current analysis (default behavior)
+artifact <- analysis1$get_artifact("results")
+
+# Get artifact from current analysis's intermediate folder
+# If file exists, returns it; otherwise returns path for new file
+artifact <- analysis1$get_artifact("temp_data", intermediate = TRUE)
+if (artifact$exists()) {
+  data <- artifact$read()
+} else {
+  # File doesn't exist yet, can write to it
+  artifact$write(data.frame(x = 1:5))
+}
+
 # Get artifact without specifying analysis (if unique across all analyses)
-artifact <- analysis2$get_artifact("results")
+artifact <- analysis2$get_artifact("results", analysis_name = NULL)
 
 ## ------------------------------------------------
 ## Method `PMAnalysis$list_outputs`
@@ -151,7 +164,7 @@ Print method for PMAnalysis
 Get an artifact (output file) from another analysis by ID.
 Searches for files with the given ID (filename without extension) in analysis output directories.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PMAnalysis$get_artifact(id, analysis_name = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PMAnalysis$get_artifact(id, analysis_name = NULL, intermediate = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -160,7 +173,13 @@ Searches for files with the given ID (filename without extension) in analysis ou
 \item{\code{id}}{Character. The artifact ID (filename without extension).}
 
 \item{\code{analysis_name}}{Character. Optional name of the analysis to search in.
-If not provided, searches all analyses and fails if not exactly one match is found.}
+If not provided, uses the current analysis's name. If explicitly set to \code{NULL},
+searches all analyses and fails if not exactly one match is found.}
+
+\item{\code{intermediate}}{Logical. If \code{TRUE}, searches for the artifact in the current analysis's
+intermediate folder. If an existing file with the given ID is found, returns it.
+If no existing file is found, returns the path via \code{get_output_path()} (the file may not exist yet).
+Cannot be used with \code{analysis_name}.}
 }
 \if{html}{\out{</div>}}
 }
@@ -181,8 +200,21 @@ write.csv(data.frame(x = 1:5), output$path)
 # Get artifact from analysis2 (which gets it from analysis1)
 artifact <- analysis2$get_artifact("results", analysis_name = "data_preparation")
 
+# Get artifact from current analysis (default behavior)
+artifact <- analysis1$get_artifact("results")
+
+# Get artifact from current analysis's intermediate folder
+# If file exists, returns it; otherwise returns path for new file
+artifact <- analysis1$get_artifact("temp_data", intermediate = TRUE)
+if (artifact$exists()) {
+  data <- artifact$read()
+} else {
+  # File doesn't exist yet, can write to it
+  artifact$write(data.frame(x = 1:5))
+}
+
 # Get artifact without specifying analysis (if unique across all analyses)
-artifact <- analysis2$get_artifact("results")
+artifact <- analysis2$get_artifact("results", analysis_name = NULL)
 }
 \if{html}{\out{</div>}}
 

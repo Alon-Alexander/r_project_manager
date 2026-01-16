@@ -4,3 +4,5 @@
 ^PRODUCT.md$
 ^.pr_agent.toml$
 ^codecov.yml$
+^doc$
+^Meta$

@@ -1215,7 +1215,28 @@ describe("PMAnalysis$get_artifact() works correctly", {
     expect_equal(normalizePath(artifact$path), normalizePath(output$path))
   })
 
-  it("Gets artifact without specifying analysis when unique", {
+  it("Gets artifact from current analysis by default", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis1 <- pm$create_analysis("data_prep")
+    analysis2 <- pm$create_analysis("modeling")
+
+    # Create output file in analysis1
+    output1 <- analysis1$get_output_path("results.csv", type = "table")
+    write.csv(data.frame(x = 1:5), output1$path)
+
+    # Create output file in analysis2
+    output2 <- analysis2$get_output_path("results.csv", type = "table")
+    write.csv(data.frame(x = 6:10), output2$path)
+
+    # Get artifact from analysis1 without specifying analysis (should get from analysis1)
+    artifact <- analysis1$get_artifact("results")
+    expect_s3_class(artifact, "PMData")
+    expect_equal(artifact$id, "results")
+    expect_equal(normalizePath(artifact$path), normalizePath(output1$path))
+  })
+
+  it("Gets artifact from all analyses when explicitly passing NULL", {
     dir <- .get_good_project_path()
     pm <- pm::PMProject$new(dir)
     analysis1 <- pm$create_analysis("data_prep")
@@ -1225,8 +1246,8 @@ describe("PMAnalysis$get_artifact() works correctly", {
     output <- analysis1$get_output_path("results.csv", type = "table")
     write.csv(data.frame(x = 1:5), output$path)
 
-    # Get artifact from analysis2 without specifying analysis
-    artifact <- analysis2$get_artifact("results")
+    # Get artifact from analysis2 with explicit NULL (searches all analyses)
+    artifact <- analysis2$get_artifact("results", analysis_name = NULL)
     expect_s3_class(artifact, "PMData")
     expect_equal(artifact$id, "results")
     expect_equal(normalizePath(artifact$path), normalizePath(output$path))
@@ -1269,5 +1290,68 @@ describe("PMAnalysis$get_artifact() works correctly", {
 
     expect_equal(normalizePath(artifact1$path), normalizePath(artifact2$path))
     expect_equal(artifact1$id, artifact2$id)
+  })
+
+  it("Gets artifact from intermediate folder when intermediate=TRUE", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis <- pm$create_analysis("data_prep")
+
+    # Create intermediate file
+    intermediate <- analysis$get_output_path("temp_data.parquet", type = "table", intermediate = TRUE)
+    df <- data.frame(x = 1:5, y = letters[1:5])
+    intermediate$write(df)
+
+    # Get artifact from intermediate folder (should find existing file)
+    artifact <- analysis$get_artifact("temp_data", intermediate = TRUE)
+    expect_s3_class(artifact, "PMData")
+    expect_equal(artifact$id, "temp_data")
+    expect_equal(normalizePath(artifact$path), normalizePath(intermediate$path))
+    expect_true(artifact$exists())
+  })
+
+  it("Errors when both intermediate and analysis_name are provided", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis <- pm$create_analysis("data_prep")
+
+    expect_error(
+      analysis$get_artifact("results", intermediate = TRUE, analysis_name = "other"),
+      regexp = "Cannot specify both 'intermediate' and 'analysis_name' parameters"
+    )
+  })
+
+  it("Gets artifact from current analysis intermediate folder without file existing", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis <- pm$create_analysis("data_prep")
+
+    # Get artifact path from intermediate folder (file doesn't exist yet)
+    # Should fall back to get_output_path
+    artifact <- analysis$get_artifact("temp_data", intermediate = TRUE)
+    expect_s3_class(artifact, "PMData")
+    expect_equal(artifact$id, "temp_data")
+    expect_false(artifact$exists())
+    
+    # The path should point to intermediate folder
+    expect_true(grepl("intermediate", artifact$path))
+  })
+
+  it("Errors when multiple intermediate files with same ID exist", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis <- pm$create_analysis("data_prep")
+
+    # Create two files with same ID but different extensions
+    intermediate1 <- analysis$get_output_path("temp_data.parquet", type = "table", intermediate = TRUE)
+    intermediate2 <- analysis$get_output_path("temp_data.rds", type = "object", intermediate = TRUE)
+    intermediate1$write(data.frame(x = 1:5))
+    intermediate2$write(data.frame(y = 1:5))
+
+    # Should error when multiple files with same ID
+    expect_error(
+      analysis$get_artifact("temp_data", intermediate = TRUE),
+      regexp = "Multiple artifacts with ID 'temp_data' found in intermediate folder"
+    )
   })
 })

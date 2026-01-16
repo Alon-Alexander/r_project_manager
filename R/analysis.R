@@ -113,7 +113,12 @@ PMAnalysis <- R6Class("PMAnalysis",
     #'
     #' @param id Character. The artifact ID (filename without extension).
     #' @param analysis_name Character. Optional name of the analysis to search in.
-    #'   If not provided, searches all analyses and fails if not exactly one match is found.
+    #'   If not provided, uses the current analysis's name. If explicitly set to \code{NULL},
+    #'   searches all analyses and fails if not exactly one match is found.
+    #' @param intermediate Logical. If \code{TRUE}, searches for the artifact in the current analysis's
+    #'   intermediate folder. If an existing file with the given ID is found, returns it.
+    #'   If no existing file is found, returns the path via \code{get_output_path()} (the file may not exist yet).
+    #'   Cannot be used with \code{analysis_name}.
     #'
     #' @return A \code{PMData} object with the artifact's ID and path.
     #'
@@ -130,11 +135,66 @@ PMAnalysis <- R6Class("PMAnalysis",
     #' # Get artifact from analysis2 (which gets it from analysis1)
     #' artifact <- analysis2$get_artifact("results", analysis_name = "data_preparation")
     #'
+    #' # Get artifact from current analysis (default behavior)
+    #' artifact <- analysis1$get_artifact("results")
+    #'
+    #' # Get artifact from current analysis's intermediate folder
+    #' # If file exists, returns it; otherwise returns path for new file
+    #' artifact <- analysis1$get_artifact("temp_data", intermediate = TRUE)
+    #' if (artifact$exists()) {
+    #'   data <- artifact$read()
+    #' } else {
+    #'   # File doesn't exist yet, can write to it
+    #'   artifact$write(data.frame(x = 1:5))
+    #' }
+    #'
     #' # Get artifact without specifying analysis (if unique across all analyses)
-    #' artifact <- analysis2$get_artifact("results")
-    get_artifact = function(id, analysis_name = NULL) {
+    #' artifact <- analysis2$get_artifact("results", analysis_name = NULL)
+    get_artifact = function(id, analysis_name = NULL, intermediate = FALSE) {
+      # Check that not both intermediate and analysis_name are provided
+      call_obj <- match.call()
+      analysis_name_provided <- "analysis_name" %in% names(call_obj)
+      
+      if (intermediate && analysis_name_provided) {
+        stop("Cannot specify both 'intermediate' and 'analysis_name' parameters")
+      }
+
+      # If intermediate is TRUE, search for existing files first, then fall back to get_output_path
+      if (intermediate) {
+        # Search for existing intermediate files
+        intermediates <- self$list_outputs(intermediate = TRUE)
+        
+        # Filter outputs matching the ID
+        matching_outputs <- Filter(function(output) identical(output$id, id), intermediates)
+        
+        # Handle results
+        if (length(matching_outputs) == 0) {
+          # No existing file found, return output path (file may not exist yet)
+          return(self$get_output_path(id, intermediate = TRUE))
+        }
+        
+        if (length(matching_outputs) > 1) {
+          # Multiple files with same ID
+          file_names <- vapply(matching_outputs, function(x) basename(x$path), character(1))
+          stop(sprintf(
+            "Multiple artifacts with ID '%s' found in intermediate folder: %s",
+            id, paste(file_names, collapse = ", ")
+          ))
+        }
+        
+        # Return the single matching file
+        return(matching_outputs[[1]])
+      }
+
+      # For non-intermediate, need project
       if (is.null(self$project_path)) {
         stop("Cannot get artifact: analysis is not associated with a project")
+      }
+
+      # Determine analysis_name: if not provided (missing), use self.name
+      # If explicitly NULL, pass NULL to project
+      if (!analysis_name_provided) {
+        analysis_name <- self$name
       }
 
       project <- PMProject$new(self$project_path)
