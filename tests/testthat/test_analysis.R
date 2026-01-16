@@ -472,10 +472,13 @@ describe("Analysis output paths", {
 
         middle_folder <- .get_middle_folder(intermediate)
 
-        expected <- normalizePath(file.path(pm$path, "analyses", analysis_name, middle_folder, name), mustWork = FALSE)
+        expected_path <- normalizePath(file.path(pm$path, "analyses", analysis_name, middle_folder, name), mustWork = FALSE)
+        expected_id <- "simple_output"
         result <- analysis$get_output_path(name, intermediate = intermediate)
 
-        expect_equal(normalizePath(result, mustWork = FALSE), expected)
+        expect_s3_class(result, "PMData")
+        expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path)
+        expect_equal(result$id, expected_id)
       }
     }
   })
@@ -489,7 +492,7 @@ describe("Analysis output paths", {
       name <- "type_output"
       middle_folder <- .get_middle_folder(intermediate)
 
-      expected <- normalizePath(
+      expected_path <- normalizePath(
         file.path(
           pm$path,
           "analyses",
@@ -499,9 +502,12 @@ describe("Analysis output paths", {
         ),
         mustWork = FALSE
       )
+      expected_id <- "type_output"
       result <- analysis$get_output_path(name, type = type, intermediate = intermediate)
 
-      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+      expect_s3_class(result, "PMData")
+      expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path)
+      expect_equal(result$id, expected_id)
     }))
   })
 
@@ -530,8 +536,7 @@ describe("Analysis output paths", {
     middle_folder <- .get_middle_folder(FALSE)
 
     for (comb in combs) {
-
-      expected <- normalizePath(
+      expected_path <- normalizePath(
         file.path(
           pm$path,
           "analyses",
@@ -541,9 +546,12 @@ describe("Analysis output paths", {
         ),
         mustWork = FALSE
       )
+      expected_id <- tools::file_path_sans_ext(comb$name)
       result <- analysis$get_output_path(comb$name, type = comb$type, intermediate = FALSE)
 
-      expect_equal(normalizePath(result, mustWork = FALSE), expected, label=as.character(comb))
+      expect_s3_class(result, "PMData")
+      expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path, label=as.character(comb))
+      expect_equal(result$id, expected_id, label=as.character(comb))
     }
   })
 
@@ -572,23 +580,29 @@ describe("Analysis output paths", {
     for (ext in table_extensions) {
       name <- paste0("table_output.", ext)
       middle_folder <- .get_middle_folder(FALSE)
-      expected <- normalizePath(
+      expected_path <- normalizePath(
         file.path(pm$path, "analyses", analysis_name, middle_folder, name),
         mustWork = FALSE
       )
+      expected_id <- "table_output"
       result <- analysis$get_output_path(name, type = "table", intermediate = FALSE)
-      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+      expect_s3_class(result, "PMData")
+      expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path)
+      expect_equal(result$id, expected_id)
     }
 
     # Test table type without extension (should add .parquet)
     name <- "table_output"
     middle_folder <- .get_middle_folder(TRUE)
-    expected <- normalizePath(
+    expected_path <- normalizePath(
       file.path(pm$path, "analyses", analysis_name, middle_folder, "table_output.parquet"),
       mustWork = FALSE
     )
+    expected_id <- "table_output"
     result <- analysis$get_output_path(name, type = "table", intermediate = TRUE)
-    expect_equal(normalizePath(result, mustWork = FALSE), expected)
+    expect_s3_class(result, "PMData")
+    expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path)
+    expect_equal(result$id, expected_id)
   })
 
   it("Works with 'object' type", {
@@ -597,23 +611,29 @@ describe("Analysis output paths", {
     for (ext in object_extensions) {
       name <- paste0("object_output.", ext)
       middle_folder <- .get_middle_folder(FALSE)
-      expected <- normalizePath(
+      expected_path <- normalizePath(
         file.path(pm$path, "analyses", analysis_name, middle_folder, name),
         mustWork = FALSE
       )
+      expected_id <- "object_output"
       result <- analysis$get_output_path(name, type = "object", intermediate = FALSE)
-      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+      expect_s3_class(result, "PMData")
+      expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path)
+      expect_equal(result$id, expected_id)
     }
 
     # Test object type without extension (should add .rdata)
     name <- "object_output"
     middle_folder <- .get_middle_folder(TRUE)
-    expected <- normalizePath(
+    expected_path <- normalizePath(
       file.path(pm$path, "analyses", analysis_name, middle_folder, "object_output.rdata"),
       mustWork = FALSE
     )
+    expected_id <- "object_output"
     result <- analysis$get_output_path(name, type = "object", intermediate = TRUE)
-    expect_equal(normalizePath(result, mustWork = FALSE), expected)
+    expect_s3_class(result, "PMData")
+    expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path)
+    expect_equal(result$id, expected_id)
   })
 
   it("Works with 'figure' type", {
@@ -622,23 +642,29 @@ describe("Analysis output paths", {
     for (ext in figure_extensions) {
       name <- paste0("figure_output.", ext)
       middle_folder <- .get_middle_folder(FALSE)
-      expected <- normalizePath(
+      expected_path <- normalizePath(
         file.path(pm$path, "analyses", analysis_name, middle_folder, name),
         mustWork = FALSE
       )
+      expected_id <- "figure_output"
       result <- analysis$get_output_path(name, type = "figure", intermediate = FALSE)
-      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+      expect_s3_class(result, "PMData")
+      expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path)
+      expect_equal(result$id, expected_id)
     }
 
     # Test figure type without extension (should add .png)
     name <- "figure_output"
     middle_folder <- .get_middle_folder(TRUE)
-    expected <- normalizePath(
+    expected_path <- normalizePath(
       file.path(pm$path, "analyses", analysis_name, middle_folder, "figure_output.png"),
       mustWork = FALSE
     )
+    expected_id <- "figure_output"
     result <- analysis$get_output_path(name, type = "figure", intermediate = TRUE)
-    expect_equal(normalizePath(result, mustWork = FALSE), expected)
+    expect_s3_class(result, "PMData")
+    expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path)
+    expect_equal(result$id, expected_id)
   })
 
   it("Works with 'image' type (same as figure)", {
@@ -647,23 +673,29 @@ describe("Analysis output paths", {
     for (ext in image_extensions) {
       name <- paste0("image_output.", ext)
       middle_folder <- .get_middle_folder(FALSE)
-      expected <- normalizePath(
+      expected_path <- normalizePath(
         file.path(pm$path, "analyses", analysis_name, middle_folder, name),
         mustWork = FALSE
       )
+      expected_id <- "image_output"
       result <- analysis$get_output_path(name, type = "image", intermediate = FALSE)
-      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+      expect_s3_class(result, "PMData")
+      expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path)
+      expect_equal(result$id, expected_id)
     }
 
     # Test image type without extension (should add .png)
     name <- "image_output"
     middle_folder <- .get_middle_folder(TRUE)
-    expected <- normalizePath(
+    expected_path <- normalizePath(
       file.path(pm$path, "analyses", analysis_name, middle_folder, "image_output.png"),
       mustWork = FALSE
     )
+    expected_id <- "image_output"
     result <- analysis$get_output_path(name, type = "image", intermediate = TRUE)
-    expect_equal(normalizePath(result, mustWork = FALSE), expected)
+    expect_s3_class(result, "PMData")
+    expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path)
+    expect_equal(result$id, expected_id)
   })
 
   it("Works with 'parquet' and 'pqt' types", {
@@ -671,58 +703,73 @@ describe("Analysis output paths", {
     for (ext in c("parquet", "pqt")) {
       name <- paste0("parquet_output.", ext)
       middle_folder <- .get_middle_folder(FALSE)
-      expected <- normalizePath(
+      expected_path <- normalizePath(
         file.path(pm$path, "analyses", analysis_name, middle_folder, name),
         mustWork = FALSE
       )
+      expected_id <- "parquet_output"
       result <- analysis$get_output_path(name, type = "parquet", intermediate = FALSE)
-      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+      expect_s3_class(result, "PMData")
+      expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path)
+      expect_equal(result$id, expected_id)
     }
 
     # Test pqt type
     for (ext in c("parquet", "pqt")) {
       name <- paste0("pqt_output.", ext)
       middle_folder <- .get_middle_folder(TRUE)
-      expected <- normalizePath(
+      expected_path <- normalizePath(
         file.path(pm$path, "analyses", analysis_name, middle_folder, name),
         mustWork = FALSE
       )
+      expected_id <- "pqt_output"
       result <- analysis$get_output_path(name, type = "pqt", intermediate = TRUE)
-      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+      expect_s3_class(result, "PMData")
+      expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path)
+      expect_equal(result$id, expected_id)
     }
 
     # Test parquet/pqt type without extension (should use type as extension)
     name <- "parquet_output"
     middle_folder <- .get_middle_folder(FALSE)
-    expected <- normalizePath(
+    expected_path <- normalizePath(
       file.path(pm$path, "analyses", analysis_name, middle_folder, "parquet_output.parquet"),
       mustWork = FALSE
     )
+    expected_id <- "parquet_output"
     result <- analysis$get_output_path(name, type = "parquet", intermediate = FALSE)
-    expect_equal(normalizePath(result, mustWork = FALSE), expected)
+    expect_s3_class(result, "PMData")
+    expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path)
+    expect_equal(result$id, expected_id)
   })
 
   it("Defaults to .rds when no extension and no type provided", {
     name <- "no_extension"
     middle_folder <- .get_middle_folder(FALSE)
-    expected <- normalizePath(
+    expected_path <- normalizePath(
       file.path(pm$path, "analyses", analysis_name, middle_folder, "no_extension.rds"),
       mustWork = FALSE
     )
+    expected_id <- "no_extension"
     result <- analysis$get_output_path(name, intermediate = FALSE)
-    expect_equal(normalizePath(result, mustWork = FALSE), expected)
+    expect_s3_class(result, "PMData")
+    expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path)
+    expect_equal(result$id, expected_id)
   })
 
   it("Preserves extension when no type provided", {
     for (ext in c("csv", "tsv", "png", "rds", "parquet", "xyz")) {
       name <- paste0("preserved.", ext)
       middle_folder <- .get_middle_folder(TRUE)
-      expected <- normalizePath(
+      expected_path <- normalizePath(
         file.path(pm$path, "analyses", analysis_name, middle_folder, name),
         mustWork = FALSE
       )
+      expected_id <- "preserved"
       result <- analysis$get_output_path(name, intermediate = TRUE)
-      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+      expect_s3_class(result, "PMData")
+      expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path)
+      expect_equal(result$id, expected_id)
     }
   })
 
@@ -736,22 +783,29 @@ describe("Analysis output paths", {
     result_lower <- analysis$get_output_path(name_lower, type = "table", intermediate = FALSE)
 
     # Both should work (extension is lowercased internally)
-    expect_true(file.exists(dirname(result_upper)) || !file.exists(result_upper))
-    expect_true(file.exists(dirname(result_lower)) || !file.exists(result_lower))
+    expect_s3_class(result_upper, "PMData")
+    expect_s3_class(result_lower, "PMData")
+    expect_true(file.exists(dirname(result_upper$path)) || !file.exists(result_upper$path))
+    expect_true(file.exists(dirname(result_lower$path)) || !file.exists(result_lower$path))
+    expect_equal(result_upper$id, "output")
+    expect_equal(result_lower$id, "output")
   })
 
   it("Handles case-insensitive types", {
     # Test that types are case-insensitive
     name <- "output.csv"
     middle_folder <- .get_middle_folder(FALSE)
-    expected <- normalizePath(
+    expected_path <- normalizePath(
       file.path(pm$path, "analyses", analysis_name, middle_folder, name),
       mustWork = FALSE
     )
+    expected_id <- "output"
 
     for (type_case in c("table", "TABLE", "Table", "tAbLe")) {
       result <- analysis$get_output_path(name, type = type_case, intermediate = FALSE)
-      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+      expect_s3_class(result, "PMData")
+      expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path)
+      expect_equal(result$id, expected_id)
     }
   })
 
@@ -760,24 +814,31 @@ describe("Analysis output paths", {
 
     # Test outputs folder
     result_outputs <- analysis$get_output_path(name, intermediate = FALSE)
-    expect_true(grepl("outputs", result_outputs))
-    expect_false(grepl("intermediate", result_outputs))
+    expect_s3_class(result_outputs, "PMData")
+    expect_true(grepl("outputs", result_outputs$path))
+    expect_false(grepl("intermediate", result_outputs$path))
+    expect_equal(result_outputs$id, "test_output")
 
     # Test intermediate folder
     result_intermediate <- analysis$get_output_path(name, intermediate = TRUE)
-    expect_true(grepl("intermediate", result_intermediate))
-    expect_false(grepl("outputs", result_intermediate))
+    expect_s3_class(result_intermediate, "PMData")
+    expect_true(grepl("intermediate", result_intermediate$path))
+    expect_false(grepl("outputs", result_intermediate$path))
+    expect_equal(result_intermediate$id, "test_output")
   })
 
   it("Handles names with multiple dots", {
     name <- "output.with.multiple.dots.csv"
     middle_folder <- .get_middle_folder(FALSE)
-    expected <- normalizePath(
+    expected_path <- normalizePath(
       file.path(pm$path, "analyses", analysis_name, middle_folder, name),
       mustWork = FALSE
     )
+    expected_id <- "output.with.multiple.dots"
     result <- analysis$get_output_path(name, type = "table", intermediate = FALSE)
-    expect_equal(normalizePath(result, mustWork = FALSE), expected)
+    expect_s3_class(result, "PMData")
+    expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path)
+    expect_equal(result$id, expected_id)
   })
 
   it("Handles names with special characters", {
@@ -786,12 +847,15 @@ describe("Analysis output paths", {
     middle_folder <- .get_middle_folder(FALSE)
 
     for (name in special_names) {
-      expected <- normalizePath(
+      expected_path <- normalizePath(
         file.path(pm$path, "analyses", analysis_name, middle_folder, name),
         mustWork = FALSE
       )
+      expected_id <- tools::file_path_sans_ext(name)
       result <- analysis$get_output_path(name, type = "table", intermediate = FALSE)
-      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+      expect_s3_class(result, "PMData")
+      expect_equal(normalizePath(result$path, mustWork = FALSE), expected_path)
+      expect_equal(result$id, expected_id)
     }
   })
 })
