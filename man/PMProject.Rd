@@ -48,6 +48,23 @@ analysis <- pm$get_analysis("data_preparation")
 analysis
 
 ## ------------------------------------------------
+## Method `PMProject$get_artifact`
+## ------------------------------------------------
+
+folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+analysis <- pm$create_analysis("data_preparation")
+
+# Create a test output file
+output <- analysis$get_output_path("results.csv", type = "table")
+
+# Get artifact from specific analysis
+artifact <- pm$get_artifact("results", analysis_name = "data_preparation")
+
+# Get artifact without specifying analysis (if unique across all analyses)
+artifact <- pm$get_artifact("results")
+
+## ------------------------------------------------
 ## Method `PMProject$create_analysis`
 ## ------------------------------------------------
 
@@ -71,6 +88,7 @@ analysis
 \item \href{#method-PMProject-parse_inputs}{\code{PMProject$parse_inputs()}}
 \item \href{#method-PMProject-list_analyses}{\code{PMProject$list_analyses()}}
 \item \href{#method-PMProject-get_analysis}{\code{PMProject$get_analysis()}}
+\item \href{#method-PMProject-get_artifact}{\code{PMProject$get_artifact()}}
 \item \href{#method-PMProject-create_analysis}{\code{PMProject$create_analysis()}}
 \item \href{#method-PMProject-clone}{\code{PMProject$clone()}}
 }
@@ -185,6 +203,49 @@ pm <- pm_create_project(folder)
 invisible(pm$create_analysis("data_preparation"))
 analysis <- pm$get_analysis("data_preparation")
 analysis
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PMProject-get_artifact"></a>}}
+\if{latex}{\out{\hypertarget{method-PMProject-get_artifact}{}}}
+\subsection{Method \code{get_artifact()}}{
+Get an artifact (output file) from an analysis by ID.
+Searches for files with the given ID (filename without extension) in analysis output directories.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PMProject$get_artifact(id, analysis_name = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{id}}{Character. The artifact ID (filename without extension).}
+
+\item{\code{analysis_name}}{Character. Optional name of the analysis to search in.
+If not provided, searches all analyses and fails if not exactly one match is found.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A \code{PMData} object with the artifact's ID and path.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+analysis <- pm$create_analysis("data_preparation")
+
+# Create a test output file
+output <- analysis$get_output_path("results.csv", type = "table")
+
+# Get artifact from specific analysis
+artifact <- pm$get_artifact("results", analysis_name = "data_preparation")
+
+# Get artifact without specifying analysis (if unique across all analyses)
+artifact <- pm$get_artifact("results")
 }
 \if{html}{\out{</div>}}
 

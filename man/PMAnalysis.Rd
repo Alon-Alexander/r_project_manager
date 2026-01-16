@@ -24,6 +24,44 @@ analysis <- PMAnalysis$new(path = file.path(folder, "analyses", "data_preparatio
 
 
 ## ------------------------------------------------
+## Method `PMAnalysis$get_artifact`
+## ------------------------------------------------
+
+folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+analysis1 <- pm$create_analysis("data_preparation")
+analysis2 <- pm$create_analysis("modeling")
+
+# Create a test output file in analysis1
+output <- analysis1$get_output_path("results.csv", type = "table")
+write.csv(data.frame(x = 1:5), output$path)
+
+# Get artifact from analysis2 (which gets it from analysis1)
+artifact <- analysis2$get_artifact("results", analysis_name = "data_preparation")
+
+# Get artifact without specifying analysis (if unique across all analyses)
+artifact <- analysis2$get_artifact("results")
+
+## ------------------------------------------------
+## Method `PMAnalysis$list_outputs`
+## ------------------------------------------------
+
+folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+analysis <- pm$create_analysis("my_analysis")
+
+# Create some output files
+output1 <- analysis$get_output_path("results.csv", type = "table")
+output2 <- analysis$get_output_path("plot.png", type = "figure")
+
+# List all outputs
+outputs <- analysis$list_outputs()
+length(outputs)  # Number of output files
+
+# List intermediate files
+intermediates <- analysis$list_outputs(intermediate = TRUE)
+
+## ------------------------------------------------
 ## Method `PMAnalysis$get_output_path`
 ## ------------------------------------------------
 
@@ -58,6 +96,8 @@ intermediate$path  # full path to temp_data.parquet in intermediate/
 \item \href{#method-PMAnalysis-new}{\code{PMAnalysis$new()}}
 \item \href{#method-PMAnalysis-validate}{\code{PMAnalysis$validate()}}
 \item \href{#method-PMAnalysis-print}{\code{PMAnalysis$print()}}
+\item \href{#method-PMAnalysis-get_artifact}{\code{PMAnalysis$get_artifact()}}
+\item \href{#method-PMAnalysis-list_outputs}{\code{PMAnalysis$list_outputs()}}
 \item \href{#method-PMAnalysis-get_output_path}{\code{PMAnalysis$get_output_path()}}
 \item \href{#method-PMAnalysis-clone}{\code{PMAnalysis$clone()}}
 }
@@ -101,6 +141,98 @@ Makes sure all expected files and folders exist.
 Print method for PMAnalysis
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PMAnalysis$print()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PMAnalysis-get_artifact"></a>}}
+\if{latex}{\out{\hypertarget{method-PMAnalysis-get_artifact}{}}}
+\subsection{Method \code{get_artifact()}}{
+Get an artifact (output file) from another analysis by ID.
+Searches for files with the given ID (filename without extension) in analysis output directories.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PMAnalysis$get_artifact(id, analysis_name = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{id}}{Character. The artifact ID (filename without extension).}
+
+\item{\code{analysis_name}}{Character. Optional name of the analysis to search in.
+If not provided, searches all analyses and fails if not exactly one match is found.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A \code{PMData} object with the artifact's ID and path.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+analysis1 <- pm$create_analysis("data_preparation")
+analysis2 <- pm$create_analysis("modeling")
+
+# Create a test output file in analysis1
+output <- analysis1$get_output_path("results.csv", type = "table")
+write.csv(data.frame(x = 1:5), output$path)
+
+# Get artifact from analysis2 (which gets it from analysis1)
+artifact <- analysis2$get_artifact("results", analysis_name = "data_preparation")
+
+# Get artifact without specifying analysis (if unique across all analyses)
+artifact <- analysis2$get_artifact("results")
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PMAnalysis-list_outputs"></a>}}
+\if{latex}{\out{\hypertarget{method-PMAnalysis-list_outputs}{}}}
+\subsection{Method \code{list_outputs()}}{
+List all output files in the analysis.
+Returns a list of PMData objects for all files in the outputs or intermediate directory.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PMAnalysis$list_outputs(intermediate = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{intermediate}}{Logical. If TRUE, lists files in intermediate/ folder; if FALSE, in outputs/ folder.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A list of \code{PMData} objects, one for each file found.
+Each object has:
+\itemize{
+\item \code{id}: The file name without extension
+\item \code{path}: The full absolute path to the file
+}
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+analysis <- pm$create_analysis("my_analysis")
+
+# Create some output files
+output1 <- analysis$get_output_path("results.csv", type = "table")
+output2 <- analysis$get_output_path("plot.png", type = "figure")
+
+# List all outputs
+outputs <- analysis$list_outputs()
+length(outputs)  # Number of output files
+
+# List intermediate files
+intermediates <- analysis$list_outputs(intermediate = TRUE)
+}
+\if{html}{\out{</div>}}
+
 }
 
 }

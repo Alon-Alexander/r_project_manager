@@ -937,3 +937,337 @@ describe("Analysis integration with project", {
     expect_equal(retrieved$path, analysis$path)
   })
 })
+
+describe("PMAnalysis$list_outputs() works correctly", {
+  it("Returns empty list when no outputs exist", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis <- pm$create_analysis("test_analysis")
+
+    outputs <- analysis$list_outputs()
+    expect_type(outputs, "list")
+    expect_length(outputs, 0)
+  })
+
+  it("Returns empty list when outputs directory doesn't exist", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis <- pm$create_analysis("test_analysis")
+
+    # Remove outputs directory
+    unlink(file.path(analysis$path, "outputs"), recursive = TRUE)
+
+    outputs <- analysis$list_outputs()
+    expect_type(outputs, "list")
+    expect_length(outputs, 0)
+  })
+
+  it("Lists all output files correctly", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis <- pm$create_analysis("test_analysis")
+
+    # Create some output files
+    output1 <- analysis$get_output_path("results.csv", type = "table")
+    output2 <- analysis$get_output_path("plot.png", type = "figure")
+    output3 <- analysis$get_output_path("data.parquet", type = "table")
+
+    write.csv(data.frame(x = 1:5), output1$path)
+    file.create(output2$path)
+    file.create(output3$path)
+
+    outputs <- analysis$list_outputs()
+    expect_type(outputs, "list")
+    expect_length(outputs, 3)
+
+    # Check that all are PMData objects
+    for (output in outputs) {
+      expect_s3_class(output, "PMData")
+      expect_true(!is.null(output$id))
+      expect_true(!is.null(output$path))
+      expect_true(file.exists(output$path))
+    }
+
+    # Check IDs
+    ids <- vapply(outputs, function(x) x$id, character(1))
+    expect_true("results" %in% ids)
+    expect_true("plot" %in% ids)
+    expect_true("data" %in% ids)
+  })
+
+  it("Lists intermediate files when intermediate=TRUE", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis <- pm$create_analysis("test_analysis")
+
+    # Create intermediate file
+    intermediate <- analysis$get_output_path("temp_data.parquet", type = "table", intermediate = TRUE)
+    file.create(intermediate$path)
+
+    # Should not appear in outputs
+    outputs <- analysis$list_outputs(intermediate = FALSE)
+    expect_length(outputs, 0)
+
+    # Should appear in intermediates
+    intermediates <- analysis$list_outputs(intermediate = TRUE)
+    expect_length(intermediates, 1)
+    expect_s3_class(intermediates[[1]], "PMData")
+    expect_equal(intermediates[[1]]$id, "temp_data")
+  })
+
+  it("Ignores directories in outputs folder", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis <- pm$create_analysis("test_analysis")
+
+    # Create a subdirectory
+    subdir <- file.path(analysis$path, "outputs", "subdir")
+    dir.create(subdir, recursive = TRUE)
+
+    # Create a file
+    output <- analysis$get_output_path("results.csv", type = "table")
+    write.csv(data.frame(x = 1:5), output$path)
+
+    outputs <- analysis$list_outputs()
+    expect_length(outputs, 1)
+    expect_equal(outputs[[1]]$id, "results")
+  })
+
+  it("Handles files with no extension", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis <- pm$create_analysis("test_analysis")
+
+    # Create file without extension
+    file_path <- file.path(analysis$path, "outputs", "noext")
+    file.create(file_path)
+
+    outputs <- analysis$list_outputs()
+    expect_length(outputs, 1)
+    expect_equal(outputs[[1]]$id, "noext")
+  })
+})
+
+describe("PMProject$get_artifact() works correctly", {
+  it("Gets artifact from specific analysis", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis <- pm$create_analysis("data_prep")
+
+    # Create output file
+    output <- analysis$get_output_path("results.csv", type = "table")
+    write.csv(data.frame(x = 1:5, y = letters[1:5]), output$path)
+
+    # Get artifact
+    artifact <- pm$get_artifact("results", analysis_name = "data_prep")
+    expect_s3_class(artifact, "PMData")
+    expect_equal(artifact$id, "results")
+    expect_equal(normalizePath(artifact$path), normalizePath(output$path))
+    expect_true(file.exists(artifact$path))
+  })
+
+  it("Gets artifact from all analyses when unique", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis1 <- pm$create_analysis("analysis1")
+    analysis2 <- pm$create_analysis("analysis2")
+
+    # Create output file only in analysis1
+    output <- analysis1$get_output_path("results.csv", type = "table")
+    write.csv(data.frame(x = 1:5), output$path)
+
+    # Get artifact without specifying analysis
+    artifact <- pm$get_artifact("results")
+    expect_s3_class(artifact, "PMData")
+    expect_equal(artifact$id, "results")
+    expect_equal(normalizePath(artifact$path), normalizePath(output$path))
+  })
+
+  it("Errors when artifact not found in specified analysis", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis <- pm$create_analysis("data_prep")
+
+    expect_error(
+      pm$get_artifact("nonexistent", analysis_name = "data_prep"),
+      regexp = "No artifact with ID 'nonexistent' found in analysis 'data_prep'"
+    )
+  })
+
+  it("Errors when artifact not found in any analysis", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    pm$create_analysis("analysis1")
+
+    expect_error(
+      pm$get_artifact("nonexistent"),
+      regexp = "No artifact with ID 'nonexistent' found in any analysis"
+    )
+  })
+
+  it("Errors when multiple artifacts with same ID in single analysis", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis <- pm$create_analysis("data_prep")
+
+    # Create two files with same ID but different extensions
+    output1 <- analysis$get_output_path("results.csv", type = "table")
+    output2 <- analysis$get_output_path("results.parquet", type = "table")
+    write.csv(data.frame(x = 1:5), output1$path)
+    file.create(output2$path)
+
+    expect_error(
+      pm$get_artifact("results", analysis_name = "data_prep"),
+      regexp = "Multiple artifacts with ID 'results' found in analysis 'data_prep'"
+    )
+  })
+
+  it("Errors when multiple artifacts found across different analyses", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis1 <- pm$create_analysis("analysis1")
+    analysis2 <- pm$create_analysis("analysis2")
+
+    # Create same ID in both analyses
+    output1 <- analysis1$get_output_path("results.csv", type = "table")
+    output2 <- analysis2$get_output_path("results.csv", type = "table")
+    write.csv(data.frame(x = 1:5), output1$path)
+    write.csv(data.frame(x = 1:5), output2$path)
+
+    expect_error(
+      pm$get_artifact("results"),
+      regexp = "Multiple artifacts with ID 'results' found in analyses"
+    )
+    expect_error(
+      pm$get_artifact("results"),
+      regexp = "Please specify analysis_name"
+    )
+  })
+
+  it("Finds artifact regardless of file extension", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis <- pm$create_analysis("data_prep")
+
+    # Create file with different extension
+    output <- analysis$get_output_path("results.parquet", type = "table")
+    file.create(output$path)
+
+    artifact <- pm$get_artifact("results", analysis_name = "data_prep")
+    expect_equal(artifact$id, "results")
+    expect_true(endsWith(artifact$path, "results.parquet"))
+  })
+
+  it("Errors when no analyses exist in project", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+
+    # Remove analyses directory
+    unlink(file.path(dir, "analyses"), recursive = TRUE)
+    dir.create(file.path(dir, "analyses"))
+
+    expect_error(
+      pm$get_artifact("results"),
+      regexp = "No analyses found in project"
+    )
+  })
+
+  it("Validates id parameter", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+
+    expect_error(
+      pm$get_artifact(id = NULL),
+      regexp = "must be a scalar"
+    )
+    expect_error(
+      pm$get_artifact(id = c("a", "b")),
+      regexp = "must be a scalar"
+    )
+  })
+
+  it("Validates analysis_name parameter", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+
+    expect_error(
+      pm$get_artifact("results", analysis_name = c("a", "b")),
+      regexp = "must be a scalar"
+    )
+  })
+})
+
+describe("PMAnalysis$get_artifact() works correctly", {
+  it("Gets artifact from another analysis", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis1 <- pm$create_analysis("data_prep")
+    analysis2 <- pm$create_analysis("modeling")
+
+    # Create output file in analysis1
+    output <- analysis1$get_output_path("results.csv", type = "table")
+    write.csv(data.frame(x = 1:5, y = letters[1:5]), output$path)
+
+    # Get artifact from analysis2
+    artifact <- analysis2$get_artifact("results", analysis_name = "data_prep")
+    expect_s3_class(artifact, "PMData")
+    expect_equal(artifact$id, "results")
+    expect_equal(normalizePath(artifact$path), normalizePath(output$path))
+  })
+
+  it("Gets artifact without specifying analysis when unique", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis1 <- pm$create_analysis("data_prep")
+    analysis2 <- pm$create_analysis("modeling")
+
+    # Create output file only in analysis1
+    output <- analysis1$get_output_path("results.csv", type = "table")
+    write.csv(data.frame(x = 1:5), output$path)
+
+    # Get artifact from analysis2 without specifying analysis
+    artifact <- analysis2$get_artifact("results")
+    expect_s3_class(artifact, "PMData")
+    expect_equal(artifact$id, "results")
+    expect_equal(normalizePath(artifact$path), normalizePath(output$path))
+  })
+
+  it("Errors when analysis is not associated with a project", {
+    # Create analysis from path without project
+    temp_dir <- withr::local_tempdir()
+    analysis_path <- file.path(temp_dir, "analysis")
+    dir.create(analysis_path)
+    dir.create(file.path(analysis_path, "code"))
+    dir.create(file.path(analysis_path, "outputs"))
+    dir.create(file.path(analysis_path, "intermediate"))
+    dir.create(file.path(analysis_path, "logs"))
+    writeLines("# Analysis", file.path(analysis_path, "README.md"))
+
+    analysis <- pm::PMAnalysis$new(path = analysis_path)
+    # Clear project_path to simulate analysis without project
+    analysis$project_path <- NULL
+
+    expect_error(
+      analysis$get_artifact("results"),
+      regexp = "Cannot get artifact: analysis is not associated with a project"
+    )
+  })
+
+  it("Delegates to project's get_artifact method", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis1 <- pm$create_analysis("data_prep")
+    analysis2 <- pm$create_analysis("modeling")
+
+    # Create output file
+    output <- analysis1$get_output_path("results.csv", type = "table")
+    write.csv(data.frame(x = 1:5), output$path)
+
+    # Should work the same as calling project directly
+    artifact1 <- pm$get_artifact("results", analysis_name = "data_prep")
+    artifact2 <- analysis2$get_artifact("results", analysis_name = "data_prep")
+
+    expect_equal(normalizePath(artifact1$path), normalizePath(artifact2$path))
+    expect_equal(artifact1$id, artifact2$id)
+  })
+})

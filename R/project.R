@@ -209,6 +209,92 @@ PMProject <- R6Class("PMProject",
     },
 
     #' @description
+    #' Get an artifact (output file) from an analysis by ID.
+    #' Searches for files with the given ID (filename without extension) in analysis output directories.
+    #'
+    #' @param id Character. The artifact ID (filename without extension).
+    #' @param analysis_name Character. Optional name of the analysis to search in.
+    #'   If not provided, searches all analyses and fails if not exactly one match is found.
+    #'
+    #' @return A \code{PMData} object with the artifact's ID and path.
+    #'
+    #' @examples
+    #' folder <- withr::local_tempdir()
+    #' pm <- pm_create_project(folder)
+    #' analysis <- pm$create_analysis("data_preparation")
+    #' 
+    #' # Create a test output file
+    #' output <- analysis$get_output_path("results.csv", type = "table")
+    #'
+    #' # Get artifact from specific analysis
+    #' artifact <- pm$get_artifact("results", analysis_name = "data_preparation")
+    #'
+    #' # Get artifact without specifying analysis (if unique across all analyses)
+    #' artifact <- pm$get_artifact("results")
+    get_artifact = function(id, analysis_name = NULL) {
+      chk::chk_scalar(id)
+      chk::chk_character(id)
+      
+      # Determine which analyses to search
+      if (!is.null(analysis_name)) {
+        chk::chk_scalar(analysis_name)
+        chk::chk_character(analysis_name)
+        analysis_names <- analysis_name
+      } else {
+        analysis_names <- self$list_analyses()
+        if (length(analysis_names) == 0) {
+          stop("No analyses found in project")
+        }
+      }
+      
+      # Search through all specified analyses
+      matching_artifacts <- list()
+      for (aname in analysis_names) {
+        analysis <- self$get_analysis(aname)
+        outputs <- analysis$list_outputs(intermediate = FALSE)
+        
+        # Find outputs matching the ID
+        for (output in outputs) {
+          if (identical(output$id, id)) {
+            matching_artifacts[[length(matching_artifacts) + 1]] <- list(
+              analysis = aname,
+              output = output
+            )
+          }
+        }
+      }
+      
+      # Handle results
+      if (length(matching_artifacts) == 0) {
+        if (!is.null(analysis_name)) {
+          stop(sprintf("No artifact with ID '%s' found in analysis '%s'", id, analysis_name))
+        } else {
+          stop(sprintf("No artifact with ID '%s' found in any analysis", id))
+        }
+      }
+      
+      if (length(matching_artifacts) > 1) {
+        if (!is.null(analysis_name)) {
+          # Multiple files with same ID in single analysis
+          file_names <- vapply(matching_artifacts, function(x) basename(x$output$path), character(1))
+          stop(sprintf(
+            "Multiple artifacts with ID '%s' found in analysis '%s': %s",
+            id, analysis_name, paste(file_names, collapse = ", ")
+          ))
+        } else {
+          # Multiple matches across different analyses
+          analysis_names_found <- vapply(matching_artifacts, function(x) x$analysis, character(1))
+          stop(sprintf(
+            "Multiple artifacts with ID '%s' found in analyses: %s. Please specify analysis_name.",
+            id, paste(analysis_names_found, collapse = ", ")
+          ))
+        }
+      }
+
+      matching_artifacts[[1]]$output
+    },
+
+    #' @description
     #' Create a new analysis from template.
     #' Creates a new analysis folder with template structure including
     #' README.md, directories (code/, outputs/, intermediate/, logs/),
