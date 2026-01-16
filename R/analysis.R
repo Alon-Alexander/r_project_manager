@@ -153,37 +153,21 @@ PMAnalysis <- R6Class("PMAnalysis",
           name <- paste0(name, ".rds")
         }
       } else {
+        type_lower <- tolower(type)
         if (identical(ext, "")) {
           # Add extension based on type
-          # Special names are converted but the rest are
-          # just assumed to be the extension.
-          new_ext <- switch(tolower(type),
-            table = "parquet",
-            object = "rdata",
-            image = ,
-            figure = "png",
-            tolower(type)
-          )
-
+          new_ext <- constants$TYPE_MAPPINGS$defaults[[type_lower]] %||% type_lower
           name <- paste0(name, ".", new_ext)
         } else {
           # Validate extension and type match
-          possible_extensions <- switch(tolower(type),
-            parquet = ,
-            pqt = c("parquet", "pqt"),
-            table = c("parquet", "pqt", "tsv", "csv", "rds", "rdata", "rda"),
-            object = c("rdata", "rda", "rds"),
-            image = ,
-            figure = c("png", "jpeg", "jpg", "svg", "gif", "tiff", "bmp"),
-            c(tolower(type))
-          )
+          possible_extensions <- constants$TYPE_MAPPINGS$allowed[[type_lower]] %||% c(type_lower)
 
           if (!(ext %in% possible_extensions)) {
             stop(sprintf(
               "Got type = %s and file with extension %s, and expected the extension to be one of %s",
               type,
               ext,
-              possible_extensions
+              paste(possible_extensions, collapse = ", ")
             ))
           }
         }
