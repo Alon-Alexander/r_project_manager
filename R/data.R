@@ -83,7 +83,7 @@ PMData <- R6Class("PMData",
     #'   data_rdata$write(obj1, obj2, obj3 = 42)
     #' })
     write = function(x, ...) {
-      # For RData files, we need to preserve object names from the original call
+      # For RData files, we need   to preserve object names from the original call
       ext <- tolower(tools::file_ext(self$path))
       if (ext %in% c("rdata", "rda")) {
         # Capture the call to extract object names

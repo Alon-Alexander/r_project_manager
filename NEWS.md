@@ -1,3 +1,12 @@
+# pm 0.1.4
+
+## New Features
+
+- Add `get_output_path()` method to `PMAnalysis` for generating output file paths
+- Support for type-based file extension inference (table, object, image, figure, parquet, pqt)
+- Automatic extension validation when both name and type are provided
+- Support for intermediate vs outputs folder selection
+
 # pm 0.1.3
 
 ## New Features

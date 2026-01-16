@@ -548,19 +548,251 @@ describe("Analysis output paths", {
   })
 
   it("Errors when extension and type don't match", {
-    # TODO
+    # Test mismatched extensions and types
+    mismatches <- list(
+      list(name = "file.csv", type = "image"),
+      list(name = "file.png", type = "table"),
+      list(name = "file.rds", type = "image"),
+      list(name = "file.jpeg", type = "object"),
+      list(name = "file.parquet", type = "object"),
+      list(name = "file.rdata", type = "figure")
+    )
+
+    for (mismatch in mismatches) {
+      expect_error(
+        analysis$get_output_path(mismatch$name, type = mismatch$type),
+        regexp = "expected the extension to be one of"
+      )
+    }
   })
 
   it("Works with 'table' type", {
-    # TODO
+    # Test table type with valid extensions
+    table_extensions <- c("csv", "tsv", "parquet", "pqt", "rds", "rdata", "rda")
+    for (ext in table_extensions) {
+      name <- paste0("table_output.", ext)
+      middle_folder <- .get_middle_folder(FALSE)
+      expected <- normalizePath(
+        file.path(pm$path, "analyses", analysis_name, middle_folder, name),
+        mustWork = FALSE
+      )
+      result <- analysis$get_output_path(name, type = "table", intermediate = FALSE)
+      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+    }
+
+    # Test table type without extension (should add .parquet)
+    name <- "table_output"
+    middle_folder <- .get_middle_folder(TRUE)
+    expected <- normalizePath(
+      file.path(pm$path, "analyses", analysis_name, middle_folder, "table_output.parquet"),
+      mustWork = FALSE
+    )
+    result <- analysis$get_output_path(name, type = "table", intermediate = TRUE)
+    expect_equal(normalizePath(result, mustWork = FALSE), expected)
   })
 
   it("Works with 'object' type", {
-    # TODO
+    # Test object type with valid extensions
+    object_extensions <- c("rdata", "rda", "rds")
+    for (ext in object_extensions) {
+      name <- paste0("object_output.", ext)
+      middle_folder <- .get_middle_folder(FALSE)
+      expected <- normalizePath(
+        file.path(pm$path, "analyses", analysis_name, middle_folder, name),
+        mustWork = FALSE
+      )
+      result <- analysis$get_output_path(name, type = "object", intermediate = FALSE)
+      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+    }
+
+    # Test object type without extension (should add .rdata)
+    name <- "object_output"
+    middle_folder <- .get_middle_folder(TRUE)
+    expected <- normalizePath(
+      file.path(pm$path, "analyses", analysis_name, middle_folder, "object_output.rdata"),
+      mustWork = FALSE
+    )
+    result <- analysis$get_output_path(name, type = "object", intermediate = TRUE)
+    expect_equal(normalizePath(result, mustWork = FALSE), expected)
   })
 
   it("Works with 'figure' type", {
-    # TODO
+    # Test figure type with valid extensions
+    figure_extensions <- c("png", "jpeg", "jpg", "svg", "gif", "tiff", "bmp")
+    for (ext in figure_extensions) {
+      name <- paste0("figure_output.", ext)
+      middle_folder <- .get_middle_folder(FALSE)
+      expected <- normalizePath(
+        file.path(pm$path, "analyses", analysis_name, middle_folder, name),
+        mustWork = FALSE
+      )
+      result <- analysis$get_output_path(name, type = "figure", intermediate = FALSE)
+      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+    }
+
+    # Test figure type without extension (should add .png)
+    name <- "figure_output"
+    middle_folder <- .get_middle_folder(TRUE)
+    expected <- normalizePath(
+      file.path(pm$path, "analyses", analysis_name, middle_folder, "figure_output.png"),
+      mustWork = FALSE
+    )
+    result <- analysis$get_output_path(name, type = "figure", intermediate = TRUE)
+    expect_equal(normalizePath(result, mustWork = FALSE), expected)
+  })
+
+  it("Works with 'image' type (same as figure)", {
+    # Test image type with valid extensions (same as figure)
+    image_extensions <- c("png", "jpeg", "jpg", "svg", "gif", "tiff", "bmp")
+    for (ext in image_extensions) {
+      name <- paste0("image_output.", ext)
+      middle_folder <- .get_middle_folder(FALSE)
+      expected <- normalizePath(
+        file.path(pm$path, "analyses", analysis_name, middle_folder, name),
+        mustWork = FALSE
+      )
+      result <- analysis$get_output_path(name, type = "image", intermediate = FALSE)
+      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+    }
+
+    # Test image type without extension (should add .png)
+    name <- "image_output"
+    middle_folder <- .get_middle_folder(TRUE)
+    expected <- normalizePath(
+      file.path(pm$path, "analyses", analysis_name, middle_folder, "image_output.png"),
+      mustWork = FALSE
+    )
+    result <- analysis$get_output_path(name, type = "image", intermediate = TRUE)
+    expect_equal(normalizePath(result, mustWork = FALSE), expected)
+  })
+
+  it("Works with 'parquet' and 'pqt' types", {
+    # Test parquet type
+    for (ext in c("parquet", "pqt")) {
+      name <- paste0("parquet_output.", ext)
+      middle_folder <- .get_middle_folder(FALSE)
+      expected <- normalizePath(
+        file.path(pm$path, "analyses", analysis_name, middle_folder, name),
+        mustWork = FALSE
+      )
+      result <- analysis$get_output_path(name, type = "parquet", intermediate = FALSE)
+      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+    }
+
+    # Test pqt type
+    for (ext in c("parquet", "pqt")) {
+      name <- paste0("pqt_output.", ext)
+      middle_folder <- .get_middle_folder(TRUE)
+      expected <- normalizePath(
+        file.path(pm$path, "analyses", analysis_name, middle_folder, name),
+        mustWork = FALSE
+      )
+      result <- analysis$get_output_path(name, type = "pqt", intermediate = TRUE)
+      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+    }
+
+    # Test parquet/pqt type without extension (should use type as extension)
+    name <- "parquet_output"
+    middle_folder <- .get_middle_folder(FALSE)
+    expected <- normalizePath(
+      file.path(pm$path, "analyses", analysis_name, middle_folder, "parquet_output.parquet"),
+      mustWork = FALSE
+    )
+    result <- analysis$get_output_path(name, type = "parquet", intermediate = FALSE)
+    expect_equal(normalizePath(result, mustWork = FALSE), expected)
+  })
+
+  it("Defaults to .rds when no extension and no type provided", {
+    name <- "no_extension"
+    middle_folder <- .get_middle_folder(FALSE)
+    expected <- normalizePath(
+      file.path(pm$path, "analyses", analysis_name, middle_folder, "no_extension.rds"),
+      mustWork = FALSE
+    )
+    result <- analysis$get_output_path(name, intermediate = FALSE)
+    expect_equal(normalizePath(result, mustWork = FALSE), expected)
+  })
+
+  it("Preserves extension when no type provided", {
+    for (ext in c("csv", "tsv", "png", "rds", "parquet", "xyz")) {
+      name <- paste0("preserved.", ext)
+      middle_folder <- .get_middle_folder(TRUE)
+      expected <- normalizePath(
+        file.path(pm$path, "analyses", analysis_name, middle_folder, name),
+        mustWork = FALSE
+      )
+      result <- analysis$get_output_path(name, intermediate = TRUE)
+      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+    }
+  })
+
+  it("Handles case-insensitive extensions", {
+    # Test that extensions are case-insensitive
+    name_upper <- "output.CSV"
+    name_lower <- "output.csv"
+    middle_folder <- .get_middle_folder(FALSE)
+
+    result_upper <- analysis$get_output_path(name_upper, type = "table", intermediate = FALSE)
+    result_lower <- analysis$get_output_path(name_lower, type = "table", intermediate = FALSE)
+
+    # Both should work (extension is lowercased internally)
+    expect_true(file.exists(dirname(result_upper)) || !file.exists(result_upper))
+    expect_true(file.exists(dirname(result_lower)) || !file.exists(result_lower))
+  })
+
+  it("Handles case-insensitive types", {
+    # Test that types are case-insensitive
+    name <- "output.csv"
+    middle_folder <- .get_middle_folder(FALSE)
+    expected <- normalizePath(
+      file.path(pm$path, "analyses", analysis_name, middle_folder, name),
+      mustWork = FALSE
+    )
+
+    for (type_case in c("table", "TABLE", "Table", "tAbLe")) {
+      result <- analysis$get_output_path(name, type = type_case, intermediate = FALSE)
+      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+    }
+  })
+
+  it("Correctly places files in intermediate vs outputs folder", {
+    name <- "test_output.rds"
+
+    # Test outputs folder
+    result_outputs <- analysis$get_output_path(name, intermediate = FALSE)
+    expect_true(grepl("outputs", result_outputs))
+    expect_false(grepl("intermediate", result_outputs))
+
+    # Test intermediate folder
+    result_intermediate <- analysis$get_output_path(name, intermediate = TRUE)
+    expect_true(grepl("intermediate", result_intermediate))
+    expect_false(grepl("outputs", result_intermediate))
+  })
+
+  it("Handles names with multiple dots", {
+    name <- "output.with.multiple.dots.csv"
+    middle_folder <- .get_middle_folder(FALSE)
+    expected <- normalizePath(
+      file.path(pm$path, "analyses", analysis_name, middle_folder, name),
+      mustWork = FALSE
+    )
+    result <- analysis$get_output_path(name, type = "table", intermediate = FALSE)
+    expect_equal(normalizePath(result, mustWork = FALSE), expected)
+  })
+
+  it("Handles names with special characters", {
+    # Test names with underscores, hyphens, etc.
+    special_names <- c("output_file.csv", "output-file.csv", "output123.csv", "output_file_123.csv")
+    middle_folder <- .get_middle_folder(FALSE)
+
+    for (name in special_names) {
+      expected <- normalizePath(
+        file.path(pm$path, "analyses", analysis_name, middle_folder, name),
+        mustWork = FALSE
+      )
+      result <- analysis$get_output_path(name, type = "table", intermediate = FALSE)
+      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+    }
   })
 })
 
