@@ -22,6 +22,24 @@ analysis <- pm$get_analysis("data_preparation")
 # Load an existing analysis from path
 analysis <- PMAnalysis$new(path = file.path(folder, "analyses", "data_preparation"))
 
+
+## ------------------------------------------------
+## Method `PMAnalysis$get_output_path`
+## ------------------------------------------------
+
+folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+analysis <- pm$create_analysis("my_analysis")
+
+# Get output path for a CSV file
+output <- analysis$get_output_path("results.csv", type = "table")
+output$id    # "results"
+output$path  # full path to results.csv in outputs/
+
+# Get intermediate path without extension (will add .parquet for table type)
+intermediate <- analysis$get_output_path("temp_data", type = "table", intermediate = TRUE)
+intermediate$id    # "temp_data"
+intermediate$path  # full path to temp_data.parquet in intermediate/
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -40,6 +58,7 @@ analysis <- PMAnalysis$new(path = file.path(folder, "analyses", "data_preparatio
 \item \href{#method-PMAnalysis-new}{\code{PMAnalysis$new()}}
 \item \href{#method-PMAnalysis-validate}{\code{PMAnalysis$validate()}}
 \item \href{#method-PMAnalysis-print}{\code{PMAnalysis$print()}}
+\item \href{#method-PMAnalysis-get_output_path}{\code{PMAnalysis$get_output_path()}}
 \item \href{#method-PMAnalysis-clone}{\code{PMAnalysis$clone()}}
 }
 }
@@ -82,6 +101,56 @@ Makes sure all expected files and folders exist.
 Print method for PMAnalysis
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PMAnalysis$print()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PMAnalysis-get_output_path"></a>}}
+\if{latex}{\out{\hypertarget{method-PMAnalysis-get_output_path}{}}}
+\subsection{Method \code{get_output_path()}}{
+Get output path for a file, returning a PMData object.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PMAnalysis$get_output_path(name, type = NULL, intermediate = FALSE)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{name}}{Character. Name of the output file (with or without extension).}
+
+\item{\code{type}}{Character. Optional type of output (table, object, image, figure, parquet, csv).
+If provided and name has no extension, an appropriate extension will be added.
+If provided and name has an extension, the extension will be validated against the type.}
+
+\item{\code{intermediate}}{Logical. If TRUE, file goes in intermediate/ folder; if FALSE, in outputs/ folder.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A \code{PMData} object with:
+\itemize{
+\item \code{id}: The file name without extension
+\item \code{path}: The full absolute path to the output file
+}
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+analysis <- pm$create_analysis("my_analysis")
+
+# Get output path for a CSV file
+output <- analysis$get_output_path("results.csv", type = "table")
+output$id    # "results"
+output$path  # full path to results.csv in outputs/
+
+# Get intermediate path without extension (will add .parquet for table type)
+intermediate <- analysis$get_output_path("temp_data", type = "table", intermediate = TRUE)
+intermediate$id    # "temp_data"
+intermediate$path  # full path to temp_data.parquet in intermediate/
+}
+\if{html}{\out{</div>}}
+
 }
 
 }

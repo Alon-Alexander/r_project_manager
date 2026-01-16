@@ -105,6 +105,79 @@ PMAnalysis <- R6Class("PMAnalysis",
         cat("  Project: ", self$project_path, "\n", sep = "")
       }
       invisible(self)
+    },
+
+    #' @description
+    #' Get output path for a file, returning a PMData object.
+    #'
+    #' @param name Character. Name of the output file (with or without extension).
+    #' @param type Character. Optional type of output (table, object, image, figure, parquet, csv).
+    #'   If provided and name has no extension, an appropriate extension will be added.
+    #'   If provided and name has an extension, the extension will be validated against the type.
+    #' @param intermediate Logical. If TRUE, file goes in intermediate/ folder; if FALSE, in outputs/ folder.
+    #'
+    #' @return A \code{PMData} object with:
+    #'   - \code{id}: The file name without extension
+    #'   - \code{path}: The full absolute path to the output file
+    #'
+    #' @examples
+    #' folder <- withr::local_tempdir()
+    #' pm <- pm_create_project(folder)
+    #' analysis <- pm$create_analysis("my_analysis")
+    #'
+    #' # Get output path for a CSV file
+    #' output <- analysis$get_output_path("results.csv", type = "table")
+    #' output$id    # "results"
+    #' output$path  # full path to results.csv in outputs/
+    #'
+    #' # Get intermediate path without extension (will add .parquet for table type)
+    #' intermediate <- analysis$get_output_path("temp_data", type = "table", intermediate = TRUE)
+    #' intermediate$id    # "temp_data"
+    #' intermediate$path  # full path to temp_data.parquet in intermediate/
+    get_output_path = function(name, type = NULL, intermediate = FALSE) {
+      # Store original name for ID (without extension)
+      original_name <- name
+      original_ext <- tolower(tools::file_ext(original_name))
+      id <- if (identical(original_ext, "")) {
+        original_name
+      } else {
+        tools::file_path_sans_ext(original_name)
+      }
+
+      ext <- tolower(tools::file_ext(name))
+
+      if (is.null(type)) {
+        # Assume rds object if no extension given
+        # Otherwise, just propagate given extension
+        if (identical(ext, "")) {
+          name <- paste0(name, ".rds")
+        }
+      } else {
+        type_lower <- tolower(type)
+        if (identical(ext, "")) {
+          # Add extension based on type
+          new_ext <- constants$TYPE_MAPPINGS$defaults[[type_lower]] %||% type_lower
+          name <- paste0(name, ".", new_ext)
+        } else {
+          # Validate extension and type match
+          possible_extensions <- constants$TYPE_MAPPINGS$allowed[[type_lower]] %||% c(type_lower)
+
+          if (!(ext %in% possible_extensions)) {
+            stop(sprintf(
+              "Got type = %s and file with extension %s, and expected the extension to be one of %s",
+              type,
+              ext,
+              paste(possible_extensions, collapse = ", ")
+            ))
+          }
+        }
+      }
+
+      folder <- if (intermediate) constants$ANALYSIS_INTERMEDIATE_DIR else constants$ANALYSIS_OUTPUT_DIR
+
+      full_path <- normalizePath(file.path(self$path, folder, name), mustWork = FALSE)
+      
+      PMData$new(id = id, path = full_path)
     }
   )
 )
