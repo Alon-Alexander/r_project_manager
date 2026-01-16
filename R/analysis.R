@@ -105,6 +105,57 @@ PMAnalysis <- R6Class("PMAnalysis",
         cat("  Project: ", self$project_path, "\n", sep = "")
       }
       invisible(self)
+    },
+
+    get_output_path = function(name, type = NULL, intermediate = FALSE) {
+      ext <- tolower(tools::file_ext(name))
+
+      if (is.null(type)) {
+        # Assume rds object if no extension given
+        # Otherwise, just propagate given extension
+        if (identical(ext, "")) {
+          name <- paste0(name, ".rds")
+        }
+      } else {
+        if (identical(ext, "")) {
+          # Add extension based on type
+          # Special names are converted but the rest are
+          # just assumed to be the extension.
+          new_ext <- switch(tolower(type),
+            table = "parquet",
+            object = "rdata",
+            image = ,
+            figure = "png",
+            tolower(type)
+          )
+
+          name <- paste0(name, ".", new_ext)
+        } else {
+          # Validate extension and type match
+          possible_extensions <- switch(tolower(type),
+            parquet = ,
+            pqt = c("parquet", "pqt"),
+            table = c("parquet", "pqt", "tsv", "csv", "rds", "rdata", "rda"),
+            object = c("rdata", "rda", "rds"),
+            image = ,
+            figure = c("png", "jpeg", "jpg", "svg", "gif", "tiff", "bmp"),
+            c(tolower(type))
+          )
+
+          if (!(ext %in% possible_extensions)) {
+            stop(sprintf(
+              "Got type = %s and file with extension %s, and expected the extension to be one of %s",
+              type,
+              ext,
+              possible_extensions
+            ))
+          }
+        }
+      }
+
+      folder <- if (intermediate) constants$ANALYSIS_INTERMEDIATE_DIR else constants$ANALYSIS_OUTPUT_DIR
+
+      file.path(self$path, folder, name)
     }
   )
 )

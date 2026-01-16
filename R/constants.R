@@ -5,5 +5,7 @@ constants <- list(
   README_FILENAME = "README.md",
   TEMPLATE_PROJECT_DIR = "template_project",
   TEMPLATE_ANALYSIS_DIR = "template_analysis",
-  TEMPLATE_GITIGNORE_FILENAME = "template_gitignore"
+  TEMPLATE_GITIGNORE_FILENAME = "template_gitignore",
+  ANALYSIS_INTERMEDIATE_DIR = "intermediate",
+  ANALYSIS_OUTPUT_DIR = "outputs"
 )

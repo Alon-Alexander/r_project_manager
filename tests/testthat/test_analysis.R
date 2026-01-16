@@ -446,6 +446,124 @@ describe("Analysis template structure", {
   })
 })
 
+.get_middle_folder <- function(intermediate) {
+  if (intermediate) "intermediate" else "outputs"
+}
+
+describe("Analysis output paths", {
+  expected_ext_map <- list(
+    parquet = "parquet",
+    pqt = "pqt",
+    png = "png",
+    image = "png",
+    figure = "png",
+    object = "rdata"
+  )
+
+  dir <- .get_good_project_path()
+  pm <- pm::PMProject$new(dir)
+  analysis_name <- "test_analysis"
+  analysis <- pm$create_analysis(analysis_name)
+
+  it("Gets output paths with given extensions", {
+    for (ext in c("parquet", "pqt", "csv", "tsv", "rdata", "rda", "rds", "jpeg")) {
+      for (intermediate in c(TRUE, FALSE)) {
+        name <- paste0("simple_output.", ext)
+
+        middle_folder <- .get_middle_folder(intermediate)
+
+        expected <- normalizePath(file.path(pm$path, "analyses", analysis_name, middle_folder, name), mustWork = FALSE)
+        result <- analysis$get_output_path(name, intermediate = intermediate)
+
+        expect_equal(normalizePath(result, mustWork = FALSE), expected)
+      }
+    }
+  })
+
+  it("Gets output paths with given types", {
+    combs <- expand.grid(names(expected_ext_map), c(TRUE, FALSE), stringsAsFactors = FALSE)
+    invisible(apply(combs, 1, function(x) {
+      type <- x[1]
+      intermediate <- x[2]
+
+      name <- "type_output"
+      middle_folder <- .get_middle_folder(intermediate)
+
+      expected <- normalizePath(
+        file.path(
+          pm$path,
+          "analyses",
+          analysis_name,
+          middle_folder,
+          paste0(name, ".", expected_ext_map[[type]])
+        ),
+        mustWork = FALSE
+      )
+      result <- analysis$get_output_path(name, type = type, intermediate = intermediate)
+
+      expect_equal(normalizePath(result, mustWork = FALSE), expected)
+    }))
+  })
+
+  it("Works when matching extensiosn and type", {
+    combs <- list(
+      list(name = "a.csv", type = "csv"),
+      list(name = "a.csv", type = "table"),
+      list(name = "a.tsv", type = "table"),
+      list(name = "a.parquet", type = "table"),
+      list(name = "a.rdata", type = "table"),
+      list(name = "a.rds", type = "table"),
+      list(name = "b.png", type = "image"),
+      list(name = "b.jpeg", type = "image"),
+      list(name = "b.jpg", type = "image"),
+      list(name = "b.svg", type = "image"),
+      list(name = "b.png", type = "figure"),
+      list(name = "b.jpeg", type = "figure"),
+      list(name = "b.jpg", type = "figure"),
+      list(name = "b.svg", type = "figure"),
+      list(name = "b.parquet", type = "parquet"),
+      list(name = "b.pqt", type = "parquet"),
+      list(name = "b.parquet", type = "pqt"),
+      list(name = "b.pqt", type = "pqt"),
+      list(name = "c.rds", type = "rds")
+    )
+    middle_folder <- .get_middle_folder(FALSE)
+
+    for (comb in combs) {
+
+      expected <- normalizePath(
+        file.path(
+          pm$path,
+          "analyses",
+          analysis_name,
+          middle_folder,
+          comb$name
+        ),
+        mustWork = FALSE
+      )
+      result <- analysis$get_output_path(comb$name, type = comb$type, intermediate = FALSE)
+
+      expect_equal(normalizePath(result, mustWork = FALSE), expected, label=as.character(comb))
+    }
+  })
+
+  it("Errors when extension and type don't match", {
+    # TODO
+  })
+
+  it("Works with 'table' type", {
+    # TODO
+  })
+
+  it("Works with 'object' type", {
+    # TODO
+  })
+
+  it("Works with 'figure' type", {
+    # TODO
+  })
+})
+
 describe("Analysis integration with project", {
   it("Analysis path is relative to project", {
     dir <- .get_good_project_path()

@@ -40,6 +40,7 @@ analysis <- PMAnalysis$new(path = file.path(folder, "analyses", "data_preparatio
 \item \href{#method-PMAnalysis-new}{\code{PMAnalysis$new()}}
 \item \href{#method-PMAnalysis-validate}{\code{PMAnalysis$validate()}}
 \item \href{#method-PMAnalysis-print}{\code{PMAnalysis$print()}}
+\item \href{#method-PMAnalysis-get_output_path}{\code{PMAnalysis$get_output_path()}}
 \item \href{#method-PMAnalysis-clone}{\code{PMAnalysis$clone()}}
 }
 }
@@ -82,6 +83,15 @@ Makes sure all expected files and folders exist.
 Print method for PMAnalysis
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PMAnalysis$print()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PMAnalysis-get_output_path"></a>}}
+\if{latex}{\out{\hypertarget{method-PMAnalysis-get_output_path}{}}}
+\subsection{Method \code{get_output_path()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PMAnalysis$get_output_path(name, type = NULL, intermediate = FALSE)}\if{html}{\out{</div>}}
 }
 
 }
