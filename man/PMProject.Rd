@@ -57,6 +57,7 @@ analysis <- pm$create_analysis("data_preparation")
 
 # Create a test output file
 output <- analysis$get_output_path("results.csv", type = "table")
+output$write(data.frame(x = 1:5))
 
 # Get artifact from specific analysis
 artifact <- pm$get_artifact("results", analysis_name = "data_preparation")
@@ -240,6 +241,7 @@ analysis <- pm$create_analysis("data_preparation")
 
 # Create a test output file
 output <- analysis$get_output_path("results.csv", type = "table")
+output$write(data.frame(x = 1:5))
 
 # Get artifact from specific analysis
 artifact <- pm$get_artifact("results", analysis_name = "data_preparation")
