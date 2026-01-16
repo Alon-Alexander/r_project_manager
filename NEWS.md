@@ -1,3 +1,13 @@
+# pm 0.1.5
+
+## New Features
+
+- Add `get_artifact()` method to `PMProject` for fetching output files from analyses by ID
+- Add `get_artifact()` method to `PMAnalysis` for fetching output files from other analyses
+- Add `list_outputs()` method to `PMAnalysis` for listing all output files in an analysis
+- Support for searching artifacts across all analyses or within a specific analysis
+- Automatic detection of ambiguous artifacts with helpful error messages
+
 # pm 0.1.4
 
 ## New Features
