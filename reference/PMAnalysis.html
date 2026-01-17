@@ -72,6 +72,7 @@ Each analysis contains code, outputs, intermediate results, and logs.</p>
 <li><p><a href="#method-PMAnalysis-validate"><code>PMAnalysis$validate()</code></a></p></li>
 <li><p><a href="#method-PMAnalysis-print"><code>PMAnalysis$print()</code></a></p></li>
 <li><p><a href="#method-PMAnalysis-get_artifact"><code>PMAnalysis$get_artifact()</code></a></p></li>
+<li><p><a href="#method-PMAnalysis-get_intermediate_artifact"><code>PMAnalysis$get_intermediate_artifact()</code></a></p></li>
 <li><p><a href="#method-PMAnalysis-list_outputs"><code>PMAnalysis$list_outputs()</code></a></p></li>
 <li><p><a href="#method-PMAnalysis-get_output_path"><code>PMAnalysis$get_output_path()</code></a></p></li>
 <li><p><a href="#method-PMAnalysis-clone"><code>PMAnalysis$clone()</code></a></p></li>
@@ -121,7 +122,7 @@ Makes sure all expected files and folders exist.</p><div class="section">
 <p>Get an artifact (output file) from another analysis by ID.
 Searches for files with the given ID (filename without extension) in analysis output directories.</p><div class="section">
 <h4 id="usage-3">Usage<a class="anchor" aria-label="anchor" href="#usage-3"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PMAnalysis</span><span class="op">$</span><span class="fu">get_artifact</span><span class="op">(</span><span class="va">id</span>, analysis_name <span class="op">=</span> <span class="cn">NULL</span>, intermediate <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PMAnalysis</span><span class="op">$</span><span class="fu">get_artifact</span><span class="op">(</span><span class="va">id</span>, analysis_name <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
@@ -134,13 +135,6 @@ Searches for files with the given ID (filename without extension) in analysis ou
 <dd><p>Character. Optional name of the analysis to search in.
 If not provided, uses the current analysis's name. If explicitly set to <code>NULL</code>,
 searches all analyses and fails if not exactly one match is found.</p></dd>
-
-
-<dt><code>intermediate</code></dt>
-<dd><p>Logical. If <code>TRUE</code>, searches for the artifact in the current analysis's
-intermediate folder. If an existing file with the given ID is found, returns it.
-If no existing file is found, returns the path via <code>get_output_path()</code> (the file may not exist yet).
-Cannot be used with <code>analysis_name</code>.</p></dd>
 
 
 </dl><p></p></div>
@@ -166,18 +160,48 @@ Cannot be used with <code>analysis_name</code>.</p></dd>
 <span><span class="co"># Get artifact from current analysis (default behavior)</span></span>
 <span><span class="va">artifact</span> <span class="op">&lt;-</span> <span class="va">analysis1</span><span class="op">$</span><span class="fu">get_artifact</span><span class="op">(</span><span class="st">"results"</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># Get artifact without specifying analysis (if unique across all analyses)</span></span>
+<span><span class="va">artifact</span> <span class="op">&lt;-</span> <span class="va">analysis2</span><span class="op">$</span><span class="fu">get_artifact</span><span class="op">(</span><span class="st">"results"</span>, analysis_name <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+
+</div><p></p><hr><a id="method-PMAnalysis-get_intermediate_artifact"></a><div class="section">
+<h3 id="method-get-intermediate-artifact-">Method <code>get_intermediate_artifact()</code><a class="anchor" aria-label="anchor" href="#method-get-intermediate-artifact-"></a></h3>
+<p>Get an intermediate artifact from the current analysis's intermediate folder.
+Searches for existing files with the given ID (filename without extension) in the intermediate directory.
+If an existing file is found, returns it. If no existing file is found, returns the path
+via <code>get_output_path()</code> (the file may not exist yet).</p><div class="section">
+<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PMAnalysis</span><span class="op">$</span><span class="fu">get_intermediate_artifact</span><span class="op">(</span><span class="va">id</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>id</code></dt>
+<dd><p>Character. The artifact ID (filename without extension).</p></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<p>A <code>PMData</code> object with the artifact's ID and path.</p>
+</div>
+<div class="section">
+<h4 id="examples-1">Examples<a class="anchor" aria-label="anchor" href="#examples-1"></a></h4>
+<p></p><div class="r example copy"><div class="sourceCode"><pre><code><span><span class="va">folder</span> <span class="op">&lt;-</span> <span class="fu">withr</span><span class="fu">::</span><span class="fu"><a href="https://withr.r-lib.org/reference/with_tempfile.html" class="external-link">local_tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">pm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pm_create_project.html">pm_create_project</a></span><span class="op">(</span><span class="va">folder</span><span class="op">)</span></span>
+<span><span class="va">analysis</span> <span class="op">&lt;-</span> <span class="va">pm</span><span class="op">$</span><span class="fu">create_analysis</span><span class="op">(</span><span class="st">"data_preparation"</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># Get artifact from current analysis's intermediate folder</span></span>
 <span><span class="co"># If file exists, returns it; otherwise returns path for new file</span></span>
-<span><span class="va">artifact</span> <span class="op">&lt;-</span> <span class="va">analysis1</span><span class="op">$</span><span class="fu">get_artifact</span><span class="op">(</span><span class="st">"temp_data"</span>, intermediate <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">artifact</span> <span class="op">&lt;-</span> <span class="va">analysis</span><span class="op">$</span><span class="fu">get_intermediate_artifact</span><span class="op">(</span><span class="st">"temp_data"</span><span class="op">)</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="va">artifact</span><span class="op">$</span><span class="fu">exists</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">data</span> <span class="op">&lt;-</span> <span class="va">artifact</span><span class="op">$</span><span class="fu">read</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
 <span>  <span class="co"># File doesn't exist yet, can write to it</span></span>
 <span>  <span class="va">artifact</span><span class="op">$</span><span class="fu">write</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="co"># Get artifact without specifying analysis (if unique across all analyses)</span></span>
-<span><span class="va">artifact</span> <span class="op">&lt;-</span> <span class="va">analysis2</span><span class="op">$</span><span class="fu">get_artifact</span><span class="op">(</span><span class="st">"results"</span>, analysis_name <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<span><span class="op">}</span></span></code></pre></div><p></p></div>
 </div>
 
 
@@ -185,12 +209,12 @@ Cannot be used with <code>analysis_name</code>.</p></dd>
 <h3 id="method-list-outputs-">Method <code>list_outputs()</code><a class="anchor" aria-label="anchor" href="#method-list-outputs-"></a></h3>
 <p>List all output files in the analysis.
 Returns a list of PMData objects for all files in the outputs or intermediate directory.</p><div class="section">
-<h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PMAnalysis</span><span class="op">$</span><span class="fu">list_outputs</span><span class="op">(</span>intermediate <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>intermediate</code></dt>
 <dd><p>Logical. If TRUE, lists files in intermediate/ folder; if FALSE, in outputs/ folder.</p></dd>
 
@@ -198,13 +222,13 @@ Returns a list of PMData objects for all files in the outputs or intermediate di
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-1">Returns<a class="anchor" aria-label="anchor" href="#returns-1"></a></h4>
+<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
 <p>A list of <code>PMData</code> objects, one for each file found.
 Each object has:</p><ul><li><p><code>id</code>: The file name without extension</p></li>
 <li><p><code>path</code>: The full absolute path to the file</p></li>
 </ul></div>
 <div class="section">
-<h4 id="examples-1">Examples<a class="anchor" aria-label="anchor" href="#examples-1"></a></h4>
+<h4 id="examples-2">Examples<a class="anchor" aria-label="anchor" href="#examples-2"></a></h4>
 <p></p><div class="r example copy"><div class="sourceCode"><pre><code><span><span class="va">folder</span> <span class="op">&lt;-</span> <span class="fu">withr</span><span class="fu">::</span><span class="fu"><a href="https://withr.r-lib.org/reference/with_tempfile.html" class="external-link">local_tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">pm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pm_create_project.html">pm_create_project</a></span><span class="op">(</span><span class="va">folder</span><span class="op">)</span></span>
 <span><span class="va">analysis</span> <span class="op">&lt;-</span> <span class="va">pm</span><span class="op">$</span><span class="fu">create_analysis</span><span class="op">(</span><span class="st">"my_analysis"</span><span class="op">)</span></span>
@@ -225,12 +249,12 @@ Each object has:</p><ul><li><p><code>id</code>: The file name without extension<
 </div><p></p><hr><a id="method-PMAnalysis-get_output_path"></a><div class="section">
 <h3 id="method-get-output-path-">Method <code>get_output_path()</code><a class="anchor" aria-label="anchor" href="#method-get-output-path-"></a></h3>
 <p>Get output path for a file, returning a PMData object.</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PMAnalysis</span><span class="op">$</span><span class="fu">get_output_path</span><span class="op">(</span><span class="va">name</span>, type <span class="op">=</span> <span class="cn">NULL</span>, intermediate <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>name</code></dt>
 <dd><p>Character. Name of the output file (with or without extension).</p></dd>
 
@@ -248,12 +272,12 @@ If provided and name has an extension, the extension will be validated against t
 </dl><p></p></div>
 </div>
 <div class="section">
-<h4 id="returns-2">Returns<a class="anchor" aria-label="anchor" href="#returns-2"></a></h4>
+<h4 id="returns-3">Returns<a class="anchor" aria-label="anchor" href="#returns-3"></a></h4>
 <p>A <code>PMData</code> object with:</p><ul><li><p><code>id</code>: The file name without extension</p></li>
 <li><p><code>path</code>: The full absolute path to the output file</p></li>
 </ul></div>
 <div class="section">
-<h4 id="examples-2">Examples<a class="anchor" aria-label="anchor" href="#examples-2"></a></h4>
+<h4 id="examples-3">Examples<a class="anchor" aria-label="anchor" href="#examples-3"></a></h4>
 <p></p><div class="r example copy"><div class="sourceCode"><pre><code><span><span class="va">folder</span> <span class="op">&lt;-</span> <span class="fu">withr</span><span class="fu">::</span><span class="fu"><a href="https://withr.r-lib.org/reference/with_tempfile.html" class="external-link">local_tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">pm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pm_create_project.html">pm_create_project</a></span><span class="op">(</span><span class="va">folder</span><span class="op">)</span></span>
 <span><span class="va">analysis</span> <span class="op">&lt;-</span> <span class="va">pm</span><span class="op">$</span><span class="fu">create_analysis</span><span class="op">(</span><span class="st">"my_analysis"</span><span class="op">)</span></span>
@@ -273,12 +297,12 @@ If provided and name has an extension, the extension will be validated against t
 </div><p></p><hr><a id="method-PMAnalysis-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PMAnalysis</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
@@ -301,8 +325,8 @@ If provided and name has an extension, the extension will be validated against t
 <span class="r-in"><span><span class="va">analysis</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> PMAnalysis:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Name: data_preparation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /tmp/RtmpRVRtnI/file1bae444f6374/analyses/data_preparation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /tmp/RtmpRVRtnI/file1bae444f6374</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /tmp/RtmpSx4DFe/file1d157dd26996/analyses/data_preparation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /tmp/RtmpSx4DFe/file1d157dd26996</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Load an existing analysis from project</span></span></span>
 <span class="r-in"><span><span class="va">analysis</span> <span class="op">&lt;-</span> <span class="va">pm</span><span class="op">$</span><span class="fu">get_analysis</span><span class="op">(</span><span class="st">"data_preparation"</span><span class="op">)</span></span></span>
@@ -330,18 +354,26 @@ If provided and name has an extension, the extension will be validated against t
 <span class="r-in"><span><span class="co"># Get artifact from current analysis (default behavior)</span></span></span>
 <span class="r-in"><span><span class="va">artifact</span> <span class="op">&lt;-</span> <span class="va">analysis1</span><span class="op">$</span><span class="fu">get_artifact</span><span class="op">(</span><span class="st">"results"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Get artifact without specifying analysis (if unique across all analyses)</span></span></span>
+<span class="r-in"><span><span class="va">artifact</span> <span class="op">&lt;-</span> <span class="va">analysis2</span><span class="op">$</span><span class="fu">get_artifact</span><span class="op">(</span><span class="st">"results"</span>, analysis_name <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## ------------------------------------------------</span></span></span>
+<span class="r-in"><span><span class="co">## Method `PMAnalysis$get_intermediate_artifact`</span></span></span>
+<span class="r-in"><span><span class="co">## ------------------------------------------------</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">folder</span> <span class="op">&lt;-</span> <span class="fu">withr</span><span class="fu">::</span><span class="fu"><a href="https://withr.r-lib.org/reference/with_tempfile.html" class="external-link">local_tempdir</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">pm</span> <span class="op">&lt;-</span> <span class="fu"><a href="pm_create_project.html">pm_create_project</a></span><span class="op">(</span><span class="va">folder</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">analysis</span> <span class="op">&lt;-</span> <span class="va">pm</span><span class="op">$</span><span class="fu">create_analysis</span><span class="op">(</span><span class="st">"data_preparation"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Get artifact from current analysis's intermediate folder</span></span></span>
 <span class="r-in"><span><span class="co"># If file exists, returns it; otherwise returns path for new file</span></span></span>
-<span class="r-in"><span><span class="va">artifact</span> <span class="op">&lt;-</span> <span class="va">analysis1</span><span class="op">$</span><span class="fu">get_artifact</span><span class="op">(</span><span class="st">"temp_data"</span>, intermediate <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">artifact</span> <span class="op">&lt;-</span> <span class="va">analysis</span><span class="op">$</span><span class="fu">get_intermediate_artifact</span><span class="op">(</span><span class="st">"temp_data"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="va">artifact</span><span class="op">$</span><span class="fu">exists</span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="va">data</span> <span class="op">&lt;-</span> <span class="va">artifact</span><span class="op">$</span><span class="fu">read</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="co"># File doesn't exist yet, can write to it</span></span></span>
 <span class="r-in"><span>  <span class="va">artifact</span><span class="op">$</span><span class="fu">write</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Get artifact without specifying analysis (if unique across all analyses)</span></span></span>
-<span class="r-in"><span><span class="va">artifact</span> <span class="op">&lt;-</span> <span class="va">analysis2</span><span class="op">$</span><span class="fu">get_artifact</span><span class="op">(</span><span class="st">"results"</span>, analysis_name <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## ------------------------------------------------</span></span></span>
 <span class="r-in"><span><span class="co">## Method `PMAnalysis$list_outputs`</span></span></span>
@@ -376,14 +408,14 @@ If provided and name has an extension, the extension will be validated against t
 <span class="r-in"><span><span class="va">output</span><span class="op">$</span><span class="va">id</span>    <span class="co"># "results"</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "results"</span>
 <span class="r-in"><span><span class="va">output</span><span class="op">$</span><span class="va">path</span>  <span class="co"># full path to results.csv in outputs/</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpRVRtnI/file1bae7e286ca4/analyses/my_analysis/outputs/results.csv"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpSx4DFe/file1d151f161d12/analyses/my_analysis/outputs/results.csv"</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Get intermediate path without extension (will add .parquet for table type)</span></span></span>
 <span class="r-in"><span><span class="va">intermediate</span> <span class="op">&lt;-</span> <span class="va">analysis</span><span class="op">$</span><span class="fu">get_output_path</span><span class="op">(</span><span class="st">"temp_data"</span>, type <span class="op">=</span> <span class="st">"table"</span>, intermediate <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">intermediate</span><span class="op">$</span><span class="va">id</span>    <span class="co"># "temp_data"</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "temp_data"</span>
 <span class="r-in"><span><span class="va">intermediate</span><span class="op">$</span><span class="va">path</span>  <span class="co"># full path to temp_data.parquet in intermediate/</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpRVRtnI/file1bae7e286ca4/analyses/my_analysis/intermediate/temp_data.parquet"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpSx4DFe/file1d151f161d12/analyses/my_analysis/intermediate/temp_data.parquet"</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

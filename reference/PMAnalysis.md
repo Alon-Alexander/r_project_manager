@@ -29,6 +29,8 @@ Each analysis contains code, outputs, intermediate results, and logs.
 
 - [`PMAnalysis$get_artifact()`](#method-PMAnalysis-get_artifact)
 
+- [`PMAnalysis$get_intermediate_artifact()`](#method-PMAnalysis-get_intermediate_artifact)
+
 - [`PMAnalysis$list_outputs()`](#method-PMAnalysis-list_outputs)
 
 - [`PMAnalysis$get_output_path()`](#method-PMAnalysis-get_output_path)
@@ -92,7 +94,7 @@ directories.
 
 #### Usage
 
-    PMAnalysis$get_artifact(id, analysis_name = NULL, intermediate = FALSE)
+    PMAnalysis$get_artifact(id, analysis_name = NULL)
 
 #### Arguments
 
@@ -106,14 +108,6 @@ directories.
   provided, uses the current analysis's name. If explicitly set to
   `NULL`, searches all analyses and fails if not exactly one match is
   found.
-
-- `intermediate`:
-
-  Logical. If `TRUE`, searches for the artifact in the current
-  analysis's intermediate folder. If an existing file with the given ID
-  is found, returns it. If no existing file is found, returns the path
-  via `get_output_path()` (the file may not exist yet). Cannot be used
-  with `analysis_name`.
 
 #### Returns
 
@@ -136,18 +130,48 @@ A `PMData` object with the artifact's ID and path.
     # Get artifact from current analysis (default behavior)
     artifact <- analysis1$get_artifact("results")
 
+    # Get artifact without specifying analysis (if unique across all analyses)
+    artifact <- analysis2$get_artifact("results", analysis_name = NULL)
+
+------------------------------------------------------------------------
+
+### Method `get_intermediate_artifact()`
+
+Get an intermediate artifact from the current analysis's intermediate
+folder. Searches for existing files with the given ID (filename without
+extension) in the intermediate directory. If an existing file is found,
+returns it. If no existing file is found, returns the path via
+`get_output_path()` (the file may not exist yet).
+
+#### Usage
+
+    PMAnalysis$get_intermediate_artifact(id)
+
+#### Arguments
+
+- `id`:
+
+  Character. The artifact ID (filename without extension).
+
+#### Returns
+
+A `PMData` object with the artifact's ID and path.
+
+#### Examples
+
+    folder <- withr::local_tempdir()
+    pm <- pm_create_project(folder)
+    analysis <- pm$create_analysis("data_preparation")
+
     # Get artifact from current analysis's intermediate folder
     # If file exists, returns it; otherwise returns path for new file
-    artifact <- analysis1$get_artifact("temp_data", intermediate = TRUE)
+    artifact <- analysis$get_intermediate_artifact("temp_data")
     if (artifact$exists()) {
       data <- artifact$read()
     } else {
       # File doesn't exist yet, can write to it
       artifact$write(data.frame(x = 1:5))
     }
-
-    # Get artifact without specifying analysis (if unique across all analyses)
-    artifact <- analysis2$get_artifact("results", analysis_name = NULL)
 
 ------------------------------------------------------------------------
 
@@ -272,8 +296,8 @@ analysis <- pm$create_analysis("data_preparation")
 analysis
 #> PMAnalysis:
 #>   Name: data_preparation
-#>   Path: /tmp/RtmpRVRtnI/file1bae444f6374/analyses/data_preparation
-#>   Project: /tmp/RtmpRVRtnI/file1bae444f6374
+#>   Path: /tmp/RtmpSx4DFe/file1d157dd26996/analyses/data_preparation
+#>   Project: /tmp/RtmpSx4DFe/file1d157dd26996
 
 # Load an existing analysis from project
 analysis <- pm$get_analysis("data_preparation")
@@ -301,18 +325,26 @@ artifact <- analysis2$get_artifact("results", analysis_name = "data_preparation"
 # Get artifact from current analysis (default behavior)
 artifact <- analysis1$get_artifact("results")
 
+# Get artifact without specifying analysis (if unique across all analyses)
+artifact <- analysis2$get_artifact("results", analysis_name = NULL)
+
+## ------------------------------------------------
+## Method `PMAnalysis$get_intermediate_artifact`
+## ------------------------------------------------
+
+folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+analysis <- pm$create_analysis("data_preparation")
+
 # Get artifact from current analysis's intermediate folder
 # If file exists, returns it; otherwise returns path for new file
-artifact <- analysis1$get_artifact("temp_data", intermediate = TRUE)
+artifact <- analysis$get_intermediate_artifact("temp_data")
 if (artifact$exists()) {
   data <- artifact$read()
 } else {
   # File doesn't exist yet, can write to it
   artifact$write(data.frame(x = 1:5))
 }
-
-# Get artifact without specifying analysis (if unique across all analyses)
-artifact <- analysis2$get_artifact("results", analysis_name = NULL)
 
 ## ------------------------------------------------
 ## Method `PMAnalysis$list_outputs`
@@ -347,12 +379,12 @@ output <- analysis$get_output_path("results.csv", type = "table")
 output$id    # "results"
 #> [1] "results"
 output$path  # full path to results.csv in outputs/
-#> [1] "/tmp/RtmpRVRtnI/file1bae7e286ca4/analyses/my_analysis/outputs/results.csv"
+#> [1] "/tmp/RtmpSx4DFe/file1d151f161d12/analyses/my_analysis/outputs/results.csv"
 
 # Get intermediate path without extension (will add .parquet for table type)
 intermediate <- analysis$get_output_path("temp_data", type = "table", intermediate = TRUE)
 intermediate$id    # "temp_data"
 #> [1] "temp_data"
 intermediate$path  # full path to temp_data.parquet in intermediate/
-#> [1] "/tmp/RtmpRVRtnI/file1bae7e286ca4/analyses/my_analysis/intermediate/temp_data.parquet"
+#> [1] "/tmp/RtmpSx4DFe/file1d151f161d12/analyses/my_analysis/intermediate/temp_data.parquet"
 ```

@@ -29,6 +29,6 @@ invisible(pm_create_project(folder))
 pm <- pm_project(folder)
 pm
 #> PMProject:
-#>   Path: /tmp/RtmpRVRtnI/file1bae17aac549
+#>   Path: /tmp/RtmpSx4DFe/file1d156187aa61
 #>   Analyses: 0
 ```

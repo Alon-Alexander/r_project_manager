@@ -141,7 +141,7 @@ head(tsv_data)
 # Read the RDS object (automatically detects RDS format)
 model <- analysis$get_artifact("model")$read()
 str(model, max.level = 2)
-#> <environment: 0x562248d18f50>
+#> <environment: 0x56184f462868>
 
 # Read RData (returns an environment)
 rdata_env <- analysis$get_artifact("model_rdata")$read()
@@ -195,7 +195,7 @@ cat("Intermediate file saved to:", basename(intermediate_output$path), "\n")
 #> Intermediate file saved to: temp_calculation.parquet
 
 # Note: get_artifact() only searches outputs/, not intermediate/
-# To access intermediate files, use list_outputs(intermediate = TRUE)
+# To access intermediate files, use get_intermediate_artifact() or list_outputs(intermediate = TRUE)
 intermediates <- analysis$list_outputs(intermediate = TRUE)
 cat("Intermediate files:", paste(sapply(intermediates, function(x) x$id), collapse = ", "), "\n")
 #> Intermediate files: temp_calculation
