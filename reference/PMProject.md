@@ -246,7 +246,7 @@ invisible(pm_create_project(folder))
 pm <- PMProject$new(folder)
 pm
 #> PMProject:
-#>   Path: /tmp/Rtmp8iXsCo/file1be17d1663da
+#>   Path: /tmp/RtmpnsLDVu/file1b2629b1925b
 #>   Analyses: 0
 
 
@@ -282,8 +282,8 @@ analysis <- pm$get_analysis("data_preparation")
 analysis
 #> PMAnalysis:
 #>   Name: data_preparation
-#>   Path: /tmp/Rtmp8iXsCo/file1be121c7fb49/analyses/data_preparation
-#>   Project: /tmp/Rtmp8iXsCo/file1be121c7fb49
+#>   Path: /tmp/RtmpnsLDVu/file1b2621e82a5f/analyses/data_preparation
+#>   Project: /tmp/RtmpnsLDVu/file1b2621e82a5f
 
 ## ------------------------------------------------
 ## Method `PMProject$get_artifact`
@@ -313,6 +313,6 @@ analysis <- pm$create_analysis("data_preparation")
 analysis
 #> PMAnalysis:
 #>   Name: data_preparation
-#>   Path: /tmp/Rtmp8iXsCo/file1be12b91592c/analyses/data_preparation
-#>   Project: /tmp/Rtmp8iXsCo/file1be12b91592c
+#>   Path: /tmp/RtmpnsLDVu/file1b266ab02b0/analyses/data_preparation
+#>   Project: /tmp/RtmpnsLDVu/file1b266ab02b0
 ```

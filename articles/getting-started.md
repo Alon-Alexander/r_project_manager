@@ -24,7 +24,7 @@ project_dir <- file.path(tempdir(), "my_research_project")
 pm <- pm_create_project(project_dir)
 pm
 #> PMProject:
-#>   Path: /tmp/Rtmpl79NAe/my_research_project
+#>   Path: /tmp/Rtmp8PpUYW/my_research_project
 #>   Analyses: 0
 ```
 
@@ -61,7 +61,7 @@ raw_data_path <- file.path(data_dir, "raw_measurements.csv")
 write.csv(raw_data, raw_data_path, row.names = FALSE)
 
 cat("Created raw data file:", raw_data_path, "\n")
-#> Created raw data file: /tmp/Rtmpl79NAe/raw_data/raw_measurements.csv
+#> Created raw data file: /tmp/Rtmp8PpUYW/raw_data/raw_measurements.csv
 cat("Data dimensions:", nrow(raw_data), "rows,", ncol(raw_data), "columns\n")
 #> Data dimensions: 100 rows, 5 columns
 ```
@@ -120,7 +120,7 @@ After editing both files, we can verify the configuration works:
 pm <- pm_project(project_dir)
 pm
 #> PMProject:
-#>   Path: /tmp/Rtmpl79NAe/my_research_project
+#>   Path: /tmp/Rtmp8PpUYW/my_research_project
 #>   Analyses: 0
 #>   Inputs: 1
 
@@ -132,7 +132,7 @@ raw_data_input <- inputs$raw_measurements
 raw_data_input
 #> PMData:
 #>   ID: raw_measurements
-#>   Path: /tmp/Rtmpl79NAe/raw_data/raw_measurements.csv
+#>   Path: /tmp/Rtmp8PpUYW/raw_data/raw_measurements.csv
 ```
 
 ## Analysis 1: Data Preprocessing
@@ -151,8 +151,8 @@ prep_analysis <- pm$create_analysis("data_preprocessing")
 prep_analysis
 #> PMAnalysis:
 #>   Name: data_preprocessing
-#>   Path: /tmp/Rtmpl79NAe/my_research_project/analyses/data_preprocessing
-#>   Project: /tmp/Rtmpl79NAe/my_research_project
+#>   Path: /tmp/Rtmp8PpUYW/my_research_project/analyses/data_preprocessing
+#>   Project: /tmp/Rtmp8PpUYW/my_research_project
 ```
 
 ### Loading Input Data
@@ -168,7 +168,7 @@ raw_data_input <- inputs$raw_measurements
 raw_data_input
 #> PMData:
 #>   ID: raw_measurements
-#>   Path: /tmp/Rtmpl79NAe/raw_data/raw_measurements.csv
+#>   Path: /tmp/Rtmp8PpUYW/raw_data/raw_measurements.csv
 
 # Read the data (as simple as that!)
 raw_data_loaded <- raw_data_input$read()
@@ -302,8 +302,8 @@ stats_analysis <- pm$create_analysis("statistical_analysis")
 stats_analysis
 #> PMAnalysis:
 #>   Name: statistical_analysis
-#>   Path: /tmp/Rtmpl79NAe/my_research_project/analyses/statistical_analysis
-#>   Project: /tmp/Rtmpl79NAe/my_research_project
+#>   Path: /tmp/Rtmp8PpUYW/my_research_project/analyses/statistical_analysis
+#>   Project: /tmp/Rtmp8PpUYW/my_research_project
 ```
 
 ### Using get_artifact to Find Data
@@ -326,7 +326,7 @@ cleaned_artifact <- stats_analysis$get_artifact(
 cleaned_artifact
 #> PMData:
 #>   ID: cleaned_data
-#>   Path: /tmp/Rtmpl79NAe/my_research_project/analyses/data_preprocessing/outputs/cleaned_data.parquet
+#>   Path: /tmp/Rtmp8PpUYW/my_research_project/analyses/data_preprocessing/outputs/cleaned_data.parquet
 ```
 
 #### Method 2: Search All Analyses (When Unique)
@@ -563,7 +563,7 @@ corr_matrix <- stats_analysis$get_artifact("correlation_matrix", analysis_name =
 cat("Correlation matrix type:", class(corr_matrix), "\n")
 #> Correlation matrix type: environment
 print(corr_matrix)
-#> <environment: 0x55f84bd53cf0>
+#> <environment: 0x55d50ec7c900>
 ```
 
 ## Summary

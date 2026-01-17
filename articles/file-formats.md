@@ -141,7 +141,7 @@ head(tsv_data)
 # Read the RDS object (automatically detects RDS format)
 model <- analysis$get_artifact("model")$read()
 str(model, max.level = 2)
-#> <environment: 0x55c13dbe7b80>
+#> <environment: 0x560e75363d68>
 
 # Read RData (returns an environment)
 rdata_env <- analysis$get_artifact("model_rdata")$read()
