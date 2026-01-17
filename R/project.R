@@ -34,6 +34,45 @@ PMProject <- R6Class("PMProject",
     },
 
     #' @description
+    #' Print method for PMProject
+    print = function() {
+      cat("PMProject:\n")
+      cat("  Path: ", self$path, "\n", sep = "")
+      
+      # Get analyses
+      analyses <- tryCatch(
+        self$list_analyses(),
+        error = function(e) character(0)
+      )
+      n_analyses <- length(analyses)
+      cat("  Analyses: ", n_analyses, "\n", sep = "")
+      if (n_analyses > 0) {
+        # Show analysis names, truncate if too many
+        if (n_analyses <= 5) {
+          for (analysis in analyses) {
+            cat("    - ", analysis, "\n", sep = "")
+          }
+        } else {
+          for (analysis in analyses[1:4]) {
+            cat("    - ", analysis, "\n", sep = "")
+          }
+          cat("    ... and ", n_analyses - 4, " more\n", sep = "")
+        }
+      }
+      
+      # Get inputs (may fail if not configured)
+      n_inputs <- tryCatch(
+        length(self$parse_inputs()),
+        error = function(e) NULL
+      )
+      if (!is.null(n_inputs)) {
+        cat("  Inputs: ", n_inputs, "\n", sep = "")
+      }
+      
+      invisible(self)
+    },
+
+    #' @description
     #' Validate the project folder.
     #' Makes sure all expected files and folder exist and are valid.
     #' Also validates that all input files referenced in inputs.local.yaml exist.

@@ -942,5 +942,69 @@ describe("Edge cases and additional coverage", {
     expect_true("test1" %in% names(data_list))
     expect_true("test2" %in% names(data_list))
   })
+
+  it("Handles Format 2: Array with mixed simple IDs and metadata (from vignette)", {
+    dir <- .get_good_project_path()
+    
+    # Create inputs.yaml matching the vignette Format 2 example
+    # This is the structure from input-definitions.Rmd lines 97-115
+    inputs_yaml <- list(
+      inputs = list(
+        "feature_table",
+        list(
+          sample_metadata = list(
+            description = "Sample metadata with treatment groups",
+            type = "table"
+          )
+        ),
+        list(
+          raw_data = list(
+            description = "Raw experimental data",
+            md5 = "abc123def456",
+            size = 1024
+          )
+        )
+      )
+    )
+    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    
+    # Create test files
+    file1 <- file.path(dir, "feature_table.csv")
+    file2 <- file.path(dir, "sample_metadata.tsv")
+    file3 <- file.path(dir, "raw_data.csv")
+    file.create(file1)
+    file.create(file2)
+    file.create(file3)
+    
+    # Create inputs.local.yaml with relative paths
+    local_inputs_yaml <- list(
+      paths = list(
+        feature_table = "feature_table.csv",
+        sample_metadata = "sample_metadata.tsv",
+        raw_data = "raw_data.csv"
+      )
+    )
+    yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
+    
+    # Should parse without errors
+    proj <- pm::PMProject$new(dir)
+    data_list <- proj$parse_inputs()
+    
+    # Check results
+    expect_length(data_list, 3)
+    expect_true("feature_table" %in% names(data_list))
+    expect_true("sample_metadata" %in% names(data_list))
+    expect_true("raw_data" %in% names(data_list))
+    
+    # Check PMData objects
+    expect_s3_class(data_list$feature_table, "PMData")
+    expect_s3_class(data_list$sample_metadata, "PMData")
+    expect_s3_class(data_list$raw_data, "PMData")
+    
+    # Check paths
+    expect_equal(data_list$feature_table$path, normalizePath(file1, mustWork = FALSE))
+    expect_equal(data_list$sample_metadata$path, normalizePath(file2, mustWork = FALSE))
+    expect_equal(data_list$raw_data$path, normalizePath(file3, mustWork = FALSE))
+  })
 })
 

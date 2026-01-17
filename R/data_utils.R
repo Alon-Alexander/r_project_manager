@@ -64,8 +64,30 @@
         # Just an ID string - valid, no validation needed
         next
       } else if (is.list(element)) {
-        # Check if this is the special case: one key with NULL value + other keys
         element_names <- names(element)
+        
+        # Try standard object format first: single key with definition as value
+        # This handles: list(input_id = list(...)) or list(input_id = NULL)
+        if (length(element) == 1 && !is.null(element_names)) {
+          input_id <- element_names[1]
+          input_def <- element[[1]]
+
+          # Allow NULL or empty list (just an ID with no fields)
+          if (is.null(input_def)) {
+            next
+          }
+
+          if (!is.list(input_def)) {
+            stop(sprintf("Input definition for '%s' must be a YAML object or null", input_id))
+          }
+
+          # Validate fingerprint fields if present
+          .validate_input_fields(input_def, input_id)
+          next
+        }
+        
+        # Check if this is the special case: one key with NULL value + other keys
+        # This handles: list(id: NULL, field1: value1, field2: value2)
         if (!is.null(element_names)) {
           # Find keys with NULL values (these are the IDs)
           null_keys <- element_names[!sapply(element, function(x) !is.null(x))]
@@ -85,25 +107,6 @@
             # This shouldn't happen in array format, but handle it
             stop(sprintf("Input element at position %d has fields but no ID key", i))
           }
-        }
-
-        # Try standard object format: single key with definition as value
-        if (length(element) == 1 && !is.null(names(element))) {
-          input_id <- names(element)[1]
-          input_def <- element[[1]]
-
-          # Allow NULL or empty list (just an ID with no fields)
-          if (is.null(input_def)) {
-            next
-          }
-
-          if (!is.list(input_def)) {
-            stop(sprintf("Input definition for '%s' must be a YAML object or null", input_id))
-          }
-
-          # Validate fingerprint fields if present
-          .validate_input_fields(input_def, input_id)
-          next
         }
 
         stop(sprintf("Input element at position %d must be a string (ID) or an object with ID as key", i))

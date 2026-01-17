@@ -4,3 +4,8 @@
 ^PRODUCT.md$
 ^.pr_agent.toml$
 ^codecov.yml$
+^doc$
+^Meta$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

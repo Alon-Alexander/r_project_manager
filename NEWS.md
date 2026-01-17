@@ -1,3 +1,13 @@
+# pm 0.1.6
+
+## New Features
+
+- Add comprehensive vignettes: "Getting Started", "Working with File Formats", and "Defining Project Inputs"
+- Add `get_intermediate_artifact()` method to `PMAnalysis` for accessing intermediate files from the current analysis
+- Add support for searching artifacts across all analyses by explicitly passing `analysis_name = NULL`
+- Improved documentation and examples for artifact discovery and file format handling
+- Add `knitr` and `rmarkdown` to Suggests for vignette building
+
 # pm 0.1.5
 
 ## New Features

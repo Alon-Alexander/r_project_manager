@@ -24,6 +24,19 @@ contents <- data$read()
 }
 
 ## ------------------------------------------------
+## Method `PMData$exists`
+## ------------------------------------------------
+
+withr::with_tempdir({
+  data <- PMData$new(id = "feature_table", path = "file.csv")
+  data$exists()  # FALSE - file doesn't exist yet
+
+  df <- data.frame(x = 1:5, y = letters[1:5])
+  data$write(df)
+  data$exists()  # TRUE - file now exists
+})
+
+## ------------------------------------------------
 ## Method `PMData$write`
 ## ------------------------------------------------
 
@@ -54,6 +67,7 @@ withr::with_tempdir({
 \item \href{#method-PMData-new}{\code{PMData$new()}}
 \item \href{#method-PMData-print}{\code{PMData$print()}}
 \item \href{#method-PMData-read}{\code{PMData$read()}}
+\item \href{#method-PMData-exists}{\code{PMData$exists()}}
 \item \href{#method-PMData-write}{\code{PMData$write()}}
 \item \href{#method-PMData-clone}{\code{PMData$clone()}}
 }
@@ -113,6 +127,34 @@ containing all objects from the file.
 data <- PMData$new(id = "feature_table", path = "/path/to/file.csv")
 contents <- data$read()
 }
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PMData-exists"></a>}}
+\if{latex}{\out{\hypertarget{method-PMData-exists}{}}}
+\subsection{Method \code{exists()}}{
+Check if the data file exists
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PMData$exists()}\if{html}{\out{</div>}}
+}
+
+\subsection{Returns}{
+Logical. \code{TRUE} if the file exists, \code{FALSE} otherwise.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{withr::with_tempdir({
+  data <- PMData$new(id = "feature_table", path = "file.csv")
+  data$exists()  # FALSE - file doesn't exist yet
+
+  df <- data.frame(x = 1:5, y = letters[1:5])
+  data$write(df)
+  data$exists()  # TRUE - file now exists
+})
 }
 \if{html}{\out{</div>}}
 

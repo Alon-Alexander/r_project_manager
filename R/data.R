@@ -61,6 +61,24 @@ PMData <- R6Class("PMData",
     },
 
     #' @description
+    #' Check if the data file exists
+    #'
+    #' @return Logical. \code{TRUE} if the file exists, \code{FALSE} otherwise.
+    #'
+    #' @examples
+    #' withr::with_tempdir({
+    #'   data <- PMData$new(id = "feature_table", path = "file.csv")
+    #'   data$exists()  # FALSE - file doesn't exist yet
+    #'
+    #'   df <- data.frame(x = 1:5, y = letters[1:5])
+    #'   data$write(df)
+    #'   data$exists()  # TRUE - file now exists
+    #' })
+    exists = function() {
+      file.exists(self$path)
+    },
+
+    #' @description
     #' Write data to the file
     #'
     #' @param x The object to write. For tabular formats (CSV, TSV, Parquet), must be

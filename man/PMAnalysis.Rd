@@ -39,8 +39,29 @@ write.csv(data.frame(x = 1:5), output$path)
 # Get artifact from analysis2 (which gets it from analysis1)
 artifact <- analysis2$get_artifact("results", analysis_name = "data_preparation")
 
+# Get artifact from current analysis (default behavior)
+artifact <- analysis1$get_artifact("results")
+
 # Get artifact without specifying analysis (if unique across all analyses)
-artifact <- analysis2$get_artifact("results")
+artifact <- analysis2$get_artifact("results", analysis_name = NULL)
+
+## ------------------------------------------------
+## Method `PMAnalysis$get_intermediate_artifact`
+## ------------------------------------------------
+
+folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+analysis <- pm$create_analysis("data_preparation")
+
+# Get artifact from current analysis's intermediate folder
+# If file exists, returns it; otherwise returns path for new file
+artifact <- analysis$get_intermediate_artifact("temp_data")
+if (artifact$exists()) {
+  data <- artifact$read()
+} else {
+  # File doesn't exist yet, can write to it
+  artifact$write(data.frame(x = 1:5))
+}
 
 ## ------------------------------------------------
 ## Method `PMAnalysis$list_outputs`
@@ -97,6 +118,7 @@ intermediate$path  # full path to temp_data.parquet in intermediate/
 \item \href{#method-PMAnalysis-validate}{\code{PMAnalysis$validate()}}
 \item \href{#method-PMAnalysis-print}{\code{PMAnalysis$print()}}
 \item \href{#method-PMAnalysis-get_artifact}{\code{PMAnalysis$get_artifact()}}
+\item \href{#method-PMAnalysis-get_intermediate_artifact}{\code{PMAnalysis$get_intermediate_artifact()}}
 \item \href{#method-PMAnalysis-list_outputs}{\code{PMAnalysis$list_outputs()}}
 \item \href{#method-PMAnalysis-get_output_path}{\code{PMAnalysis$get_output_path()}}
 \item \href{#method-PMAnalysis-clone}{\code{PMAnalysis$clone()}}
@@ -160,7 +182,8 @@ Searches for files with the given ID (filename without extension) in analysis ou
 \item{\code{id}}{Character. The artifact ID (filename without extension).}
 
 \item{\code{analysis_name}}{Character. Optional name of the analysis to search in.
-If not provided, searches all analyses and fails if not exactly one match is found.}
+If not provided, uses the current analysis's name. If explicitly set to \code{NULL},
+searches all analyses and fails if not exactly one match is found.}
 }
 \if{html}{\out{</div>}}
 }
@@ -181,8 +204,54 @@ write.csv(data.frame(x = 1:5), output$path)
 # Get artifact from analysis2 (which gets it from analysis1)
 artifact <- analysis2$get_artifact("results", analysis_name = "data_preparation")
 
+# Get artifact from current analysis (default behavior)
+artifact <- analysis1$get_artifact("results")
+
 # Get artifact without specifying analysis (if unique across all analyses)
-artifact <- analysis2$get_artifact("results")
+artifact <- analysis2$get_artifact("results", analysis_name = NULL)
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PMAnalysis-get_intermediate_artifact"></a>}}
+\if{latex}{\out{\hypertarget{method-PMAnalysis-get_intermediate_artifact}{}}}
+\subsection{Method \code{get_intermediate_artifact()}}{
+Get an intermediate artifact from the current analysis's intermediate folder.
+Searches for existing files with the given ID (filename without extension) in the intermediate directory.
+If an existing file is found, returns it. If no existing file is found, returns the path
+via \code{get_output_path()} (the file may not exist yet).
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PMAnalysis$get_intermediate_artifact(id)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{id}}{Character. The artifact ID (filename without extension).}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A \code{PMData} object with the artifact's ID and path.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{folder <- withr::local_tempdir()
+pm <- pm_create_project(folder)
+analysis <- pm$create_analysis("data_preparation")
+
+# Get artifact from current analysis's intermediate folder
+# If file exists, returns it; otherwise returns path for new file
+artifact <- analysis$get_intermediate_artifact("temp_data")
+if (artifact$exists()) {
+  data <- artifact$read()
+} else {
+  # File doesn't exist yet, can write to it
+  artifact$write(data.frame(x = 1:5))
+}
 }
 \if{html}{\out{</div>}}
 
