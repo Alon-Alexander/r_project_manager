@@ -325,8 +325,8 @@ If provided and name has an extension, the extension will be validated against t
 <span class="r-in"><span><span class="va">analysis</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> PMAnalysis:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Name: data_preparation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /tmp/RtmpSx4DFe/file1d157dd26996/analyses/data_preparation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /tmp/RtmpSx4DFe/file1d157dd26996</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /tmp/Rtmp8iXsCo/file1be177141936/analyses/data_preparation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /tmp/Rtmp8iXsCo/file1be177141936</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Load an existing analysis from project</span></span></span>
 <span class="r-in"><span><span class="va">analysis</span> <span class="op">&lt;-</span> <span class="va">pm</span><span class="op">$</span><span class="fu">get_analysis</span><span class="op">(</span><span class="st">"data_preparation"</span><span class="op">)</span></span></span>
@@ -408,14 +408,14 @@ If provided and name has an extension, the extension will be validated against t
 <span class="r-in"><span><span class="va">output</span><span class="op">$</span><span class="va">id</span>    <span class="co"># "results"</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "results"</span>
 <span class="r-in"><span><span class="va">output</span><span class="op">$</span><span class="va">path</span>  <span class="co"># full path to results.csv in outputs/</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpSx4DFe/file1d151f161d12/analyses/my_analysis/outputs/results.csv"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/Rtmp8iXsCo/file1be13c1e4886/analyses/my_analysis/outputs/results.csv"</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Get intermediate path without extension (will add .parquet for table type)</span></span></span>
 <span class="r-in"><span><span class="va">intermediate</span> <span class="op">&lt;-</span> <span class="va">analysis</span><span class="op">$</span><span class="fu">get_output_path</span><span class="op">(</span><span class="st">"temp_data"</span>, type <span class="op">=</span> <span class="st">"table"</span>, intermediate <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">intermediate</span><span class="op">$</span><span class="va">id</span>    <span class="co"># "temp_data"</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "temp_data"</span>
 <span class="r-in"><span><span class="va">intermediate</span><span class="op">$</span><span class="va">path</span>  <span class="co"># full path to temp_data.parquet in intermediate/</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpSx4DFe/file1d151f161d12/analyses/my_analysis/intermediate/temp_data.parquet"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/Rtmp8iXsCo/file1be13c1e4886/analyses/my_analysis/intermediate/temp_data.parquet"</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
