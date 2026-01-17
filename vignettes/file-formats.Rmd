@@ -167,7 +167,7 @@ intermediate_output$write(sample_data)
 cat("Intermediate file saved to:", basename(intermediate_output$path), "\n")
 
 # Note: get_artifact() only searches outputs/, not intermediate/
-# To access intermediate files, use list_outputs(intermediate = TRUE)
+# To access intermediate files, use get_intermediate_artifact() or list_outputs(intermediate = TRUE)
 intermediates <- analysis$list_outputs(intermediate = TRUE)
 cat("Intermediate files:", paste(sapply(intermediates, function(x) x$id), collapse = ", "), "\n")
 ```

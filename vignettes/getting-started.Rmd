@@ -404,7 +404,7 @@ print(results_summary)
 
 It's important to understand the distinction between intermediate and output files:
 
-- **Intermediate files** (`intermediate/` folder): Temporary results used within an analysis, typically for caching expensive computations. These can be accessed from the current analysis using `get_artifact(id, intermediate = TRUE)`, but are **not** searchable from other analyses.
+- **Intermediate files** (`intermediate/` folder): Temporary results used within an analysis, typically for caching expensive computations. These can be accessed from the current analysis using `get_intermediate_artifact(id)`, but are **not** searchable from other analyses.
 - **Output files** (`outputs/` folder): Final results meant to be shared across analyses. These **are** findable.
 
 Let's see what's available in each:
@@ -432,7 +432,7 @@ Intermediate results are useful for caching expensive or time-consuming steps, s
 intermediate_id <- "filtered_data"
 
 # Get the artifact (will find existing file or return path for new file)
-filtered_artifact <- prep_analysis$get_artifact(intermediate_id, intermediate = TRUE)
+filtered_artifact <- prep_analysis$get_intermediate_artifact(intermediate_id)
 
 # If the intermediate result exists, load it; otherwise, compute and save it
 if (filtered_artifact$exists()) {

@@ -1292,7 +1292,7 @@ describe("PMAnalysis$get_artifact() works correctly", {
     expect_equal(artifact1$id, artifact2$id)
   })
 
-  it("Gets artifact from intermediate folder when intermediate=TRUE", {
+  it("Gets artifact from intermediate folder using get_intermediate_artifact", {
     dir <- .get_good_project_path()
     pm <- pm::PMProject$new(dir)
     analysis <- pm$create_analysis("data_prep")
@@ -1303,22 +1303,11 @@ describe("PMAnalysis$get_artifact() works correctly", {
     intermediate$write(df)
 
     # Get artifact from intermediate folder (should find existing file)
-    artifact <- analysis$get_artifact("temp_data", intermediate = TRUE)
+    artifact <- analysis$get_intermediate_artifact("temp_data")
     expect_s3_class(artifact, "PMData")
     expect_equal(artifact$id, "temp_data")
     expect_equal(normalizePath(artifact$path), normalizePath(intermediate$path))
     expect_true(artifact$exists())
-  })
-
-  it("Errors when both intermediate and analysis_name are provided", {
-    dir <- .get_good_project_path()
-    pm <- pm::PMProject$new(dir)
-    analysis <- pm$create_analysis("data_prep")
-
-    expect_error(
-      analysis$get_artifact("results", intermediate = TRUE, analysis_name = "other"),
-      regexp = "Cannot specify both 'intermediate' and 'analysis_name' parameters"
-    )
   })
 
   it("Gets artifact from current analysis intermediate folder without file existing", {
@@ -1328,7 +1317,7 @@ describe("PMAnalysis$get_artifact() works correctly", {
 
     # Get artifact path from intermediate folder (file doesn't exist yet)
     # Should fall back to get_output_path
-    artifact <- analysis$get_artifact("temp_data", intermediate = TRUE)
+    artifact <- analysis$get_intermediate_artifact("temp_data")
     expect_s3_class(artifact, "PMData")
     expect_equal(artifact$id, "temp_data")
     expect_false(artifact$exists())
@@ -1350,7 +1339,7 @@ describe("PMAnalysis$get_artifact() works correctly", {
 
     # Should error when multiple files with same ID
     expect_error(
-      analysis$get_artifact("temp_data", intermediate = TRUE),
+      analysis$get_intermediate_artifact("temp_data"),
       regexp = "Multiple artifacts with ID 'temp_data' found in intermediate folder"
     )
   })
