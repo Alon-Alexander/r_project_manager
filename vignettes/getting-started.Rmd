@@ -30,6 +30,41 @@ The `pm` package provides a structured approach to managing research projects in
 4. Loading data from another analysis
 5. Using the artifact discovery features
 
+## TL;DR
+
+```{r tldr, eval=FALSE}
+# Create a new project (one-time)
+pm <- pm_create_project(project_dir)
+
+# Load an existing project
+pm <- pm_project(project_dir)
+
+# Look at available inputs
+inputs <- pm$parse_inputs()
+
+# Create a new analysis
+prep_analysis <- pm$create_analysis("data_preprocessing")
+
+# Create analysis from path (for example in the analysis's code)
+analysis <- pm::PMAnalysis$new(path = ".")
+
+# Get output path for storing artifact
+cleaned_data_path <- prep_analysis$get_output_path("cleaned_data", type = "table")
+
+# Read/write data (generic for many file types)
+cleaned_data_path$write(my_table)
+read_table <- cleaned_data_path$read()
+
+# Find artifact of other analysis
+cleaned_artifact <- another_analysis$get_artifact(
+  "cleaned_data",
+  analysis_name = "data_preprocessing"  # Can also pass NULL to search all analylses
+)
+
+# Get intermediate path for caching (local to an analysis)
+normalized_path <- prep_analysis$get_intermediate_artifact("noramalized_data")
+```
+
 ## Creating a Project
 
 First, let's create a new project. We'll use a temporary directory for this example:
@@ -45,7 +80,7 @@ pm
 
 The project has been created with the standard structure:
 
-- `inputs.yaml` - portable input definitions
+- `project.yaml` - Project configuration file, including portable input definitions
 - `inputs.local.yaml` - local path mappings (machine-specific)
 - `analyses/` - directory for all analyses
 - `README.md` - project documentation
@@ -81,11 +116,11 @@ cat("Data dimensions:", nrow(raw_data), "rows,", ncol(raw_data), "columns\n")
 
 Now we need to configure the project to recognize our raw data file. We'll edit the input configuration files directly in a text editor.
 
-**Note**: For more information on the different ways to define `inputs.yaml`, see the [Input Definitions](input-definitions.html) vignette.
+**Note**: For more information on the different ways to define `project.yaml`, see the [Input Definitions](input-definitions.html) vignette.
 
-### Editing `inputs.yaml`
+### Editing `project.yaml`
 
-Open `inputs.yaml` in your project directory and add the input definition. The file should look like this:
+Open `project.yaml` in your project directory and add the input definition. The file should look like this:
 
 ```yaml
 inputs:
@@ -94,7 +129,7 @@ inputs:
 
 This file defines the *portable* input definitions that can be shared across different machines. It describes what the input is, but not where it's located.
 
-NOTE: This is the simplest format of `inputs.yaml`, but you can also for example provide a description for each input.
+NOTE: This is the simplest format of `project.yaml`, but you can also for example provide a description for each input.
 
 ### Editing `inputs.local.yaml`
 
@@ -110,8 +145,8 @@ paths:
 This file maps the input ID (`raw_measurements`) to the actual file path on your machine. This file is typically gitignored since paths differ between machines.
 
 ```{r write-inputs, eval=TRUE, echo = FALSE, class.source = 'fold-hide'}
-# Write inputs.yaml
-inputs_file <- file.path(project_dir, "inputs.yaml")
+# Write project.yaml
+inputs_file <- file.path(project_dir, "project.yaml")
 inputs_def <- list(
   inputs = list(
     "raw_measurements"
@@ -522,4 +557,4 @@ For more detailed information on specific topics:
 
 - **[Working with File Formats](file-formats.html)**: Learn about the different file formats supported by `pm`, how to use `get_output_path()` with type specifications, and the power of format-agnostic reading with `get_artifact()` and `read()`.
 
-- **[Defining Project Inputs](input-definitions.html)**: Explore the different ways you can define `inputs.yaml`, from simple arrays to detailed object definitions with metadata.
+- **[Defining Project Inputs](input-definitions.html)**: Explore the different ways you can define `project.yaml`, from simple arrays to detailed object definitions with metadata.

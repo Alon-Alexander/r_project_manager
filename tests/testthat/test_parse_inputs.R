@@ -1,8 +1,8 @@
 describe("parse_inputs method works correctly", {
-  it("Can parse valid inputs.yaml and inputs.local.yaml", {
+  it("Can parse valid project.yaml and inputs.local.yaml", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     writeLines(
       c(
         "inputs:",
@@ -12,7 +12,7 @@ describe("parse_inputs method works correctly", {
         "    md5: abc123def456",
         "    size: 1024"
       ),
-      file.path(dir, "inputs.yaml")
+      file.path(dir, "project.yaml")
     )
 
     # Create test files
@@ -52,13 +52,13 @@ describe("parse_inputs method works correctly", {
   it("Handles relative paths in inputs.local.yaml", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         test_input = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create a test file in the project directory
     test_file <- file.path(dir, "test_data.tsv")
@@ -82,10 +82,10 @@ describe("parse_inputs method works correctly", {
     expect_equal(basename(data_list$test_input$path), "test_data.tsv")
   })
 
-  it("Handles fingerprint fields in inputs.yaml", {
+  it("Handles fingerprint fields in project.yaml", {
     dir <- .get_good_project_path()
 
-    # Create inputs.yaml with fingerprint fields
+    # Create project.yaml with fingerprint fields
     inputs_yaml <- list(
       inputs = list(
         test_input = list(
@@ -95,7 +95,7 @@ describe("parse_inputs method works correctly", {
         )
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create test file
     test_file <- file.path(dir, "test.tsv")
@@ -118,11 +118,11 @@ describe("parse_inputs method works correctly", {
   it("Allows inputs with just an ID (empty object)", {
     dir <- .get_good_project_path()
 
-    # Create inputs.yaml with empty object (just an ID)
+    # Create project.yaml with empty object (just an ID)
     writeLines(c(
       "inputs:",
       "  - minimal_input"
-    ), file.path(dir, "inputs.yaml"))
+    ), file.path(dir, "project.yaml"))
 
     # Create test file
     test_file <- file.path(dir, "minimal.tsv")
@@ -151,13 +151,13 @@ describe("parse_inputs method works correctly", {
   it("Allows inputs with just an ID (null value)", {
     dir <- .get_good_project_path()
 
-    # Create inputs.yaml with null value (just an ID)
+    # Create project.yaml with null value (just an ID)
     inputs_yaml <- list(
       inputs = list(
         null_input = NULL
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create test file
     test_file <- file.path(dir, "null.tsv")
@@ -186,14 +186,14 @@ describe("parse_inputs method works correctly", {
   it("Errors when input ID is missing from inputs.local.yaml", {
     dir <- .get_good_project_path()
 
-    # Create inputs.yaml with two inputs
+    # Create project.yaml with two inputs
     inputs_yaml <- list(
       inputs = list(
         input1 = list(),
         input2 = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create test file for input1
     test_file <- file.path(dir, "input1.tsv")
@@ -210,15 +210,15 @@ describe("parse_inputs method works correctly", {
     # Should error
     expect_error(
       pm::PMProject$new(dir),
-      regexp = "defined in inputs.yaml but missing from inputs.local.yaml"
+      regexp = "defined in project.yaml but missing from inputs.local.yaml"
     )
   })
 
-  it("Errors when inputs.yaml has invalid YAML syntax", {
+  it("Errors when project.yaml has invalid YAML syntax", {
     dir <- .get_good_project_path()
 
-    # Create invalid inputs.yaml (malformed YAML)
-    writeLines("invalid: yaml: content: bad", file.path(dir, "inputs.yaml"))
+    # Create invalid project.yaml (malformed YAML)
+    writeLines("invalid: yaml: content: bad", file.path(dir, "project.yaml"))
 
     # Create test file
     test_file <- file.path(dir, "test.tsv")
@@ -234,18 +234,18 @@ describe("parse_inputs method works correctly", {
 
     expect_error(
       pm::PMProject$new(dir),
-      regexp = "Failed to read and parse inputs.yaml"
+      regexp = "Failed to read and parse project.yaml"
     )
   })
 
-  it("Errors when inputs.yaml is missing 'inputs' key", {
+  it("Errors when project.yaml is missing 'inputs' key", {
     dir <- .get_good_project_path()
 
-    # Create inputs.yaml without 'inputs' key
+    # Create project.yaml without 'inputs' key
     inputs_yaml <- list(
       other_key = "value"
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create test file
     test_file <- file.path(dir, "test.tsv")
@@ -268,11 +268,11 @@ describe("parse_inputs method works correctly", {
   it("Errors when 'inputs' is not a YAML object", {
     dir <- .get_good_project_path()
 
-    # Create inputs.yaml with 'inputs' as non-object
+    # Create project.yaml with 'inputs' as non-object
     inputs_yaml <- list(
       inputs = "not an object"
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create test file
     test_file <- file.path(dir, "test.tsv")
@@ -288,18 +288,18 @@ describe("parse_inputs method works correctly", {
 
     expect_error(
       pm::PMProject$new(dir),
-      regexp = "'inputs' in inputs.yaml must be a YAML list or object"
+      regexp = "'inputs' in project.yaml must be a YAML list or object"
     )
   })
 
   it("Errors when 'inputs' is empty", {
     dir <- .get_good_project_path()
 
-    # Create inputs.yaml with empty 'inputs'
+    # Create project.yaml with empty 'inputs'
     inputs_yaml <- list(
       inputs = list()
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create test file
     test_file <- file.path(dir, "test.tsv")
@@ -315,20 +315,20 @@ describe("parse_inputs method works correctly", {
 
     expect_error(
       pm::PMProject$new(dir),
-      regexp = "'inputs' in inputs.yaml must contain at least one input definition"
+      regexp = "'inputs' in project.yaml must contain at least one input definition"
     )
   })
 
   it("Errors when input definition is not a YAML object", {
     dir <- .get_good_project_path()
 
-    # Create inputs.yaml with non-object value
+    # Create project.yaml with non-object value
     inputs_yaml <- list(
       inputs = list(
         test_input = "not an object"
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create test file
     test_file <- file.path(dir, "test.tsv")
@@ -351,13 +351,13 @@ describe("parse_inputs method works correctly", {
   it("Errors when inputs.local.yaml has invalid YAML syntax", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         test_input = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create invalid inputs.local.yaml (malformed YAML)
     writeLines("invalid: yaml: content: bad", file.path(dir, "inputs.local.yaml"))
@@ -371,13 +371,13 @@ describe("parse_inputs method works correctly", {
   it("Errors when inputs.local.yaml is missing 'paths' key", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         test_input = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create inputs.local.yaml without 'paths' key
     local_inputs_yaml <- list(
@@ -394,13 +394,13 @@ describe("parse_inputs method works correctly", {
   it("Errors when 'paths' is not a YAML object", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         test_input = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create inputs.local.yaml with 'paths' as non-object
     local_inputs_yaml <- list(
@@ -417,13 +417,13 @@ describe("parse_inputs method works correctly", {
   it("Errors when path value is not a string", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         test_input = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create inputs.local.yaml with non-string path
     local_inputs_yaml <- list(
@@ -442,7 +442,7 @@ describe("parse_inputs method works correctly", {
   it("Validates fingerprint field types correctly", {
     dir <- .get_good_project_path()
 
-    # Create inputs.yaml with invalid md5 (not a string)
+    # Create project.yaml with invalid md5 (not a string)
     inputs_yaml <- list(
       inputs = list(
         test_input = list(
@@ -450,7 +450,7 @@ describe("parse_inputs method works correctly", {
         )
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create test file
     test_file <- file.path(dir, "test.tsv")
@@ -473,7 +473,7 @@ describe("parse_inputs method works correctly", {
   it("Validates size field is a number", {
     dir <- .get_good_project_path()
 
-    # Create inputs.yaml with invalid size (not a number)
+    # Create project.yaml with invalid size (not a number)
     inputs_yaml <- list(
       inputs = list(
         test_input = list(
@@ -481,7 +481,7 @@ describe("parse_inputs method works correctly", {
         )
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create test file
     test_file <- file.path(dir, "test.tsv")
@@ -519,11 +519,11 @@ describe("Edge cases and additional coverage", {
     expect_identical(result, data)
   })
 
-  it("Errors when inputs.yaml is not a list", {
+  it("Errors when project.yaml is not a list", {
     dir <- .get_good_project_path()
     
-    # Create invalid inputs.yaml (not a list - just a string)
-    writeLines("just a string", file.path(dir, "inputs.yaml"))
+    # Create invalid project.yaml (not a list - just a string)
+    writeLines("just a string", file.path(dir, "project.yaml"))
     
     # Create test file
     test_file <- file.path(dir, "test.tsv")
@@ -546,11 +546,11 @@ describe("Edge cases and additional coverage", {
   it("Errors when inputs is a string that's not a valid identifier", {
     dir <- .get_good_project_path()
     
-    # Create inputs.yaml with inputs as invalid string
+    # Create project.yaml with inputs as invalid string
     inputs_yaml <- list(
       inputs = "not a valid identifier with spaces"
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
     
     # Create test file
     test_file <- file.path(dir, "test.tsv")
@@ -573,13 +573,13 @@ describe("Edge cases and additional coverage", {
   it("Errors when array element has fields but no ID key", {
     dir <- .get_good_project_path()
     
-    # Create inputs.yaml with invalid structure
+    # Create project.yaml with invalid structure
     inputs_yaml <- list(
       inputs = list(
         list(description = "test", md5 = "abc")  # No ID key
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
     
     # Create test file
     test_file <- file.path(dir, "test.tsv")
@@ -603,14 +603,14 @@ describe("Edge cases and additional coverage", {
   it("Errors when array element is neither string nor object", {
     dir <- .get_good_project_path()
     
-    # Create inputs.yaml with invalid element type (numeric)
+    # Create project.yaml with invalid element type (numeric)
     # When YAML parses a number, it becomes numeric, not character
     writeLines(
       c(
         "inputs:",
         "  - 123"
       ),
-      file.path(dir, "inputs.yaml")
+      file.path(dir, "project.yaml")
     )
     
     # Create test file
@@ -634,7 +634,7 @@ describe("Edge cases and additional coverage", {
   it("Handles array element with null key and other keys correctly", {
     dir <- .get_good_project_path()
     
-    # Create inputs.yaml with special null key format
+    # Create project.yaml with special null key format
     inputs_yaml <- list(
       inputs = list(
         list(
@@ -644,7 +644,7 @@ describe("Edge cases and additional coverage", {
         )
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
     
     # Create test file
     test_file <- file.path(dir, "test.tsv")
@@ -668,13 +668,13 @@ describe("Edge cases and additional coverage", {
   it("Handles array element with only null key (no fields)", {
     dir <- .get_good_project_path()
     
-    # Create inputs.yaml with only null key
+    # Create project.yaml with only null key
     inputs_yaml <- list(
       inputs = list(
         list(test_input = NULL)
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
     
     # Create test file
     test_file <- file.path(dir, "test.tsv")
@@ -698,7 +698,7 @@ describe("Edge cases and additional coverage", {
   it("Handles array element with standard object format (single key)", {
     dir <- .get_good_project_path()
     
-    # Create inputs.yaml with standard object format in array
+    # Create project.yaml with standard object format in array
     # Write as YAML text to get the right structure
     writeLines(
       c(
@@ -706,7 +706,7 @@ describe("Edge cases and additional coverage", {
         "  - test_input:",
         "    description: Test"
       ),
-      file.path(dir, "inputs.yaml")
+      file.path(dir, "project.yaml")
     )
     
     # Create test file
@@ -731,13 +731,13 @@ describe("Edge cases and additional coverage", {
   it("Handles array element with object format and null value", {
     dir <- .get_good_project_path()
     
-    # Create inputs.yaml with object format having null value
+    # Create project.yaml with object format having null value
     inputs_yaml <- list(
       inputs = list(
         list(test_input = NULL)
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
     
     # Create valid inputs.local.yaml
     test_path <- file.path(dir, "test.tsv")
@@ -759,13 +759,13 @@ describe("Edge cases and additional coverage", {
   it("Errors when object format element has non-object definition", {
     dir <- .get_good_project_path()
     
-    # Create inputs.yaml with non-object definition
+    # Create project.yaml with non-object definition
     inputs_yaml <- list(
       inputs = list(
         list(test_input = "not an object")
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
     
     # Create test file
     test_file <- file.path(dir, "test.tsv")
@@ -855,7 +855,7 @@ describe("Edge cases and additional coverage", {
   it("Handles multiple null keys in array element (edge case)", {
     dir <- .get_good_project_path()
     
-    # Create inputs.yaml with a single element having multiple null keys
+    # Create project.yaml with a single element having multiple null keys
     # When written as YAML, this creates separate list items, not what we want
     # Instead, let's test with a single element that has one null key and fields
     writeLines(
@@ -864,7 +864,7 @@ describe("Edge cases and additional coverage", {
         "  - id1: ~",
         "    description: test"
       ),
-      file.path(dir, "inputs.yaml")
+      file.path(dir, "project.yaml")
     )
     
     # Create valid inputs.local.yaml
@@ -888,16 +888,16 @@ describe("Edge cases and additional coverage", {
   it("Handles array format with multiple string IDs", {
     dir <- .get_good_project_path()
     
-    # Create inputs.yaml with array format (list of strings)
+    # Create project.yaml with array format (list of strings)
     # When YAML parses this, it becomes a character vector if all are strings
     # So we need to ensure it's written as a proper list
     inputs_list <- list("test1", "test2")
     # Ensure it's a list, not a character vector
     inputs_yaml <- list(inputs = inputs_list)
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
     
     # Re-read to see what YAML actually produces
-    parsed <- yaml::read_yaml(file.path(dir, "inputs.yaml"))
+    parsed <- yaml::read_yaml(file.path(dir, "project.yaml"))
     # If it's a character vector, convert to list
     if (is.character(parsed$inputs) && !is.list(parsed$inputs)) {
       # YAML converted it to character vector - write it differently
@@ -907,7 +907,7 @@ describe("Edge cases and additional coverage", {
           "  - test1",
           "  - test2"
         ),
-        file.path(dir, "inputs.yaml")
+        file.path(dir, "project.yaml")
       )
       # Re-read - this should still be character, so we need to handle in code
       # Actually, let's just use the object format which is more reliable
@@ -917,7 +917,7 @@ describe("Edge cases and additional coverage", {
           test2 = list()
         )
       )
-      yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+      yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
     }
     
     # Create valid inputs.local.yaml
@@ -946,7 +946,7 @@ describe("Edge cases and additional coverage", {
   it("Handles Format 2: Array with mixed simple IDs and metadata (from vignette)", {
     dir <- .get_good_project_path()
     
-    # Create inputs.yaml matching the vignette Format 2 example
+    # Create project.yaml matching the vignette Format 2 example
     # This is the structure from input-definitions.Rmd lines 97-115
     inputs_yaml <- list(
       inputs = list(
@@ -966,7 +966,7 @@ describe("Edge cases and additional coverage", {
         )
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
     
     # Create test files
     file1 <- file.path(dir, "feature_table.csv")

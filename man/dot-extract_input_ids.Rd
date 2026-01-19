@@ -2,18 +2,18 @@
 % Please edit documentation in R/data_utils.R
 \name{.extract_input_ids}
 \alias{.extract_input_ids}
-\title{Extract input IDs from inputs.yaml}
+\title{Extract input IDs from project.yaml}
 \usage{
 .extract_input_ids(inputs_def)
 }
 \arguments{
-\item{inputs_def}{List. Parsed YAML content from inputs.yaml}
+\item{inputs_def}{List. Parsed YAML content from project.yaml}
 }
 \value{
 Character vector of input IDs
 }
 \description{
-Extracts the canonical input IDs from the inputs.yaml structure.
+Extracts the canonical input IDs from the project.yaml structure.
 Supports both array format (list of strings/objects) and object format (named list).
 }
 \keyword{internal}

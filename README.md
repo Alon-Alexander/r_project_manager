@@ -1,42 +1,32 @@
 # pm
 
-The R project manager you didn’t know you need.
+The R project manager you didn't know you need.
 
-------------------------------------------------------------------------
+---
 
 [![R-CMD-check](https://github.com/Alon-Alexander/r_project_manager/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Alon-Alexander/r_project_manager/actions/workflows/R-CMD-check.yaml)
 [![codecov](https://codecov.io/github/Alon-Alexander/r_project_manager/graph/badge.svg?token=3DI8TLNRPE)](https://codecov.io/github/Alon-Alexander/r_project_manager)
 
-`pm` enforces and supports a standardized folder structure for research
-projects. Researchers can focus on analysis while the package handles
-organization of code and results, reproducible input references, and
-discovery of outputs across analyses. Supports artifact discovery by ID,
-format-agnostic reading, and chaining outputs between analyses.
+`pm` enforces and supports a standardized folder structure for research projects. Researchers can focus on analysis while the package handles organization of code and results, reproducible input references, and discovery of outputs across analyses. Supports artifact discovery by ID, format-agnostic reading, and chaining outputs between analyses.
 
-I recommend you to start your journey at the [Getting Started
-Vignette](https://alon-alexander.github.io/r_project_manager/articles/getting-started.html).
+I recommend you to start your journey at the [Getting Started Vignette](https://alon-alexander.github.io/r_project_manager/articles/getting-started.html).
 
 ## Installation
 
-This package is not on CRAN (yet), so please install it through github
-with the following:
+This package is not on CRAN (yet), so please install it through github with the following:
 
-``` r
-
+```r
 library(devtools)
 devtools::install_github("Alon-Alexander/r_project_manager")
 ```
 
 ## Usage
 
-See [Getting Started
-Vignette](https://alon-alexander.github.io/r_project_manager/articles/getting-started.html)
-for a proper introduction.
+See [Getting Started Vignette](https://alon-alexander.github.io/r_project_manager/articles/getting-started.html) for a proper introduction.
 
 Here is the TL;DR of using the package (the basic functionalities):
 
-``` r
-
+```r
 # Create a new project (one-time)
 pm <- pm_create_project(project_dir)
 

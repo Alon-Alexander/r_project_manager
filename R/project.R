@@ -78,7 +78,7 @@ PMProject <- R6Class("PMProject",
     #' Also validates that all input files referenced in inputs.local.yaml exist.
     validate = function() {
       chk::check_files(
-        private$at(constants$INPUTS_FILENAME),
+        private$at(constants$CONFIGURATION_FILENAME),
         x_name = "Inputs definition file"
       )
       chk::check_files(
@@ -97,37 +97,37 @@ PMProject <- R6Class("PMProject",
       # Validate input files exist
       .validate_input_files(
         project_path = self$path,
-        inputs_file = private$at(constants$INPUTS_FILENAME),
+        configuration_file = private$at(constants$CONFIGURATION_FILENAME),
         local_inputs_file = private$at(constants$LOCAL_INPUTS_FILENAME)
       )
     },
 
     #' @description
-    #' Parse inputs.yaml and inputs.local.yaml into PMData objects.
+    #' Parse project.yaml and inputs.local.yaml into PMData objects.
     #' Reads the inputs definition file and the local paths file
     #' and combines them to create a list of PMData objects.
     #'
-    #' @return A list of PMData objects, one for each input defined in inputs.yaml
+    #' @return A list of PMData objects, one for each input defined in project.yaml
     #'   that has a corresponding path in inputs.local.yaml
     #'
     #' @examples
     #' folder <- withr::local_tempdir()
     #' pm <- pm_create_project(folder)
     #'
-    #' # After configuring inputs.yaml and inputs.local.yaml:
+    #' # After configuring project.yaml and inputs.local.yaml:
     #' # data_list <- pm$parse_inputs()
     parse_inputs = function() {
-      # Read inputs.yaml (portable definitions)
-      inputs_file <- private$at(constants$INPUTS_FILENAME)
-      chk::check_files(inputs_file, x_name = "Inputs definition file")
+      # Read project.yaml (portable definitions)
+      configuration_file <- private$at(constants$CONFIGURATION_FILENAME)
+      chk::check_files(configuration_file, x_name = "Project configuration file")
       inputs_def <- tryCatch(
-        yaml::read_yaml(inputs_file),
+        yaml::read_yaml(configuration_file),
         error = function(e) {
-          stop("inputs.yaml must be a YAML object (key-value pairs): ", conditionMessage(e))
+          stop("project.yaml must be a YAML object (key-value pairs): ", conditionMessage(e))
         }
       )
 
-      # Validate inputs.yaml schema
+      # Validate project.yaml schema
       .validate_inputs_schema(inputs_def)
 
       # Read inputs.local.yaml (local paths)
@@ -143,7 +143,7 @@ PMProject <- R6Class("PMProject",
       # Validate inputs.local.yaml schema
       .validate_local_inputs_schema(local_inputs)
 
-      # Extract input IDs from inputs.yaml
+      # Extract input IDs from project.yaml
       # Inputs are defined under "inputs" key as a named list
       input_ids <- .extract_input_ids(inputs_def)
 
@@ -152,7 +152,7 @@ PMProject <- R6Class("PMProject",
       for (id in input_ids) {
         if (!id %in% names(local_inputs$paths)) {
           stop(sprintf(
-            "Input ID '%s' is defined in inputs.yaml but missing from inputs.local.yaml paths",
+            "Input ID '%s' is defined in project.yaml but missing from inputs.local.yaml paths",
             id
           ))
         }

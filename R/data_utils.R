@@ -1,9 +1,9 @@
-#' @title Validate inputs.yaml schema
+#' @title Validate project.yaml schema
 #'
 #' @description
-#' Validates that the inputs.yaml structure follows the expected schema.
+#' Validates that the project.yaml structure follows the expected schema.
 #'
-#' @param inputs_def List. Parsed YAML content from inputs.yaml
+#' @param inputs_def List. Parsed YAML content from project.yaml
 #'
 #' @details
 #' Expected schema:
@@ -17,11 +17,11 @@
 #' @keywords internal
 .validate_inputs_schema <- function(inputs_def) {
   if (!is.list(inputs_def)) {
-    stop("inputs.yaml must be a YAML object (key-value pairs)")
+    stop("project.yaml must be a YAML object (key-value pairs)")
   }
 
   if (!"inputs" %in% names(inputs_def)) {
-    stop("inputs.yaml must have a top-level 'inputs' key")
+    stop("project.yaml must have a top-level 'inputs' key")
   }
 
   inputs_list <- inputs_def$inputs
@@ -41,11 +41,11 @@
   }
 
   if (!is.list(inputs_list)) {
-    stop("'inputs' in inputs.yaml must be a YAML list or object")
+    stop("'inputs' in project.yaml must be a YAML list or object")
   }
 
   if (length(inputs_list) == 0) {
-    stop("'inputs' in inputs.yaml must contain at least one input definition")
+    stop("'inputs' in project.yaml must contain at least one input definition")
   }
 
   # Check if it's an array (unnamed list) or object (named list)
@@ -194,13 +194,13 @@
   invisible(TRUE)
 }
 
-#' @title Extract input IDs from inputs.yaml
+#' @title Extract input IDs from project.yaml
 #'
 #' @description
-#' Extracts the canonical input IDs from the inputs.yaml structure.
+#' Extracts the canonical input IDs from the project.yaml structure.
 #' Supports both array format (list of strings/objects) and object format (named list).
 #'
-#' @param inputs_def List. Parsed YAML content from inputs.yaml
+#' @param inputs_def List. Parsed YAML content from project.yaml
 #'
 #' @return Character vector of input IDs
 #'
@@ -268,9 +268,9 @@
 #' @title Check for missing entries in inputs.local.yaml
 #'
 #' @description
-#' Checks which input IDs from inputs.yaml are missing from inputs.local.yaml paths.
+#' Checks which input IDs from project.yaml are missing from inputs.local.yaml paths.
 #'
-#' @param input_ids Character vector. Input IDs from inputs.yaml
+#' @param input_ids Character vector. Input IDs from project.yaml
 #' @param local_paths Named list. Paths from inputs.local.yaml
 #'
 #' @return Character vector of missing input IDs
@@ -349,7 +349,7 @@
     error_parts <- c(
       error_parts,
       sprintf(
-        "Input validation failed: %d input %s defined in inputs.yaml but missing from inputs.local.yaml:\n  %s",
+        "Input validation failed: %d input %s defined in project.yaml but missing from inputs.local.yaml:\n  %s",
         length(missing_entries),
         entry_plural,
         paste(sprintf("'%s'", missing_entries), collapse = ", ")
@@ -417,38 +417,38 @@
 #'
 #' @description
 #' Validates that all input files referenced in inputs.local.yaml actually exist.
-#' Also checks that all inputs defined in inputs.yaml have corresponding entries
+#' Also checks that all inputs defined in project.yaml have corresponding entries
 #' in inputs.local.yaml.
 #'
 #' @param project_path Character. Path to the project directory
-#' @param inputs_file Character. Path to inputs.yaml file
+#' @param configuration_file Character. Path to project.yaml file
 #' @param local_inputs_file Character. Path to inputs.local.yaml file
 #'
 #' @details
 #' This function:
 #' - Reads and validates the schema of both YAML files
-#' - Checks that all input IDs from inputs.yaml have entries in inputs.local.yaml
+#' - Checks that all input IDs from project.yaml have entries in inputs.local.yaml
 #' - Checks that all files referenced in inputs.local.yaml exist
 #' - Provides helpful error messages with guidance on how to fix issues
 #'
 #' @return Invisibly returns TRUE if validation passes
 #'
 #' @keywords internal
-.validate_input_files <- function(project_path, inputs_file, local_inputs_file) {
-  # Read inputs.yaml
+.validate_input_files <- function(project_path, configuration_file, local_inputs_file) {
+  # Read project.yaml
   inputs_def <- tryCatch(
-    yaml::read_yaml(inputs_file),
+    yaml::read_yaml(configuration_file),
     error = function(e) {
-      stop("Failed to read and parse inputs.yaml: ", conditionMessage(e))
+      stop("Failed to read and parse project.yaml: ", conditionMessage(e))
     }
   )
 
-  # If inputs.yaml is empty or NULL, skip validation
+  # If project.yaml is empty or NULL, skip validation
   if (is.null(inputs_def) || length(inputs_def) == 0) {
     return(invisible(TRUE))
   }
 
-  # Validate inputs.yaml schema
+  # Validate project.yaml schema
   .validate_inputs_schema(inputs_def)
 
   # Read inputs.local.yaml
@@ -459,7 +459,7 @@
     }
   )
 
-  # Extract input IDs from inputs.yaml
+  # Extract input IDs from project.yaml
   input_ids <- .extract_input_ids(inputs_def)
   
   # If no inputs are defined, skip file validation

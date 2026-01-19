@@ -2,15 +2,15 @@
 % Please edit documentation in R/data_utils.R
 \name{.validate_inputs_schema}
 \alias{.validate_inputs_schema}
-\title{Validate inputs.yaml schema}
+\title{Validate project.yaml schema}
 \usage{
 .validate_inputs_schema(inputs_def)
 }
 \arguments{
-\item{inputs_def}{List. Parsed YAML content from inputs.yaml}
+\item{inputs_def}{List. Parsed YAML content from project.yaml}
 }
 \description{
-Validates that the inputs.yaml structure follows the expected schema.
+Validates that the project.yaml structure follows the expected schema.
 }
 \details{
 Expected schema:

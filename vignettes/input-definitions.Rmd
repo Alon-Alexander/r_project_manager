@@ -1,5 +1,5 @@
 ---
-title: "Defining Project Inputs: Different Formats for inputs.yaml"
+title: "Defining Project Inputs: Different Input Formats for project.yaml"
 author: "Alon Alexander"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -20,7 +20,8 @@ library(pm)
 
 ## Introduction
 
-The `inputs.yaml` file defines the inputs for your project in a portable way. This file can be written in several formats, from simple lists to detailed definitions with metadata. This vignette demonstrates all the supported formats.
+The `project.yaml` file defines the configuration for your project.
+An important part for this is defining the inputs for your project in a portable way. This file can be written in several formats, from simple lists to detailed definitions with metadata. This vignette demonstrates all the supported formats.
 
 ## Format 1: Simple Array (IDs Only)
 
@@ -53,7 +54,7 @@ file.create(file.path(project_dir, "raw_data.csv"))
 inputs_yaml <- list(
   inputs = list("feature_table", "sample_metadata", "raw_data")
 )
-yaml::write_yaml(inputs_yaml, file.path(project_dir, "inputs.yaml"))
+yaml::write_yaml(inputs_yaml, file.path(project_dir, "project.yaml"))
 
 local_inputs <- list(
   paths = list(
@@ -110,7 +111,7 @@ inputs_yaml <- list(
     )
   )
 )
-yaml::write_yaml(inputs_yaml, file.path(project_dir, "inputs.yaml"))
+yaml::write_yaml(inputs_yaml, file.path(project_dir, "project.yaml"))
 ```
 
 ```{r format2-read}
@@ -158,7 +159,7 @@ inputs_yaml <- list(
     )
   )
 )
-yaml::write_yaml(inputs_yaml, file.path(project_dir, "inputs.yaml"))
+yaml::write_yaml(inputs_yaml, file.path(project_dir, "project.yaml"))
 ```
 
 ```{r format4-read}
@@ -197,7 +198,7 @@ inputs_yaml <- list(
     "another_simple_input"
   )
 )
-yaml::write_yaml(inputs_yaml, file.path(project_dir, "inputs.yaml"))
+yaml::write_yaml(inputs_yaml, file.path(project_dir, "project.yaml"))
 
 # Update local inputs
 local_inputs <- list(
@@ -240,7 +241,7 @@ All formats are equivalent in functionality - choose based on your preference an
 
 ## Summary
 
-The `inputs.yaml` file is flexible and supports multiple formats:
+The `project.yaml` file is flexible and supports multiple formats:
 
 1. **Simple array**: Just list input IDs
 2. **Array with metadata**: Add descriptions and validation info to specific inputs

@@ -1,6 +1,6 @@
-# Extract input IDs from inputs.yaml
+# Extract input IDs from project.yaml
 
-Extracts the canonical input IDs from the inputs.yaml structure.
+Extracts the canonical input IDs from the project.yaml structure.
 Supports both array format (list of strings/objects) and object format
 (named list).
 
@@ -14,7 +14,7 @@ Supports both array format (list of strings/objects) and object format
 
 - inputs_def:
 
-  List. Parsed YAML content from inputs.yaml
+  List. Parsed YAML content from project.yaml
 
 ## Value
 

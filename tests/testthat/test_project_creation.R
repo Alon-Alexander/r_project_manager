@@ -13,7 +13,7 @@ describe("Creating project objects works as expected", {
   })
 
   it("Errors when there is a missing important file", {
-    for (missing_file in c("README.md", "inputs.yaml", "inputs.local.yaml")) {
+    for (missing_file in c("README.md", "project.yaml", "inputs.local.yaml")) {
       dir <- .get_good_project_path()
 
       # Explicitly remove the missing file
@@ -53,7 +53,7 @@ describe("Creating new project with pm_create_project works", {
 
     # Validate some files
     expect_true(dir.exists(path))
-    expect_true(file.exists(file.path(path, "inputs.yaml")))
+    expect_true(file.exists(file.path(path, "project.yaml")))
     expect_true(file.exists(file.path(path, "inputs.local.yaml")))
     expect_true(file.exists(file.path(path, "README.md")))
     expect_true(file.exists(file.path(path, ".gitignore")))
@@ -66,7 +66,7 @@ describe("Creating new project with pm_create_project works", {
     expect_s3_class(proj, "PMProject")
     expect_equal(proj$path, normalizePath(dir))
 
-    expect_true(file.exists(file.path(dir, "inputs.yaml")))
+    expect_true(file.exists(file.path(dir, "project.yaml")))
     expect_true(file.exists(file.path(dir, "inputs.local.yaml")))
     expect_true(file.exists(file.path(dir, "README.md")))
     expect_true(file.exists(file.path(dir, ".gitignore")))
@@ -89,14 +89,14 @@ describe("Input file validation in PMProject$validate()", {
   it("Passes validation when all input files exist", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         feature_table = list(),
         sample_metadata = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create test files
     file1 <- file.path(dir, "feature_table.csv")
@@ -121,13 +121,13 @@ describe("Input file validation in PMProject$validate()", {
   it("Passes validation with absolute paths", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         test_input = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create test file outside project directory
     temp_file <- withr::local_tempfile(fileext = ".csv")
@@ -149,14 +149,14 @@ describe("Input file validation in PMProject$validate()", {
   it("Errors when input ID is missing from inputs.local.yaml", {
     dir <- .get_good_project_path()
 
-    # Create inputs.yaml with two inputs
+    # Create project.yaml with two inputs
     inputs_yaml <- list(
       inputs = list(
         feature_table = list(),
         sample_metadata = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create inputs.local.yaml with only one input
     local_inputs_yaml <- list(
@@ -184,7 +184,7 @@ describe("Input file validation in PMProject$validate()", {
   it("Errors when multiple input IDs are missing from inputs.local.yaml", {
     dir <- .get_good_project_path()
 
-    # Create inputs.yaml with three inputs
+    # Create project.yaml with three inputs
     inputs_yaml <- list(
       inputs = list(
         input1 = list(),
@@ -192,7 +192,7 @@ describe("Input file validation in PMProject$validate()", {
         input3 = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create inputs.local.yaml with only one input
     local_inputs_yaml <- list(
@@ -220,13 +220,13 @@ describe("Input file validation in PMProject$validate()", {
   it("Errors when input file does not exist (relative path)", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         missing_file = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create inputs.local.yaml pointing to non-existent file
     local_inputs_yaml <- list(
@@ -258,13 +258,13 @@ describe("Input file validation in PMProject$validate()", {
   it("Errors when input file does not exist (absolute path)", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         missing_file = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create inputs.local.yaml pointing to non-existent absolute path
     nonexistent_path <- file.path(tempdir(), "nonexistent_file.csv")
@@ -294,14 +294,14 @@ describe("Input file validation in PMProject$validate()", {
   it("Errors when multiple input files do not exist", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         missing1 = list(),
         missing2 = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create inputs.local.yaml pointing to non-existent files
     local_inputs_yaml <- list(
@@ -330,7 +330,7 @@ describe("Input file validation in PMProject$validate()", {
   it("Errors when both missing entries and missing files occur", {
     dir <- .get_good_project_path()
 
-    # Create inputs.yaml with three inputs
+    # Create project.yaml with three inputs
     inputs_yaml <- list(
       inputs = list(
         missing_entry = list(),
@@ -338,7 +338,7 @@ describe("Input file validation in PMProject$validate()", {
         valid_input = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create a valid file
     valid_file <- file.path(dir, "valid_file.csv")
@@ -372,17 +372,17 @@ describe("Input file validation in PMProject$validate()", {
     )
   })
 
-  it("Works with array format in inputs.yaml", {
+  it("Works with array format in project.yaml", {
     dir <- .get_good_project_path()
 
-    # Create inputs.yaml in array format
+    # Create project.yaml in array format
     writeLines(
       c(
         "inputs:",
         "  - feature_table",
         "  - sample_metadata"
       ),
-      file.path(dir, "inputs.yaml")
+      file.path(dir, "project.yaml")
     )
 
     # Create test files
@@ -408,13 +408,13 @@ describe("Input file validation in PMProject$validate()", {
   it("Validates input files when validate() is called explicitly", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         test_input = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create test file
     test_file <- file.path(dir, "test_file.csv")
@@ -452,13 +452,13 @@ describe("Input file validation in PMProject$validate()", {
     subdir <- file.path(dir, "data")
     dir.create(subdir)
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         test_input = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create test file in subdirectory
     test_file <- file.path(subdir, "test_file.csv")
@@ -480,13 +480,13 @@ describe("Input file validation in PMProject$validate()", {
   it("Errors when inputs.local.yaml is empty but inputs are defined", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         test_input = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create empty inputs.local.yaml
     local_inputs_yaml <- list()
@@ -510,13 +510,13 @@ describe("Input file validation in PMProject$validate()", {
   it("Errors when inputs.local.yaml has no paths key but inputs are defined", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         test_input = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create inputs.local.yaml without paths key
     local_inputs_yaml <- list(
@@ -534,13 +534,13 @@ describe("Input file validation in PMProject$validate()", {
   it("Provides detailed error messages showing both original and resolved paths", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         test_input = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create inputs.local.yaml with relative path
     local_inputs_yaml <- list(
@@ -564,13 +564,13 @@ describe("Input file validation in PMProject$validate()", {
   it("Provides detailed error messages for absolute paths", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         test_input = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create inputs.local.yaml with absolute path
     nonexistent_path <- file.path(tempdir(), "nonexistent_file.csv")
@@ -595,7 +595,7 @@ describe("Input file validation in PMProject$validate()", {
   it("Shows count of missing entries in error message", {
     dir <- .get_good_project_path()
 
-    # Create inputs.yaml with multiple inputs
+    # Create project.yaml with multiple inputs
     inputs_yaml <- list(
       inputs = list(
         input1 = list(),
@@ -603,7 +603,7 @@ describe("Input file validation in PMProject$validate()", {
         input3 = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create empty inputs.local.yaml
     local_inputs_yaml <- list()
@@ -623,7 +623,7 @@ describe("Input file validation in PMProject$validate()", {
   it("Shows count of missing files in error message", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         missing1 = list(),
@@ -631,7 +631,7 @@ describe("Input file validation in PMProject$validate()", {
         missing3 = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create inputs.local.yaml pointing to non-existent files
     local_inputs_yaml <- list(
@@ -657,13 +657,13 @@ describe("Input file validation in PMProject$validate()", {
   it("Provides example fix in error message for missing entries", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         example_input = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create empty inputs.local.yaml
     local_inputs_yaml <- list()
@@ -682,13 +682,13 @@ describe("Input file validation in PMProject$validate()", {
   it("Handles case where inputs.local.yaml is completely missing paths section", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         test_input = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create inputs.local.yaml as empty list (no paths key)
     # This should be caught by schema validation, but let's test the file validation too
@@ -705,13 +705,13 @@ describe("Input file validation in PMProject$validate()", {
   it("Error message includes helpful note about relative paths", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         test_input = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create inputs.local.yaml with relative path
     local_inputs_yaml <- list(
@@ -733,7 +733,7 @@ describe("Input file validation in PMProject$validate()", {
   it("Works correctly when all inputs have valid files", {
     dir <- .get_good_project_path()
 
-    # Create inputs.yaml with multiple inputs
+    # Create project.yaml with multiple inputs
     inputs_yaml <- list(
       inputs = list(
         input1 = list(),
@@ -741,7 +741,7 @@ describe("Input file validation in PMProject$validate()", {
         input3 = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create test files
     file1 <- file.path(dir, "file1.csv")
@@ -769,14 +769,14 @@ describe("Input file validation in PMProject$validate()", {
   it("Validates files when validate() is called after file deletion", {
     dir <- .get_good_project_path()
 
-    # Create valid inputs.yaml
+    # Create valid project.yaml
     inputs_yaml <- list(
       inputs = list(
         input1 = list(),
         input2 = list()
       )
     )
-    yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
 
     # Create test files
     file1 <- file.path(dir, "file1.csv")

@@ -1,3 +1,15 @@
+# pm 0.1.7
+
+## Major Changes
+
+- Renamed `inputs.yaml` to `project.yaml` for future features generalization.
+- Added TL;DR to the `getting-started` vignette
+- Added a README.md to the package
+
+## Minor Changes
+
+- Removed PRODUCT.md
+
 # pm 0.1.6
 
 ## New Features
