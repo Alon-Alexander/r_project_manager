@@ -421,7 +421,7 @@
 #' in inputs.local.yaml.
 #'
 #' @param project_path Character. Path to the project directory
-#' @param inputs_file Character. Path to project.yaml file
+#' @param configuration_file Character. Path to project.yaml file
 #' @param local_inputs_file Character. Path to inputs.local.yaml file
 #'
 #' @details
@@ -434,10 +434,10 @@
 #' @return Invisibly returns TRUE if validation passes
 #'
 #' @keywords internal
-.validate_input_files <- function(project_path, inputs_file, local_inputs_file) {
+.validate_input_files <- function(project_path, configuration_file, local_inputs_file) {
   # Read project.yaml
   inputs_def <- tryCatch(
-    yaml::read_yaml(inputs_file),
+    yaml::read_yaml(configuration_file),
     error = function(e) {
       stop("Failed to read and parse project.yaml: ", conditionMessage(e))
     }

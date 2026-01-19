@@ -4,12 +4,12 @@
 \alias{.validate_input_files}
 \title{Validate input files exist}
 \usage{
-.validate_input_files(project_path, inputs_file, local_inputs_file)
+.validate_input_files(project_path, configuration_file, local_inputs_file)
 }
 \arguments{
 \item{project_path}{Character. Path to the project directory}
 
-\item{inputs_file}{Character. Path to project.yaml file}
+\item{configuration_file}{Character. Path to project.yaml file}
 
 \item{local_inputs_file}{Character. Path to inputs.local.yaml file}
 }

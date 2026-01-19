@@ -78,7 +78,7 @@ PMProject <- R6Class("PMProject",
     #' Also validates that all input files referenced in inputs.local.yaml exist.
     validate = function() {
       chk::check_files(
-        private$at(constants$INPUTS_FILENAME),
+        private$at(constants$CONFIGURATION_FILENAME),
         x_name = "Inputs definition file"
       )
       chk::check_files(
@@ -97,7 +97,7 @@ PMProject <- R6Class("PMProject",
       # Validate input files exist
       .validate_input_files(
         project_path = self$path,
-        inputs_file = private$at(constants$INPUTS_FILENAME),
+        configuration_file = private$at(constants$CONFIGURATION_FILENAME),
         local_inputs_file = private$at(constants$LOCAL_INPUTS_FILENAME)
       )
     },
@@ -118,10 +118,10 @@ PMProject <- R6Class("PMProject",
     #' # data_list <- pm$parse_inputs()
     parse_inputs = function() {
       # Read project.yaml (portable definitions)
-      inputs_file <- private$at(constants$INPUTS_FILENAME)
-      chk::check_files(inputs_file, x_name = "Inputs definition file")
+      configuration_file <- private$at(constants$CONFIGURATION_FILENAME)
+      chk::check_files(configuration_file, x_name = "Project configuration file")
       inputs_def <- tryCatch(
-        yaml::read_yaml(inputs_file),
+        yaml::read_yaml(configuration_file),
         error = function(e) {
           stop("project.yaml must be a YAML object (key-value pairs): ", conditionMessage(e))
         }

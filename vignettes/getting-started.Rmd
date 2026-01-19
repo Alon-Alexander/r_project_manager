@@ -45,7 +45,7 @@ pm
 
 The project has been created with the standard structure:
 
-- `project.yaml` - portable input definitions
+- `project.yaml` - Project configuration file, including portable input definitions
 - `inputs.local.yaml` - local path mappings (machine-specific)
 - `analyses/` - directory for all analyses
 - `README.md` - project documentation

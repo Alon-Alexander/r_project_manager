@@ -1,5 +1,5 @@
 ---
-title: "Defining Project Inputs: Different Formats for project.yaml"
+title: "Defining Project Inputs: Different Input Formats for project.yaml"
 author: "Alon Alexander"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -20,7 +20,8 @@ library(pm)
 
 ## Introduction
 
-The `project.yaml` file defines the inputs for your project in a portable way. This file can be written in several formats, from simple lists to detailed definitions with metadata. This vignette demonstrates all the supported formats.
+The `project.yaml` file defines the configuration for your project.
+An important part for this is defining the inputs for your project in a portable way. This file can be written in several formats, from simple lists to detailed definitions with metadata. This vignette demonstrates all the supported formats.
 
 ## Format 1: Simple Array (IDs Only)
 
