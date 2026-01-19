@@ -1,11 +1,12 @@
-# Defining Project Inputs: Different Formats for inputs.yaml
+# Defining Project Inputs: Different Input Formats for project.yaml
 
 ## Introduction
 
-The `inputs.yaml` file defines the inputs for your project in a portable
-way. This file can be written in several formats, from simple lists to
-detailed definitions with metadata. This vignette demonstrates all the
-supported formats.
+The `project.yaml` file defines the configuration for your project. An
+important part for this is defining the inputs for your project in a
+portable way. This file can be written in several formats, from simple
+lists to detailed definitions with metadata. This vignette demonstrates
+all the supported formats.
 
 ## Format 1: Simple Array (IDs Only)
 
@@ -141,7 +142,7 @@ preference and readability needs.
 
 ## Summary
 
-The `inputs.yaml` file is flexible and supports multiple formats:
+The `project.yaml` file is flexible and supports multiple formats:
 
 1.  **Simple array**: Just list input IDs
 2.  **Array with metadata**: Add descriptions and validation info to

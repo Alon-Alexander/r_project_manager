@@ -30,6 +30,41 @@ The `pm` package provides a structured approach to managing research projects in
 4. Loading data from another analysis
 5. Using the artifact discovery features
 
+## TL;DR
+
+```{r tldr, eval=FALSE}
+# Create a new project (one-time)
+pm <- pm_create_project(project_dir)
+
+# Load an existing project
+pm <- pm_project(project_dir)
+
+# Look at available inputs
+inputs <- pm$parse_inputs()
+
+# Create a new analysis
+prep_analysis <- pm$create_analysis("data_preprocessing")
+
+# Create analysis from path (for example in the analysis's code)
+analysis <- pm::PMAnalysis$new(path = ".")
+
+# Get output path for storing artifact
+cleaned_data_path <- prep_analysis$get_output_path("cleaned_data", type = "table")
+
+# Read/write data (generic for many file types)
+cleaned_data_path$write(my_table)
+read_table <- cleaned_data_path$read()
+
+# Find artifact of other analysis
+cleaned_artifact <- another_analysis$get_artifact(
+  "cleaned_data",
+  analysis_name = "data_preprocessing"  # Can also pass NULL to search all analylses
+)
+
+# Get intermediate path for caching (local to an analysis)
+normalized_path <- prep_analysis$get_intermediate_artifact("noramalized_data")
+```
+
 ## Creating a Project
 
 First, let's create a new project. We'll use a temporary directory for this example:

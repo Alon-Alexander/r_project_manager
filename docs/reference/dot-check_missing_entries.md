@@ -1,6 +1,6 @@
 # Check for missing entries in inputs.local.yaml
 
-Checks which input IDs from inputs.yaml are missing from
+Checks which input IDs from project.yaml are missing from
 inputs.local.yaml paths.
 
 ## Usage
@@ -13,7 +13,7 @@ inputs.local.yaml paths.
 
 - input_ids:
 
-  Character vector. Input IDs from inputs.yaml
+  Character vector. Input IDs from project.yaml
 
 - local_paths:
 

@@ -296,8 +296,8 @@ analysis <- pm$create_analysis("data_preparation")
 analysis
 #> PMAnalysis:
 #>   Name: data_preparation
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpuRdKh6/file81fa1fa8c2a2/analyses/data_preparation
-#>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpuRdKh6/file81fa1fa8c2a2
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp1XPAT8/file58a16e96c9f3/analyses/data_preparation
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp1XPAT8/file58a16e96c9f3
 
 # Load an existing analysis from project
 analysis <- pm$get_analysis("data_preparation")
@@ -379,12 +379,12 @@ output <- analysis$get_output_path("results.csv", type = "table")
 output$id    # "results"
 #> [1] "results"
 output$path  # full path to results.csv in outputs/
-#> [1] "/private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpuRdKh6/file81fa79dec66a/analyses/my_analysis/outputs/results.csv"
+#> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp1XPAT8/file58a13fbc451c/analyses/my_analysis/outputs/results.csv"
 
 # Get intermediate path without extension (will add .parquet for table type)
 intermediate <- analysis$get_output_path("temp_data", type = "table", intermediate = TRUE)
 intermediate$id    # "temp_data"
 #> [1] "temp_data"
 intermediate$path  # full path to temp_data.parquet in intermediate/
-#> [1] "/private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpuRdKh6/file81fa79dec66a/analyses/my_analysis/intermediate/temp_data.parquet"
+#> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp1XPAT8/file58a13fbc451c/analyses/my_analysis/intermediate/temp_data.parquet"
 ```

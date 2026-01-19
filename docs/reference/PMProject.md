@@ -73,7 +73,7 @@ inputs.local.yaml exist.
 
 ### Method `parse_inputs()`
 
-Parse inputs.yaml and inputs.local.yaml into PMData objects. Reads the
+Parse project.yaml and inputs.local.yaml into PMData objects. Reads the
 inputs definition file and the local paths file and combines them to
 create a list of PMData objects.
 
@@ -83,15 +83,15 @@ create a list of PMData objects.
 
 #### Returns
 
-A list of PMData objects, one for each input defined in inputs.yaml that
-has a corresponding path in inputs.local.yaml
+A list of PMData objects, one for each input defined in project.yaml
+that has a corresponding path in inputs.local.yaml
 
 #### Examples
 
     folder <- withr::local_tempdir()
     pm <- pm_create_project(folder)
 
-    # After configuring inputs.yaml and inputs.local.yaml:
+    # After configuring project.yaml and inputs.local.yaml:
     # data_list <- pm$parse_inputs()
 
 ------------------------------------------------------------------------
@@ -246,7 +246,7 @@ invisible(pm_create_project(folder))
 pm <- PMProject$new(folder)
 pm
 #> PMProject:
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpuRdKh6/file81fab567319
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp1XPAT8/file58a16d580d37
 #>   Analyses: 0
 
 
@@ -257,7 +257,7 @@ pm
 folder <- withr::local_tempdir()
 pm <- pm_create_project(folder)
 
-# After configuring inputs.yaml and inputs.local.yaml:
+# After configuring project.yaml and inputs.local.yaml:
 # data_list <- pm$parse_inputs()
 
 ## ------------------------------------------------
@@ -282,8 +282,8 @@ analysis <- pm$get_analysis("data_preparation")
 analysis
 #> PMAnalysis:
 #>   Name: data_preparation
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpuRdKh6/file81fa610c776b/analyses/data_preparation
-#>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpuRdKh6/file81fa610c776b
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp1XPAT8/file58a13d741913/analyses/data_preparation
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp1XPAT8/file58a13d741913
 
 ## ------------------------------------------------
 ## Method `PMProject$get_artifact`
@@ -313,6 +313,6 @@ analysis <- pm$create_analysis("data_preparation")
 analysis
 #> PMAnalysis:
 #>   Name: data_preparation
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpuRdKh6/file81fa4000a630/analyses/data_preparation
-#>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpuRdKh6/file81fa4000a630
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp1XPAT8/file58a155f1466b/analyses/data_preparation
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp1XPAT8/file58a155f1466b
 ```

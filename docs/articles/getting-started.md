@@ -11,6 +11,42 @@ projects in R. This vignette demonstrates a complete workflow:
 4.  Loading data from another analysis
 5.  Using the artifact discovery features
 
+## TL;DR
+
+``` r
+
+# Create a new project (one-time)
+pm <- pm_create_project(project_dir)
+
+# Load an existing project
+pm <- pm_project(project_dir)
+
+# Look at available inputs
+inputs <- pm$parse_inputs()
+
+# Create a new analysis
+prep_analysis <- pm$create_analysis("data_preprocessing")
+
+# Create analysis from path (for example in the analysis's code)
+analysis <- pm::PMAnalysis$new(path = ".")
+
+# Get output path for storing artifact
+cleaned_data_path <- prep_analysis$get_output_path("cleaned_data", type = "table")
+
+# Read/write data (generic for many file types)
+cleaned_data_path$write(my_table)
+read_table <- cleaned_data_path$read()
+
+# Find artifact of other analysis
+cleaned_artifact <- another_analysis$get_artifact(
+  "cleaned_data",
+  analysis_name = "data_preprocessing"  # Can also pass NULL to search all analylses
+)
+
+# Get intermediate path for caching (local to an analysis)
+normalized_path <- prep_analysis$get_intermediate_artifact("noramalized_data")
+```
+
 ## Creating a Project
 
 First, let’s create a new project. We’ll use a temporary directory for
@@ -25,13 +61,14 @@ project_dir <- file.path(tempdir(), "my_research_project")
 pm <- pm_create_project(project_dir)
 pm
 #> PMProject:
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpWDSKq2/my_research_project
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpdavW25/my_research_project
 #>   Analyses: 0
 ```
 
 The project has been created with the standard structure:
 
-- `inputs.yaml` - portable input definitions
+- `project.yaml` - Project configuration file, including portable input
+  definitions
 - `inputs.local.yaml` - local path mappings (machine-specific)
 - `analyses/` - directory for all analyses
 - `README.md` - project documentation
@@ -63,7 +100,7 @@ raw_data_path <- file.path(data_dir, "raw_measurements.csv")
 write.csv(raw_data, raw_data_path, row.names = FALSE)
 
 cat("Created raw data file:", raw_data_path, "\n")
-#> Created raw data file: /var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T//RtmpWDSKq2/raw_data/raw_measurements.csv
+#> Created raw data file: /var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T//RtmpdavW25/raw_data/raw_measurements.csv
 cat("Data dimensions:", nrow(raw_data), "rows,", ncol(raw_data), "columns\n")
 #> Data dimensions: 100 rows, 5 columns
 ```
@@ -74,13 +111,13 @@ Now we need to configure the project to recognize our raw data file.
 We’ll edit the input configuration files directly in a text editor.
 
 **Note**: For more information on the different ways to define
-`inputs.yaml`, see the [Input
+`project.yaml`, see the [Input
 Definitions](https://alon-alexander.github.io/r_project_manager/articles/input-definitions.md)
 vignette.
 
-### Editing `inputs.yaml`
+### Editing `project.yaml`
 
-Open `inputs.yaml` in your project directory and add the input
+Open `project.yaml` in your project directory and add the input
 definition. The file should look like this:
 
 ``` yaml
@@ -92,8 +129,8 @@ This file defines the *portable* input definitions that can be shared
 across different machines. It describes what the input is, but not where
 it’s located.
 
-NOTE: This is the simplest format of `inputs.yaml`, but you can also for
-example provide a description for each input.
+NOTE: This is the simplest format of `project.yaml`, but you can also
+for example provide a description for each input.
 
 ### Editing `inputs.local.yaml`
 
@@ -123,7 +160,7 @@ After editing both files, we can verify the configuration works:
 pm <- pm_project(project_dir)
 pm
 #> PMProject:
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpWDSKq2/my_research_project
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpdavW25/my_research_project
 #>   Analyses: 0
 #>   Inputs: 1
 
@@ -135,7 +172,7 @@ raw_data_input <- inputs$raw_measurements
 raw_data_input
 #> PMData:
 #>   ID: raw_measurements
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpWDSKq2/raw_data/raw_measurements.csv
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpdavW25/raw_data/raw_measurements.csv
 ```
 
 ## Analysis 1: Data Preprocessing
@@ -155,8 +192,8 @@ prep_analysis <- pm$create_analysis("data_preprocessing")
 prep_analysis
 #> PMAnalysis:
 #>   Name: data_preprocessing
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpWDSKq2/my_research_project/analyses/data_preprocessing
-#>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpWDSKq2/my_research_project
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpdavW25/my_research_project/analyses/data_preprocessing
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpdavW25/my_research_project
 ```
 
 ### Loading Input Data
@@ -173,7 +210,7 @@ raw_data_input <- inputs$raw_measurements
 raw_data_input
 #> PMData:
 #>   ID: raw_measurements
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpWDSKq2/raw_data/raw_measurements.csv
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpdavW25/raw_data/raw_measurements.csv
 
 # Read the data (as simple as that!)
 raw_data_loaded <- raw_data_input$read()
@@ -312,8 +349,8 @@ stats_analysis <- pm$create_analysis("statistical_analysis")
 stats_analysis
 #> PMAnalysis:
 #>   Name: statistical_analysis
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpWDSKq2/my_research_project/analyses/statistical_analysis
-#>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpWDSKq2/my_research_project
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpdavW25/my_research_project/analyses/statistical_analysis
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpdavW25/my_research_project
 ```
 
 ### Using get_artifact to Find Data
@@ -337,7 +374,7 @@ cleaned_artifact <- stats_analysis$get_artifact(
 cleaned_artifact
 #> PMData:
 #>   ID: cleaned_data
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpWDSKq2/my_research_project/analyses/data_preprocessing/outputs/cleaned_data.parquet
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpdavW25/my_research_project/analyses/data_preprocessing/outputs/cleaned_data.parquet
 ```
 
 #### Method 2: Search All Analyses (When Unique)
@@ -583,7 +620,7 @@ corr_matrix <- stats_analysis$get_artifact("correlation_matrix", analysis_name =
 cat("Correlation matrix type:", class(corr_matrix), "\n")
 #> Correlation matrix type: environment
 print(corr_matrix)
-#> <environment: 0x11d614538>
+#> <environment: 0x10698b118>
 ```
 
 ## Summary
@@ -637,5 +674,5 @@ For more detailed information on specific topics:
 
 - **[Defining Project
   Inputs](https://alon-alexander.github.io/r_project_manager/articles/input-definitions.md)**:
-  Explore the different ways you can define `inputs.yaml`, from simple
+  Explore the different ways you can define `project.yaml`, from simple
   arrays to detailed object definitions with metadata.

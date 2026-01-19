@@ -1,6 +1,6 @@
-# Validate inputs.yaml schema
+# Validate project.yaml schema
 
-Validates that the inputs.yaml structure follows the expected schema.
+Validates that the project.yaml structure follows the expected schema.
 
 ## Usage
 
@@ -12,7 +12,7 @@ Validates that the inputs.yaml structure follows the expected schema.
 
 - inputs_def:
 
-  List. Parsed YAML content from inputs.yaml
+  List. Parsed YAML content from project.yaml
 
 ## Details
 

@@ -55,10 +55,10 @@ optionally as an `PMArtifact` R6 object later.
 
 ### Project root
 
-microbiome_project/ ├── README.md ├── inputs.yaml \# committed: semantic
-input definitions (portable) ├── inputs.local.yaml \# NOT committed:
-local path mapping (machine-specific) └── analyses/ \# day-to-day work
-lives here
+microbiome_project/ ├── README.md ├── project.yaml \# committed:
+semantic input definitions (portable) ├── inputs.local.yaml \# NOT
+committed: local path mapping (machine-specific) └── analyses/ \#
+day-to-day work lives here
 
 ### Each analysis folder
 
@@ -68,7 +68,7 @@ cache/ \# intermediate outputs (optional) └── logs/
 
 ### Git rules
 
-- `inputs.yaml` is committed.
+- `project.yaml` is committed.
 - `inputs.local.yaml` is gitignored.
 - analysis `results/` are git ignored.
 - `cache/` is gitignored or optional.
@@ -80,7 +80,7 @@ Recommended `.gitignore` includes: - `inputs.local.yaml` -
 
 ## 4) Inputs design (two-layer system)
 
-### `inputs.yaml` (portable, committed)
+### `project.yaml` (portable, committed)
 
 Defines input *names* and expectations. No machine-specific paths.
 
