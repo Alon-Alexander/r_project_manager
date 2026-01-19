@@ -9,7 +9,7 @@
 \arguments{
 \item{project_path}{Character. Path to the project directory}
 
-\item{inputs_file}{Character. Path to inputs.yaml file}
+\item{inputs_file}{Character. Path to project.yaml file}
 
 \item{local_inputs_file}{Character. Path to inputs.local.yaml file}
 }
@@ -18,14 +18,14 @@ Invisibly returns TRUE if validation passes
 }
 \description{
 Validates that all input files referenced in inputs.local.yaml actually exist.
-Also checks that all inputs defined in inputs.yaml have corresponding entries
+Also checks that all inputs defined in project.yaml have corresponding entries
 in inputs.local.yaml.
 }
 \details{
 This function:
 \itemize{
 \item Reads and validates the schema of both YAML files
-\item Checks that all input IDs from inputs.yaml have entries in inputs.local.yaml
+\item Checks that all input IDs from project.yaml have entries in inputs.local.yaml
 \item Checks that all files referenced in inputs.local.yaml exist
 \item Provides helpful error messages with guidance on how to fix issues
 }

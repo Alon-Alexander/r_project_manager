@@ -45,7 +45,7 @@ pm
 
 The project has been created with the standard structure:
 
-- `inputs.yaml` - portable input definitions
+- `project.yaml` - portable input definitions
 - `inputs.local.yaml` - local path mappings (machine-specific)
 - `analyses/` - directory for all analyses
 - `README.md` - project documentation
@@ -81,11 +81,11 @@ cat("Data dimensions:", nrow(raw_data), "rows,", ncol(raw_data), "columns\n")
 
 Now we need to configure the project to recognize our raw data file. We'll edit the input configuration files directly in a text editor.
 
-**Note**: For more information on the different ways to define `inputs.yaml`, see the [Input Definitions](input-definitions.html) vignette.
+**Note**: For more information on the different ways to define `project.yaml`, see the [Input Definitions](input-definitions.html) vignette.
 
-### Editing `inputs.yaml`
+### Editing `project.yaml`
 
-Open `inputs.yaml` in your project directory and add the input definition. The file should look like this:
+Open `project.yaml` in your project directory and add the input definition. The file should look like this:
 
 ```yaml
 inputs:
@@ -94,7 +94,7 @@ inputs:
 
 This file defines the *portable* input definitions that can be shared across different machines. It describes what the input is, but not where it's located.
 
-NOTE: This is the simplest format of `inputs.yaml`, but you can also for example provide a description for each input.
+NOTE: This is the simplest format of `project.yaml`, but you can also for example provide a description for each input.
 
 ### Editing `inputs.local.yaml`
 
@@ -110,8 +110,8 @@ paths:
 This file maps the input ID (`raw_measurements`) to the actual file path on your machine. This file is typically gitignored since paths differ between machines.
 
 ```{r write-inputs, eval=TRUE, echo = FALSE, class.source = 'fold-hide'}
-# Write inputs.yaml
-inputs_file <- file.path(project_dir, "inputs.yaml")
+# Write project.yaml
+inputs_file <- file.path(project_dir, "project.yaml")
 inputs_def <- list(
   inputs = list(
     "raw_measurements"
@@ -522,4 +522,4 @@ For more detailed information on specific topics:
 
 - **[Working with File Formats](file-formats.html)**: Learn about the different file formats supported by `pm`, how to use `get_output_path()` with type specifications, and the power of format-agnostic reading with `get_artifact()` and `read()`.
 
-- **[Defining Project Inputs](input-definitions.html)**: Explore the different ways you can define `inputs.yaml`, from simple arrays to detailed object definitions with metadata.
+- **[Defining Project Inputs](input-definitions.html)**: Explore the different ways you can define `project.yaml`, from simple arrays to detailed object definitions with metadata.

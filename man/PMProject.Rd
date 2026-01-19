@@ -24,7 +24,7 @@ pm
 folder <- withr::local_tempdir()
 pm <- pm_create_project(folder)
 
-# After configuring inputs.yaml and inputs.local.yaml:
+# After configuring project.yaml and inputs.local.yaml:
 # data_list <- pm$parse_inputs()
 
 ## ------------------------------------------------
@@ -138,7 +138,7 @@ Also validates that all input files referenced in inputs.local.yaml exist.
 \if{html}{\out{<a id="method-PMProject-parse_inputs"></a>}}
 \if{latex}{\out{\hypertarget{method-PMProject-parse_inputs}{}}}
 \subsection{Method \code{parse_inputs()}}{
-Parse inputs.yaml and inputs.local.yaml into PMData objects.
+Parse project.yaml and inputs.local.yaml into PMData objects.
 Reads the inputs definition file and the local paths file
 and combines them to create a list of PMData objects.
 \subsection{Usage}{
@@ -146,7 +146,7 @@ and combines them to create a list of PMData objects.
 }
 
 \subsection{Returns}{
-A list of PMData objects, one for each input defined in inputs.yaml
+A list of PMData objects, one for each input defined in project.yaml
 that has a corresponding path in inputs.local.yaml
 }
 \subsection{Examples}{
@@ -154,7 +154,7 @@ that has a corresponding path in inputs.local.yaml
 \preformatted{folder <- withr::local_tempdir()
 pm <- pm_create_project(folder)
 
-# After configuring inputs.yaml and inputs.local.yaml:
+# After configuring project.yaml and inputs.local.yaml:
 # data_list <- pm$parse_inputs()
 }
 \if{html}{\out{</div>}}

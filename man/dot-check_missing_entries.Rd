@@ -7,7 +7,7 @@
 .check_missing_entries(input_ids, local_paths)
 }
 \arguments{
-\item{input_ids}{Character vector. Input IDs from inputs.yaml}
+\item{input_ids}{Character vector. Input IDs from project.yaml}
 
 \item{local_paths}{Named list. Paths from inputs.local.yaml}
 }
@@ -15,6 +15,6 @@
 Character vector of missing input IDs
 }
 \description{
-Checks which input IDs from inputs.yaml are missing from inputs.local.yaml paths.
+Checks which input IDs from project.yaml are missing from inputs.local.yaml paths.
 }
 \keyword{internal}

@@ -2,14 +2,14 @@
   dir <- withr::local_tempdir(.local_envir = env)
   invisible(pm_create_project(dir))
   
-  # Create a valid inputs.yaml with two inputs: one csv, one tsv
+  # Create a valid project.yaml with two inputs: one csv, one tsv
   inputs_yaml <- list(
     inputs = list(
       test_input = list(),
       test_tsv = list()
     )
   )
-  yaml::write_yaml(inputs_yaml, file.path(dir, "inputs.yaml"))
+  yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
   
   # Create a valid temp file for the csv input
   test_file_csv <- file.path(dir, "test_input.csv")
