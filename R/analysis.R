@@ -57,7 +57,7 @@ PMAnalysis <- R6Class("PMAnalysis",
         self$name <- basename(path)
 
         # Try to infer project path (parent of analyses directory)
-        parent <- dirname(path)
+        parent <- dirname(self$path)
         if (basename(parent) == constants$ANALYSES_DIR) {
           self$project_path <- normalizePath(dirname(parent), mustWork = FALSE)
         }
