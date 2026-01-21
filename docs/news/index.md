@@ -1,5 +1,13 @@
 # Changelog
 
+## pm 0.1.8
+
+### New Features
+
+- Added `pm_infer_analysis` to easily use package when writing code
+- Added active binding `project` to `PMAnalysis` object to easily access
+  containing project
+
 ## pm 0.1.7
 
 ### Major Changes

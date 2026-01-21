@@ -32,6 +32,6 @@ empty_folder <- withr::local_tempdir()
 pm <- pm_create_project(empty_folder)
 pm
 #> PMProject:
-#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp1XPAT8/file58a12528d732
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpewLzrE/file1026772fc6293
 #>   Analyses: 0
 ```

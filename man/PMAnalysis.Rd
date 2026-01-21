@@ -111,6 +111,14 @@ intermediate$path  # full path to temp_data.parquet in intermediate/
 }
 \if{html}{\out{</div>}}
 }
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{project}}{(\code{PMProject})\cr
+Get the project containing this analysis}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
