@@ -54,7 +54,7 @@ PMAnalysis <- R6Class("PMAnalysis",
         chk::chk_character(path)
 
         self$path <- normalizePath(path, mustWork = FALSE)
-        self$name <- basename(path)
+        self$name <- basename(self$path)
 
         # Try to infer project path (parent of analyses directory)
         parent <- dirname(self$path)
@@ -346,3 +346,50 @@ PMAnalysis <- R6Class("PMAnalysis",
     }
   )
 )
+
+#' @title Infer an analysis object based on the current directory
+#'
+#' @description
+#' Find the relevant analysis object based on the current directory.
+#' Currently supported being called from an analysis folder inside
+#' "analyses" folder, or from the "code" folder of an analysis.
+#'
+#' @return \code{PMAnalysis} object representing the inferred analysis
+#'
+#' @examples
+#' empty_folder <- withr::local_tempdir()
+#' pm <- pm_create_project(empty_folder)
+#' pm$create_analysis("my_analysis")
+#'
+#' # Infer from analysis folder
+#' withr::with_dir(file.path(empty_folder, "analyses", "my_analysis"), {
+#'   analysis1 <- pm_infer_analysis()
+#'   analysis1
+#' })
+#'
+#' # Infer from code folder
+#' withr::with_dir(file.path(empty_folder, "analyses", "my_analysis", "code"), {
+#'   analysis2 <- pm_infer_analysis()
+#'   analysis2
+#' })
+#'
+#' @export
+pm_infer_analysis <- function() {
+  current_path <- normalizePath(getwd(), mustWork = FALSE)
+  parent <- dirname(current_path)
+
+  # Check if directly in analyses folder
+  if (basename(parent) == constants$ANALYSES_DIR) {
+    return(PMAnalysis$new(path = current_path))
+  }
+
+  # Check if in "code" folder in an analysis folder
+  if (basename(current_path) == "code") {
+    grandparent <- dirname(parent)
+    if (basename(grandparent) == constants$ANALYSES_DIR) {
+      return(PMAnalysis$new(path = parent))
+    }
+  }
+
+  stop("Couldn't infer analysis path from current folder, please provide a direct path")
+}
