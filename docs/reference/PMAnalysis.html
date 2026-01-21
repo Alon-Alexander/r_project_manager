@@ -63,6 +63,15 @@ Each analysis contains code, outputs, intermediate results, and logs.</p>
 </dl><p></p></div>
     </div>
     <div class="section level2">
+    <h2 id="active-bindings">Active bindings<a class="anchor" aria-label="anchor" href="#active-bindings"></a></h2>
+    <p></p><div class="r6-active-bindings"><dl><dt><code>project</code></dt>
+<dd><p>(<code>PMProject</code>)<br>
+Get the project containing this analysis</p></dd>
+
+
+</dl><p></p></div>
+    </div>
+    <div class="section level2">
     <h2 id="methods">Methods<a class="anchor" aria-label="anchor" href="#methods"></a></h2>
 
 <div class="section">
@@ -325,8 +334,8 @@ If provided and name has an extension, the extension will be validated against t
 <span class="r-in"><span><span class="va">analysis</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> PMAnalysis:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Name: data_preparation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp1XPAT8/file58a16e96c9f3/analyses/data_preparation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp1XPAT8/file58a16e96c9f3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpeDGQmV/filef9ee7a934f89/analyses/data_preparation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpeDGQmV/filef9ee7a934f89</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Load an existing analysis from project</span></span></span>
 <span class="r-in"><span><span class="va">analysis</span> <span class="op">&lt;-</span> <span class="va">pm</span><span class="op">$</span><span class="fu">get_analysis</span><span class="op">(</span><span class="st">"data_preparation"</span><span class="op">)</span></span></span>
@@ -408,14 +417,14 @@ If provided and name has an extension, the extension will be validated against t
 <span class="r-in"><span><span class="va">output</span><span class="op">$</span><span class="va">id</span>    <span class="co"># "results"</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "results"</span>
 <span class="r-in"><span><span class="va">output</span><span class="op">$</span><span class="va">path</span>  <span class="co"># full path to results.csv in outputs/</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp1XPAT8/file58a13fbc451c/analyses/my_analysis/outputs/results.csv"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpeDGQmV/filef9ee1fa9879/analyses/my_analysis/outputs/results.csv"</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Get intermediate path without extension (will add .parquet for table type)</span></span></span>
 <span class="r-in"><span><span class="va">intermediate</span> <span class="op">&lt;-</span> <span class="va">analysis</span><span class="op">$</span><span class="fu">get_output_path</span><span class="op">(</span><span class="st">"temp_data"</span>, type <span class="op">=</span> <span class="st">"table"</span>, intermediate <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">intermediate</span><span class="op">$</span><span class="va">id</span>    <span class="co"># "temp_data"</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "temp_data"</span>
 <span class="r-in"><span><span class="va">intermediate</span><span class="op">$</span><span class="va">path</span>  <span class="co"># full path to temp_data.parquet in intermediate/</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp1XPAT8/file58a13fbc451c/analyses/my_analysis/intermediate/temp_data.parquet"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpeDGQmV/filef9ee1fa9879/analyses/my_analysis/intermediate/temp_data.parquet"</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

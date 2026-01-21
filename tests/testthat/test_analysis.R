@@ -13,6 +13,7 @@ describe("PMAnalysis class works as expected", {
     expect_equal(analysis_obj$name, "test_analysis")
     expect_equal(analysis_obj$path, normalizePath(file.path(dir, "analyses", "test_analysis")))
     expect_equal(analysis_obj$project_path, normalizePath(dir))
+    expect_equal(analysis_obj$project$path, normalizePath(dir))
   })
 
   it("PMAnalysis object has correct fields", {
@@ -1342,5 +1343,46 @@ describe("PMAnalysis$get_artifact() works correctly", {
       analysis$get_intermediate_artifact("temp_data"),
       regexp = "Multiple artifacts with ID 'temp_data' found in intermediate folder"
     )
+  })
+})
+
+describe("pm_infer_analysis works correctly", {
+  dir <- .get_good_project_path()
+  pm <- pm::PMProject$new(dir)
+  expected <- pm$create_analysis("data_prep")
+
+  it("Infers correctly from analysis folder", {
+    withr::with_dir(file.path(dir, "analyses", "data_prep"), {
+      analysis <- pm_infer_analysis()
+
+      expect_equal(expected$path, analysis$path)
+      expect_equal(expected$name, analysis$name)
+    })
+  })
+
+  it("Infers correctly from code folder of analysis", {
+    withr::with_dir(file.path(dir, "analyses", "data_prep", "code"), {
+      analysis <- pm_infer_analysis()
+
+      expect_equal(expected$path, analysis$path)
+      expect_equal(expected$name, analysis$name)
+    })
+  })
+
+  it("Fails from non-analysis folders", {
+    options <- list(
+      dir, # Project folder
+      file.path(dir, "analyses"), # Common analyses folder
+      "some_non_existing_folder"
+    )
+
+    for (bad_dir in options) {
+      withr::with_dir(dir, {
+        expect_error(
+          pm_infer_analysis(),
+          regexp = "Couldn't infer analysis path from current folder, please provide a direct path"
+        )
+      })
+    }
   })
 })
