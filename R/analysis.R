@@ -150,8 +150,7 @@ PMAnalysis <- R6Class("PMAnalysis",
         analysis_name <- self$name
       }
 
-      project <- PMProject$new(self$project_path)
-      project$get_artifact(id = id, analysis_name = analysis_name)
+      self$project$get_artifact(id = id, analysis_name = analysis_name)
     },
 
     #' @description
@@ -333,6 +332,17 @@ PMAnalysis <- R6Class("PMAnalysis",
       full_path <- normalizePath(file.path(self$path, folder, name), mustWork = FALSE)
 
       PMData$new(id = id, path = full_path)
+    }
+  ),
+  active = list(
+    #' @field project (`PMProject`)\cr
+    #' Get the project containing this analysis
+    project = function() {
+      if (is.null(self$project_path)) {
+        stop("This analysis is not associated with a project")
+      }
+
+      PMProject$new(self$project_path)
     }
   )
 )
