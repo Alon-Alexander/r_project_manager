@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">pm</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -131,7 +131,7 @@ for this example:</p>
 <span><span class="va">pm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pm_create_project.html">pm_create_project</a></span><span class="op">(</span><span class="va">project_dir</span><span class="op">)</span></span>
 <span><span class="va">pm</span></span>
 <span><span class="co">#&gt; PMProject:</span></span>
-<span><span class="co">#&gt;   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp71QE6L/my_research_project</span></span>
+<span><span class="co">#&gt;   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmpo71dkG/my_research_project</span></span>
 <span><span class="co">#&gt;   Analyses: 0</span></span></code></pre></div>
 <p>The project has been created with the standard structure:</p>
 <ul>
@@ -173,7 +173,7 @@ sources or experiments.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/write.table.html" class="external-link">write.csv</a></span><span class="op">(</span><span class="va">raw_data</span>, <span class="va">raw_data_path</span>, row.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Created raw data file:"</span>, <span class="va">raw_data_path</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Created raw data file: /var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T//Rtmp71QE6L/raw_data/raw_measurements.csv</span></span>
+<span><span class="co">#&gt; Created raw data file: /var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T//Rtmpo71dkG/raw_data/raw_measurements.csv</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Data dimensions:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">raw_data</span><span class="op">)</span>, <span class="st">"rows,"</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">raw_data</span><span class="op">)</span>, <span class="st">"columns\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Data dimensions: 100 rows, 5 columns</span></span></code></pre></div>
 </div>
@@ -221,7 +221,7 @@ since paths differ between machines.</p>
 <span><span class="va">pm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pm_project.html">pm_project</a></span><span class="op">(</span><span class="va">project_dir</span><span class="op">)</span></span>
 <span><span class="va">pm</span></span>
 <span><span class="co">#&gt; PMProject:</span></span>
-<span><span class="co">#&gt;   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp71QE6L/my_research_project</span></span>
+<span><span class="co">#&gt;   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmpo71dkG/my_research_project</span></span>
 <span><span class="co">#&gt;   Analyses: 0</span></span>
 <span><span class="co">#&gt;   Inputs: 1</span></span>
 <span></span>
@@ -233,7 +233,7 @@ since paths differ between machines.</p>
 <span><span class="va">raw_data_input</span></span>
 <span><span class="co">#&gt; PMData:</span></span>
 <span><span class="co">#&gt;   ID: raw_measurements</span></span>
-<span><span class="co">#&gt;   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp71QE6L/raw_data/raw_measurements.csv</span></span></code></pre></div>
+<span><span class="co">#&gt;   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmpo71dkG/raw_data/raw_measurements.csv</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -253,8 +253,8 @@ will:</p>
 <span><span class="va">prep_analysis</span></span>
 <span><span class="co">#&gt; PMAnalysis:</span></span>
 <span><span class="co">#&gt;   Name: data_preprocessing</span></span>
-<span><span class="co">#&gt;   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp71QE6L/my_research_project/analyses/data_preprocessing</span></span>
-<span><span class="co">#&gt;   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp71QE6L/my_research_project</span></span></code></pre></div>
+<span><span class="co">#&gt;   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmpo71dkG/my_research_project/analyses/data_preprocessing</span></span>
+<span><span class="co">#&gt;   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmpo71dkG/my_research_project</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="loading-input-data">Loading Input Data<a class="anchor" aria-label="anchor" href="#loading-input-data"></a>
 </h3>
@@ -269,7 +269,7 @@ will:</p>
 <span><span class="va">raw_data_input</span></span>
 <span><span class="co">#&gt; PMData:</span></span>
 <span><span class="co">#&gt;   ID: raw_measurements</span></span>
-<span><span class="co">#&gt;   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp71QE6L/raw_data/raw_measurements.csv</span></span>
+<span><span class="co">#&gt;   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmpo71dkG/raw_data/raw_measurements.csv</span></span>
 <span></span>
 <span><span class="co"># Read the data (as simple as that!)</span></span>
 <span><span class="va">raw_data_loaded</span> <span class="op">&lt;-</span> <span class="va">raw_data_input</span><span class="op">$</span><span class="fu">read</span><span class="op">(</span><span class="op">)</span></span>
@@ -405,8 +405,8 @@ each other.</p>
 <span><span class="va">stats_analysis</span></span>
 <span><span class="co">#&gt; PMAnalysis:</span></span>
 <span><span class="co">#&gt;   Name: statistical_analysis</span></span>
-<span><span class="co">#&gt;   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp71QE6L/my_research_project/analyses/statistical_analysis</span></span>
-<span><span class="co">#&gt;   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp71QE6L/my_research_project</span></span></code></pre></div>
+<span><span class="co">#&gt;   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmpo71dkG/my_research_project/analyses/statistical_analysis</span></span>
+<span><span class="co">#&gt;   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmpo71dkG/my_research_project</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="using-get_artifact-to-find-data">Using get_artifact to Find Data<a class="anchor" aria-label="anchor" href="#using-get_artifact-to-find-data"></a>
 </h3>
@@ -428,7 +428,7 @@ it:</p>
 <span><span class="va">cleaned_artifact</span></span>
 <span><span class="co">#&gt; PMData:</span></span>
 <span><span class="co">#&gt;   ID: cleaned_data</span></span>
-<span><span class="co">#&gt;   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp71QE6L/my_research_project/analyses/data_preprocessing/outputs/cleaned_data.parquet</span></span></code></pre></div>
+<span><span class="co">#&gt;   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmpo71dkG/my_research_project/analyses/data_preprocessing/outputs/cleaned_data.parquet</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="method-2-search-all-analyses-when-unique">Method 2: Search All Analyses (When Unique)<a class="anchor" aria-label="anchor" href="#method-2-search-all-analyses-when-unique"></a>
@@ -660,7 +660,7 @@ formats:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Correlation matrix type:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">corr_matrix</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Correlation matrix type: environment</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">corr_matrix</span><span class="op">)</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x12d5201c8&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; &lt;environment: 0x11b8da6e8&gt;</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">

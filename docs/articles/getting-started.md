@@ -61,7 +61,7 @@ project_dir <- file.path(tempdir(), "my_research_project")
 pm <- pm_create_project(project_dir)
 pm
 #> PMProject:
-#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp71QE6L/my_research_project
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmpo71dkG/my_research_project
 #>   Analyses: 0
 ```
 
@@ -100,7 +100,7 @@ raw_data_path <- file.path(data_dir, "raw_measurements.csv")
 write.csv(raw_data, raw_data_path, row.names = FALSE)
 
 cat("Created raw data file:", raw_data_path, "\n")
-#> Created raw data file: /var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T//Rtmp71QE6L/raw_data/raw_measurements.csv
+#> Created raw data file: /var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T//Rtmpo71dkG/raw_data/raw_measurements.csv
 cat("Data dimensions:", nrow(raw_data), "rows,", ncol(raw_data), "columns\n")
 #> Data dimensions: 100 rows, 5 columns
 ```
@@ -160,7 +160,7 @@ After editing both files, we can verify the configuration works:
 pm <- pm_project(project_dir)
 pm
 #> PMProject:
-#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp71QE6L/my_research_project
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmpo71dkG/my_research_project
 #>   Analyses: 0
 #>   Inputs: 1
 
@@ -172,7 +172,7 @@ raw_data_input <- inputs$raw_measurements
 raw_data_input
 #> PMData:
 #>   ID: raw_measurements
-#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp71QE6L/raw_data/raw_measurements.csv
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmpo71dkG/raw_data/raw_measurements.csv
 ```
 
 ## Analysis 1: Data Preprocessing
@@ -192,8 +192,8 @@ prep_analysis <- pm$create_analysis("data_preprocessing")
 prep_analysis
 #> PMAnalysis:
 #>   Name: data_preprocessing
-#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp71QE6L/my_research_project/analyses/data_preprocessing
-#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp71QE6L/my_research_project
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmpo71dkG/my_research_project/analyses/data_preprocessing
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmpo71dkG/my_research_project
 ```
 
 ### Loading Input Data
@@ -210,7 +210,7 @@ raw_data_input <- inputs$raw_measurements
 raw_data_input
 #> PMData:
 #>   ID: raw_measurements
-#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp71QE6L/raw_data/raw_measurements.csv
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmpo71dkG/raw_data/raw_measurements.csv
 
 # Read the data (as simple as that!)
 raw_data_loaded <- raw_data_input$read()
@@ -349,8 +349,8 @@ stats_analysis <- pm$create_analysis("statistical_analysis")
 stats_analysis
 #> PMAnalysis:
 #>   Name: statistical_analysis
-#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp71QE6L/my_research_project/analyses/statistical_analysis
-#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp71QE6L/my_research_project
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmpo71dkG/my_research_project/analyses/statistical_analysis
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmpo71dkG/my_research_project
 ```
 
 ### Using get_artifact to Find Data
@@ -374,7 +374,7 @@ cleaned_artifact <- stats_analysis$get_artifact(
 cleaned_artifact
 #> PMData:
 #>   ID: cleaned_data
-#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmp71QE6L/my_research_project/analyses/data_preprocessing/outputs/cleaned_data.parquet
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/Rtmpo71dkG/my_research_project/analyses/data_preprocessing/outputs/cleaned_data.parquet
 ```
 
 #### Method 2: Search All Analyses (When Unique)
@@ -620,7 +620,7 @@ corr_matrix <- stats_analysis$get_artifact("correlation_matrix", analysis_name =
 cat("Correlation matrix type:", class(corr_matrix), "\n")
 #> Correlation matrix type: environment
 print(corr_matrix)
-#> <environment: 0x12d5201c8>
+#> <environment: 0x11b8da6e8>
 ```
 
 ## Summary

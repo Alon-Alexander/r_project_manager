@@ -11,7 +11,7 @@ Currently supported being called from an analysis folder inside
 
     <a class="navbar-brand me-2" href="../index.html">pm</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,8 +65,8 @@ Currently supported being called from an analysis folder inside
 <span class="r-in"><span><span class="va">pm</span><span class="op">$</span><span class="fu">create_analysis</span><span class="op">(</span><span class="st">"my_analysis"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> PMAnalysis:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Name: my_analysis</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpeDGQmV/filef9ee5ff3fb5a/analyses/my_analysis</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpeDGQmV/filef9ee5ff3fb5a</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpewLzrE/file102673dbd8ec6/analyses/my_analysis</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpewLzrE/file102673dbd8ec6</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Infer from analysis folder</span></span></span>
 <span class="r-in"><span><span class="fu">withr</span><span class="fu">::</span><span class="fu"><a href="https://withr.r-lib.org/reference/with_dir.html" class="external-link">with_dir</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">empty_folder</span>, <span class="st">"analyses"</span>, <span class="st">"my_analysis"</span><span class="op">)</span>, <span class="op">{</span></span></span>
@@ -75,8 +75,8 @@ Currently supported being called from an analysis folder inside
 <span class="r-in"><span><span class="op">}</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> PMAnalysis:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Name: my_analysis</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpeDGQmV/filef9ee5ff3fb5a/analyses/my_analysis</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpeDGQmV/filef9ee5ff3fb5a</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpewLzrE/file102673dbd8ec6/analyses/my_analysis</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpewLzrE/file102673dbd8ec6</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Infer from code folder</span></span></span>
 <span class="r-in"><span><span class="fu">withr</span><span class="fu">::</span><span class="fu"><a href="https://withr.r-lib.org/reference/with_dir.html" class="external-link">with_dir</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">empty_folder</span>, <span class="st">"analyses"</span>, <span class="st">"my_analysis"</span>, <span class="st">"code"</span><span class="op">)</span>, <span class="op">{</span></span></span>
@@ -85,8 +85,8 @@ Currently supported being called from an analysis folder inside
 <span class="r-in"><span><span class="op">}</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> PMAnalysis:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Name: my_analysis</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpeDGQmV/filef9ee5ff3fb5a/analyses/my_analysis</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpeDGQmV/filef9ee5ff3fb5a</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpewLzrE/file102673dbd8ec6/analyses/my_analysis</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpewLzrE/file102673dbd8ec6</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
