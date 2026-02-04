@@ -290,11 +290,24 @@ is_slurm_available <- function() {
   }
 
   # Extract job ID from output (format: "Submitted batch job 12345")
-  output <- paste(result, collapse = " ")
-  job_id_match <- regmatches(output, regexpr("\\d+", output))
-
+  # Look for the line starting with "Submitted batch job"
+  submitted_line <- NULL
+  for (line in result) {
+    if (startsWith(trimws(line), "Submitted batch job")) {
+      submitted_line <- line
+      break
+    }
+  }
+  
+  if (is.null(submitted_line)) {
+    stop("Could not find 'Submitted batch job' line in sbatch output")
+  }
+  
+  # Extract job ID from the line (numeric part after "Submitted batch job")
+  job_id_match <- regmatches(submitted_line, regexpr("\\d+", submitted_line))
+  
   if (length(job_id_match) == 0) {
-    stop("Could not extract job ID from sbatch output")
+    stop("Could not extract job ID from sbatch output line: ", submitted_line)
   }
 
   job_id_match[1]
