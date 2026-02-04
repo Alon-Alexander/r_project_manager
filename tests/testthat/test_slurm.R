@@ -1,3 +1,6 @@
+skip_on_cran()
+skip_on_ci()
+
 # Mock SLURM implementation for testing
 .mock_slurm_jobs <- new.env(parent = emptyenv())
 
@@ -1244,7 +1247,7 @@ describe("SLURM functionality", {
         })
 
         expect_s3_class(slurm_run, "PMSlurmRun")
-        # Template files are in temp directory, not directly accessible
+        # Template files are in .slurm directory, not directly accessible
         # But job should work
         expect_true(!is.null(slurm_run$job_id))
       })

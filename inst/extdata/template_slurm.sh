@@ -8,8 +8,10 @@ export PM_ARGS_FILE=${PM_ARGS_FILE}
 export PM_RESULT_FILE=${PM_RESULT_FILE}
 export PM_WORK_DIR=${PM_WORK_DIR}
 
-# Load modules if specified
-${PM_MODULE_LOAD_COMMANDS}
+# Run initialization script for module loading
+if [ -n "${PM_INIT_SCRIPT}" ] && [ -f "${PM_INIT_SCRIPT}" ]; then
+  source ${PM_INIT_SCRIPT}
+fi
 
 # Set working directory
 cd ${PM_WORK_DIR}

@@ -427,6 +427,19 @@ PMAnalysis <- R6Class("PMAnalysis",
       cpus <- config$cpus %||% 1L
       slurm_flags <- config$slurm_flags %||% ""
       modules <- config$modules
+      
+      # Ensure R is always in modules (needed for Rscript)
+      if (is.null(modules) || length(modules) == 0) {
+        modules <- c("R")
+      } else {
+        # Validate modules before processing
+        chk::chk_character(modules)
+        # Check if R or R/... is in modules
+        has_r <- any(grepl("^R(/|$)", modules))
+        if (!has_r) {
+          modules <- c("R", modules)
+        }
+      }
 
       # Validate config values
       chk::chk_scalar(job_name)
@@ -439,9 +452,6 @@ PMAnalysis <- R6Class("PMAnalysis",
       chk::chk_whole_number(cpus)
       chk::chk_scalar(slurm_flags)
       chk::chk_character(slurm_flags)
-      if (!is.null(modules)) {
-        chk::chk_character(modules)
-      }
 
       # Get paths
       logs_dir <- file.path(self$path, "logs")
@@ -455,13 +465,13 @@ PMAnalysis <- R6Class("PMAnalysis",
       result_data <- self$get_output_path(result_id, type = "rds", intermediate = TRUE)
       result_path <- result_data$path
 
-      # Create temporary directory for all temporary files (invisible to user)
-      temp_dir <- tempfile(pattern = "slurm_", tmpdir = dirname(self$path))
-      dir.create(temp_dir, showWarnings = FALSE, recursive = TRUE)
+      # Create .slurm directory in analysis folder for SLURM files (hidden)
+      slurm_dir <- file.path(self$path, ".slurm")
+      dir.create(slurm_dir, showWarnings = FALSE, recursive = TRUE)
 
       # Save the function and its arguments to RDS files
-      fun_rds_path <- file.path(temp_dir, "fun.rds")
-      args_rds_path <- file.path(temp_dir, "args.rds")
+      fun_rds_path <- file.path(slurm_dir, "fun.rds")
+      args_rds_path <- file.path(slurm_dir, "args.rds")
       saveRDS(fun, fun_rds_path)
       saveRDS(fun_args, args_rds_path)
 
@@ -476,23 +486,25 @@ PMAnalysis <- R6Class("PMAnalysis",
         stop("SLURM R script template not found. Please reinstall the package.")
       }
 
-      # Copy R script template to temporary directory
-      r_script_path <- file.path(temp_dir, "slurm_run.R")
+      # Copy R script template to .slurm directory
+      r_script_path <- file.path(slurm_dir, "slurm_run.R")
       file.copy(r_template_path, r_script_path, overwrite = TRUE)
       Sys.chmod(r_script_path, mode = "0755")
 
-      # Copy SLURM template to temporary directory
-      slurm_script_path <- file.path(temp_dir, "slurm_job.sh")
+      # Copy SLURM template to .slurm directory
+      slurm_script_path <- file.path(slurm_dir, "slurm_job.sh")
       file.copy(slurm_template_path, slurm_script_path, overwrite = TRUE)
       Sys.chmod(slurm_script_path, mode = "0755")
 
-      # Prepare environment variables for SLURM script
-      # Handle module loading
-      if (!is.null(modules) && length(modules) > 0) {
-        module_commands <- paste0("module load ", modules, collapse = "\n")
-      } else {
-        module_commands <- ""
-      }
+      # Create initialization script for module loading
+      init_script_path <- file.path(slurm_dir, "init.sh")
+      module_commands <- paste0("module load ", modules, collapse = "\n")
+      writeLines(c(
+        "#!/bin/bash",
+        "# Module initialization script",
+        module_commands
+      ), init_script_path)
+      Sys.chmod(init_script_path, mode = "0755")
 
       # Handle extra SLURM flags
       if (nzchar(slurm_flags)) {
@@ -522,7 +534,7 @@ PMAnalysis <- R6Class("PMAnalysis",
         PM_FUN_FILE = fun_rds_path,
         PM_ARGS_FILE = args_rds_path,
         PM_RESULT_FILE = result_path,
-        PM_MODULE_LOAD_COMMANDS = module_commands,
+        PM_INIT_SCRIPT = init_script_path,
         PM_SLURM_EXTRA_FLAGS = slurm_extra_flags
       )
 

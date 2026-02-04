@@ -320,7 +320,21 @@ is_slurm_available <- function() {
   chk::chk_character(job_id)
 
   # Real SLURM check
-  result <- system2("squeue", args = c("-j", job_id, "-h", "-o", "%T"), stdout = TRUE, stderr = TRUE)
+  # Note: squeue may fail with "Invalid job id specified" after job completes
+  # This is expected and not an error - we handle it gracefully
+  result <- tryCatch({
+    system2("squeue", args = c("-j", job_id, "-h", "-o", "%T"), stdout = TRUE, stderr = TRUE)
+  }, error = function(e) {
+    # If squeue fails, job is likely done (invalid job ID)
+    return(character(0))
+  })
+  
+  # Check exit status - if non-zero, job is likely done
+  exit_status <- attr(result, "status")
+  if (!is.null(exit_status) && exit_status != 0) {
+    # squeue failed (e.g., "Invalid job id specified") - job is done
+    return(TRUE)
+  }
 
   # If squeue returns nothing, the job is done
   if (length(result) == 0 || all(result == "")) {
@@ -357,7 +371,22 @@ is_slurm_available <- function() {
   chk::chk_character(result_path)
 
   # Real SLURM: check job state
-  result <- system2("squeue", args = c("-j", job_id, "-h", "-o", "%T"), stdout = TRUE, stderr = TRUE)
+  # Note: squeue may fail with "Invalid job id specified" after job completes
+  # This is expected and not an error - we handle it gracefully
+  result <- tryCatch({
+    system2("squeue", args = c("-j", job_id, "-h", "-o", "%T"), stdout = TRUE, stderr = TRUE)
+  }, error = function(e) {
+    # If squeue fails, job is likely done (invalid job ID)
+    return(character(0))
+  })
+  
+  # Check exit status - if non-zero, job is likely done
+  exit_status <- attr(result, "status")
+  if (!is.null(exit_status) && exit_status != 0) {
+    # squeue failed (e.g., "Invalid job id specified") - job is done
+    # Check completion status using other methods
+    result <- character(0)
+  }
 
   # If squeue returns nothing, job is done - check completion status
   if (length(result) == 0 || all(result == "")) {
