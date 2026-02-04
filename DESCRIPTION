@@ -1,6 +1,6 @@
 Package: pm
 Title: Project and Analysis Manager
-Version: 0.1.8
+Version: 0.1.9
 Authors@R: 
     person("Alon", "Alexander", , "alon008@gmail.com", role = c("aut", "cre"))
 Description: Enforces and supports a standardized folder structure for research
@@ -18,7 +18,8 @@ Suggests:
     withr,
     mockery,
     knitr,
-    rmarkdown
+    rmarkdown,
+    rlang
 Imports:
     R6,
     chk,

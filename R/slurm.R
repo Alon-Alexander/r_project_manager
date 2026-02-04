@@ -7,7 +7,8 @@
 #' @field job_id Character. The SLURM job ID
 #' @field analysis_path Character. Path to the analysis folder
 #' @field result_path Character. Path where results will be stored
-#' @field log_path Character. Path to the SLURM log file
+#' @field log_path Character. Path to the SLURM output log file
+#' @field error_log_path Character. Path to the SLURM error log file
 #'
 #' @examples
 #' \dontrun{
@@ -37,6 +38,7 @@ PMSlurmRun <- R6Class("PMSlurmRun",
     analysis_path = NULL,
     result_path = NULL,
     log_path = NULL,
+    error_log_path = NULL,
 
     #' @description
     #' Create a PMSlurmRun object
@@ -44,8 +46,9 @@ PMSlurmRun <- R6Class("PMSlurmRun",
     #' @param job_id Character. The SLURM job ID
     #' @param analysis_path Character. Path to the analysis folder
     #' @param result_path Character. Path where results will be stored
-    #' @param log_path Character. Path to the SLURM log file
-    initialize = function(job_id, analysis_path, result_path, log_path) {
+    #' @param log_path Character. Path to the SLURM output log file
+    #' @param error_log_path Character. Path to the SLURM error log file
+    initialize = function(job_id, analysis_path, result_path, log_path, error_log_path) {
       chk::chk_scalar(job_id)
       chk::chk_character(job_id)
       chk::chk_scalar(analysis_path)
@@ -54,11 +57,14 @@ PMSlurmRun <- R6Class("PMSlurmRun",
       chk::chk_character(result_path)
       chk::chk_scalar(log_path)
       chk::chk_character(log_path)
+      chk::chk_scalar(error_log_path)
+      chk::chk_character(error_log_path)
 
       self$job_id <- job_id
       self$analysis_path <- normalizePath(analysis_path, mustWork = FALSE)
       self$result_path <- normalizePath(result_path, mustWork = FALSE)
       self$log_path <- normalizePath(log_path, mustWork = FALSE)
+      self$error_log_path <- normalizePath(error_log_path, mustWork = FALSE)
     },
 
     #' @description
@@ -97,7 +103,7 @@ PMSlurmRun <- R6Class("PMSlurmRun",
       if (!self$is_done()) {
         return(FALSE)
       }
-      .check_slurm_job_success(self$job_id, self$log_path, self$result_path)
+      .check_slurm_job_success(self$job_id, self$log_path, self$error_log_path, self$result_path)
     },
 
     #' @description
@@ -119,23 +125,27 @@ PMSlurmRun <- R6Class("PMSlurmRun",
         chk::chk_scalar(timeout)
         chk::chk_numeric(timeout)
         chk::chk_gte(timeout, 0)
-        
+
         start_time <- Sys.time()
         while (!self$is_done()) {
           elapsed <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
           if (elapsed >= timeout) {
-            stop(sprintf("Timeout waiting for job %s to complete (waited %.1f seconds)", 
-                        self$job_id, elapsed))
+            stop(sprintf(
+              "Timeout waiting for job %s to complete (waited %.1f seconds)",
+              self$job_id, elapsed
+            ))
           }
-          Sys.sleep(0.5)  # Check every 0.5 seconds
+          Sys.sleep(0.5) # Check every 0.5 seconds
         }
 
         check_count <- 6
       } else {
         # No timeout - check immediately
         if (!self$is_done()) {
-          stop(sprintf("Job %s is not done yet. Use is_done() to check status or provide a timeout.", 
-                      self$job_id))
+          stop(sprintf(
+            "Job %s is not done yet. Use is_done() to check status or provide a timeout.",
+            self$job_id
+          ))
         }
 
         check_count <- 1
@@ -146,12 +156,12 @@ PMSlurmRun <- R6Class("PMSlurmRun",
         if (self$is_successful()) {
           break
         }
-        Sys.sleep(0.5)  # Wait 0.5 seconds before checking again to allow system to flush files
+        Sys.sleep(0.5) # Wait 0.5 seconds before checking again to allow system to flush files
       }
 
       # Check if job was successful
       if (!self$is_successful()) {
-        error_msg <- .get_slurm_job_error(self$job_id, self$log_path)
+        error_msg <- .get_slurm_job_error(self$job_id, self$log_path, self$error_log_path)
         stop(sprintf("Job %s failed. %s", self$job_id, error_msg))
       }
 
@@ -212,7 +222,7 @@ is_slurm_available <- function() {
   # Real SLURM submission with environment variables and SLURM directives
   # Extract SLURM-specific parameters for sbatch command-line arguments
   sbatch_args <- character(0)
-  
+
   # Add SLURM directives as command-line arguments
   if ("PM_JOB_NAME" %in% names(env_vars)) {
     sbatch_args <- c(sbatch_args, paste0("--job-name=", env_vars[["PM_JOB_NAME"]]))
@@ -231,7 +241,7 @@ is_slurm_available <- function() {
   if ("PM_CPUS" %in% names(env_vars)) {
     sbatch_args <- c(sbatch_args, paste0("--cpus-per-task=", env_vars[["PM_CPUS"]]))
   }
-  
+
   # Handle extra SLURM flags (parse and add as arguments)
   if ("PM_SLURM_EXTRA_FLAGS" %in% names(env_vars) && nzchar(env_vars[["PM_SLURM_EXTRA_FLAGS"]])) {
     extra_flags <- env_vars[["PM_SLURM_EXTRA_FLAGS"]]
@@ -247,11 +257,13 @@ is_slurm_available <- function() {
       }
     }
   }
-  
+
   # Filter out non-SLURM environment variables for export
-  slurm_env_vars <- env_vars[!names(env_vars) %in% c("PM_JOB_NAME", "PM_LOG_DIR", "PM_TIME_LIMIT", 
-                                                      "PM_MEMORY", "PM_CPUS", "PM_SLURM_EXTRA_FLAGS")]
-  
+  slurm_env_vars <- env_vars[!names(env_vars) %in% c(
+    "PM_JOB_NAME", "PM_LOG_DIR", "PM_TIME_LIMIT",
+    "PM_MEMORY", "PM_CPUS", "PM_SLURM_EXTRA_FLAGS"
+  )]
+
   # Export environment variables before sbatch (they will be inherited)
   env_strings <- character(length(slurm_env_vars))
   for (i in seq_along(slurm_env_vars)) {
@@ -266,7 +278,7 @@ is_slurm_available <- function() {
   } else {
     ""
   }
-  
+
   # Build command: export env vars, then sbatch with arguments
   # We need to export environment variables in the shell, then call sbatch
   if (length(slurm_env_vars) > 0) {
@@ -277,7 +289,7 @@ is_slurm_available <- function() {
     # No environment variables to export, just call sbatch directly
     result <- system2("sbatch", args = c(sbatch_args, slurm_script_path), stdout = TRUE, stderr = TRUE)
   }
-  
+
   if (attr(result, "status") != 0 && !is.null(attr(result, "status"))) {
     stop(sprintf("Failed to submit SLURM job: %s", paste(result, collapse = "\n")))
   }
@@ -285,7 +297,7 @@ is_slurm_available <- function() {
   # Extract job ID from output (format: "Submitted batch job 12345")
   output <- paste(result, collapse = " ")
   job_id_match <- regmatches(output, regexpr("\\d+", output))
-  
+
   if (length(job_id_match) == 0) {
     stop("Could not extract job ID from sbatch output")
   }
@@ -309,7 +321,7 @@ is_slurm_available <- function() {
 
   # Real SLURM check
   result <- system2("squeue", args = c("-j", job_id, "-h", "-o", "%T"), stdout = TRUE, stderr = TRUE)
-  
+
   # If squeue returns nothing, the job is done
   if (length(result) == 0 || all(result == "")) {
     return(TRUE)
@@ -327,27 +339,29 @@ is_slurm_available <- function() {
 #' Checks if a SLURM job completed successfully (not just done, but succeeded).
 #'
 #' @param job_id Character. The SLURM job ID
-#' @param log_path Character. Path to the log file
+#' @param log_path Character. Path to the output log file
+#' @param error_log_path Character. Path to the error log file
 #' @param result_path Character. Path to the result file
 #'
 #' @return Logical. TRUE if the job completed successfully, FALSE otherwise.
 #'
 #' @keywords internal
-.check_slurm_job_success <- function(job_id, log_path, result_path) {
+.check_slurm_job_success <- function(job_id, log_path, error_log_path, result_path) {
   chk::chk_scalar(job_id)
   chk::chk_character(job_id)
   chk::chk_scalar(log_path)
   chk::chk_character(log_path)
+  chk::chk_scalar(error_log_path)
+  chk::chk_character(error_log_path)
   chk::chk_scalar(result_path)
   chk::chk_character(result_path)
 
   # Real SLURM: check job state
   result <- system2("squeue", args = c("-j", job_id, "-h", "-o", "%T"), stdout = TRUE, stderr = TRUE)
-  
+
   # If squeue returns nothing, job is done - check completion status
   if (length(result) == 0 || all(result == "")) {
     # Check error log first for timeout or failure indicators
-    error_log_path <- sub("\\.out$", ".err", log_path)
     if (file.exists(error_log_path)) {
       error_content <- readLines(error_log_path, warn = FALSE)
       # Check for timeout indicators (SLURM writes this to error log)
@@ -377,18 +391,18 @@ is_slurm_available <- function() {
   if (grepl("COMPLETED", status, ignore.case = TRUE)) {
     return(file.exists(result_path))
   }
-  
+
   # Check for timeout or other failure statuses
   failure_statuses <- c("FAILED", "CANCELLED", "TIMEOUT", "NODE_FAIL", "OUT_OF_MEMORY", "DEADLINE")
   if (any(sapply(failure_statuses, function(s) grepl(s, status, ignore.case = TRUE)))) {
     return(FALSE)
   }
-  
+
   # If job is done but status unclear, check result file
   if (file.exists(result_path)) {
     return(TRUE)
   }
-  
+
   # Any other status means failure
   FALSE
 }
@@ -399,16 +413,15 @@ is_slurm_available <- function() {
 #' Extracts error message from SLURM job logs.
 #'
 #' @param job_id Character. The SLURM job ID
-#' @param log_path Character. Path to the log file
+#' @param log_path Character. Path to the output log file
+#' @param error_log_path Character. Path to the error log file
 #'
 #' @return Character. Error message or empty string if no error found.
 #'
 #' @keywords internal
-.get_slurm_job_error <- function(job_id, log_path) {
-  error_log_path <- sub("\\.out$", ".err", log_path)
-  
+.get_slurm_job_error <- function(job_id, log_path, error_log_path) {
   error_msg <- character(0)
-  
+
   # Check error log
   if (file.exists(error_log_path)) {
     error_content <- readLines(error_log_path, warn = FALSE)
@@ -416,7 +429,7 @@ is_slurm_available <- function() {
       error_msg <- c(error_msg, paste("Error log:", paste(error_content, collapse = "\n")))
     }
   }
-  
+
   # Check output log for errors
   if (file.exists(log_path)) {
     log_content <- readLines(log_path, warn = FALSE)
@@ -425,11 +438,11 @@ is_slurm_available <- function() {
       error_msg <- c(error_msg, paste("Output log errors:", paste(error_lines, collapse = "\n")))
     }
   }
-  
+
   if (length(error_msg) == 0) {
     return("No error details found in logs.")
   }
-  
+
   paste(error_msg, collapse = "\n")
 }
 
@@ -449,7 +462,7 @@ is_slurm_available <- function() {
 
   # Real SLURM cancellation
   result <- system2("scancel", args = job_id, stdout = TRUE, stderr = TRUE)
-  
+
   if (attr(result, "status") != 0 && !is.null(attr(result, "status"))) {
     stop(sprintf("Failed to cancel SLURM job %s: %s", job_id, paste(result, collapse = "\n")))
   }

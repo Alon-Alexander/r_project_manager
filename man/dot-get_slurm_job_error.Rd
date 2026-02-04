@@ -4,12 +4,14 @@
 \alias{.get_slurm_job_error}
 \title{Get error message from SLURM job}
 \usage{
-.get_slurm_job_error(job_id, log_path)
+.get_slurm_job_error(job_id, log_path, error_log_path)
 }
 \arguments{
 \item{job_id}{Character. The SLURM job ID}
 
-\item{log_path}{Character. Path to the log file}
+\item{log_path}{Character. Path to the output log file}
+
+\item{error_log_path}{Character. Path to the error log file}
 }
 \value{
 Character. Error message or empty string if no error found.

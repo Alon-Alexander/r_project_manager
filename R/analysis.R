@@ -370,7 +370,7 @@ PMAnalysis <- R6Class("PMAnalysis",
     #' @examples
     #' \dontrun{
     #' analysis <- pm$get_analysis("my_analysis")
-    #' 
+    #'
     #' # With named arguments
     #' slurm_run <- analysis$run_in_slurm(function(x, y) {
     #'   result <- compute_something(x, y)
@@ -388,7 +388,7 @@ PMAnalysis <- R6Class("PMAnalysis",
     #' # Get results (with optional timeout to wait)
     #' results <- slurm_run$get_results(timeout = 60)
     #' }
-    run_in_slurm = function(fun, ..., result_id = "slurm_result", config = list()) {
+    run_in_slurm = function(fun, ..., result_id = NULL, config = list()) {
       # Check if SLURM is available
       if (!is_slurm_available()) {
         stop("SLURM is not available on this system. Install SLURM or use mock mode for testing.")
@@ -396,12 +396,12 @@ PMAnalysis <- R6Class("PMAnalysis",
 
       # Validate inputs
       chk::chk_function(fun)
-      
+
       # Extract function arguments from ...
       # Use match.call to separate function args from method args
       call_obj <- match.call(expand.dots = FALSE)
       dots <- call_obj$...
-      
+
       # Get function arguments (everything in ...)
       fun_args <- if (is.null(dots)) {
         list()
@@ -410,8 +410,12 @@ PMAnalysis <- R6Class("PMAnalysis",
         parent_env <- parent.frame()
         lapply(dots, function(x) eval(x, envir = parent_env))
       }
-      
+
       # Validate method parameters
+      if (is.null(result_id)) {
+        timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+        result_id <- paste0("slurm_result_", timestamp)
+      }
       chk::chk_scalar(result_id)
       chk::chk_character(result_id)
       chk::chk_list(config)
@@ -419,7 +423,7 @@ PMAnalysis <- R6Class("PMAnalysis",
       # Parse config with defaults
       job_name <- config$job_name %||% self$name
       time_limit <- config$time_limit %||% "01:00:00"
-      memory <- config$memory %||% "4G"
+      memory <- config$memory %||% "32G"
       cpus <- config$cpus %||% 1L
       slurm_flags <- config$slurm_flags %||% ""
       modules <- config$modules
@@ -464,7 +468,7 @@ PMAnalysis <- R6Class("PMAnalysis",
       # Get paths to template files
       slurm_template_path <- system.file("extdata", "template_slurm.sh", package = "pm")
       r_template_path <- system.file("extdata", "template_slurm_r.R", package = "pm")
-      
+
       if (!file.exists(slurm_template_path)) {
         stop("SLURM template file not found. Please reinstall the package.")
       }
@@ -534,7 +538,8 @@ PMAnalysis <- R6Class("PMAnalysis",
         job_id = job_id,
         analysis_path = self$path,
         result_path = result_path,
-        log_path = log_path
+        log_path = log_path,
+        error_log_path = error_log_path
       )
     }
   ),

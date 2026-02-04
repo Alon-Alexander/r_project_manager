@@ -397,7 +397,7 @@ Run a function in SLURM.
 Submits the function as a SLURM job and returns a PMSlurmRun object
 that can be used to check status and retrieve results.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PMAnalysis$run_in_slurm(fun, ..., result_id = "slurm_result", config = list())}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PMAnalysis$run_in_slurm(fun, ..., result_id = NULL, config = list())}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

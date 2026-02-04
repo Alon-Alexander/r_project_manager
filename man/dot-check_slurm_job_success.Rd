@@ -4,12 +4,14 @@
 \alias{.check_slurm_job_success}
 \title{Check if a SLURM job completed successfully}
 \usage{
-.check_slurm_job_success(job_id, log_path, result_path)
+.check_slurm_job_success(job_id, log_path, error_log_path, result_path)
 }
 \arguments{
 \item{job_id}{Character. The SLURM job ID}
 
-\item{log_path}{Character. Path to the log file}
+\item{log_path}{Character. Path to the output log file}
+
+\item{error_log_path}{Character. Path to the error log file}
 
 \item{result_path}{Character. Path to the result file}
 }

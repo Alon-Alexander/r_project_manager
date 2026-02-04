@@ -1,5 +1,28 @@
 # Changelog
 
+## pm 0.1.9
+
+### New Features
+
+- Added `pm_infer_analysis` to easily use package when writing code
+- Added active binding `project` to `PMAnalysis` object to easily access
+  containing project
+- Add `run_in_slurm()` method to `PMAnalysis` for running R functions in
+  SLURM batch jobs
+- Add `PMSlurmRun` R6 class for managing SLURM job execution
+  (non-blocking submission, status checking, result retrieval)
+- Support for passing function arguments via `...` and SLURM
+  configuration via `config` parameter
+- Automatic job status checking with `is_done()` and `is_successful()`
+  methods
+- Support for timeout-based blocking result retrieval with
+  `get_results(timeout = ...)`
+- Results saved as RDS files for direct loading (intermediate artifact)
+- Generic SLURM script templates using environment variables for
+  configuration
+- Comprehensive test suite with mock SLURM implementation for testing
+  without actual SLURM
+
 ## pm 0.1.8
 
 ### New Features

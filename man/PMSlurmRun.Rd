@@ -37,7 +37,9 @@ slurm_run$cancel()
 
 \item{\code{result_path}}{Character. Path where results will be stored}
 
-\item{\code{log_path}}{Character. Path to the SLURM log file}
+\item{\code{log_path}}{Character. Path to the SLURM output log file}
+
+\item{\code{error_log_path}}{Character. Path to the SLURM error log file}
 }
 \if{html}{\out{</div>}}
 }
@@ -59,7 +61,7 @@ slurm_run$cancel()
 \subsection{Method \code{new()}}{
 Create a PMSlurmRun object
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PMSlurmRun$new(job_id, analysis_path, result_path, log_path)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PMSlurmRun$new(job_id, analysis_path, result_path, log_path, error_log_path)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -71,7 +73,9 @@ Create a PMSlurmRun object
 
 \item{\code{result_path}}{Character. Path where results will be stored}
 
-\item{\code{log_path}}{Character. Path to the SLURM log file}
+\item{\code{log_path}}{Character. Path to the SLURM output log file}
+
+\item{\code{error_log_path}}{Character. Path to the SLURM error log file}
 }
 \if{html}{\out{</div>}}
 }

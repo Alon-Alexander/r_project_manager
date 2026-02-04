@@ -9,7 +9,7 @@ Each analysis contains code, outputs, intermediate results, and logs."></head><b
 
     <a class="navbar-brand me-2" href="../index.html">pm</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,6 +23,7 @@ Each analysis contains code, outputs, intermediate results, and logs."></head><b
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/file-formats.html">Working with File Formats: Read and Write Operations</a></li>
     <li><a class="dropdown-item" href="../articles/getting-started.html">Getting Started with pm: A Complete Workflow Example</a></li>
     <li><a class="dropdown-item" href="../articles/input-definitions.html">Defining Project Inputs: Different Input Formats for project.yaml</a></li>
+    <li><a class="dropdown-item" href="../articles/slurm-integration.html">Running Analyses with SLURM</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -84,6 +85,7 @@ Get the project containing this analysis</p></dd>
 <li><p><a href="#method-PMAnalysis-get_intermediate_artifact"><code>PMAnalysis$get_intermediate_artifact()</code></a></p></li>
 <li><p><a href="#method-PMAnalysis-list_outputs"><code>PMAnalysis$list_outputs()</code></a></p></li>
 <li><p><a href="#method-PMAnalysis-get_output_path"><code>PMAnalysis$get_output_path()</code></a></p></li>
+<li><p><a href="#method-PMAnalysis-run_in_slurm"><code>PMAnalysis$run_in_slurm()</code></a></p></li>
 <li><p><a href="#method-PMAnalysis-clone"><code>PMAnalysis$clone()</code></a></p></li>
 </ul></div><p></p><hr><a id="method-PMAnalysis-new"></a><div class="section">
 <h3 id="method-new-">Method <code>new()</code><a class="anchor" aria-label="anchor" href="#method-new-"></a></h3>
@@ -303,15 +305,94 @@ If provided and name has an extension, the extension will be validated against t
 </div>
 
 
-</div><p></p><hr><a id="method-PMAnalysis-clone"></a><div class="section">
-<h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
-<p>The objects of this class are cloneable with this method.</p><div class="section">
+</div><p></p><hr><a id="method-PMAnalysis-run_in_slurm"></a><div class="section">
+<h3 id="method-run-in-slurm-">Method <code>run_in_slurm()</code><a class="anchor" aria-label="anchor" href="#method-run-in-slurm-"></a></h3>
+<p>Run a function in SLURM.
+Submits the function as a SLURM job and returns a PMSlurmRun object
+that can be used to check status and retrieve results.</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PMAnalysis</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PMAnalysis</span><span class="op">$</span><span class="fu">run_in_slurm</span><span class="op">(</span><span class="va">fun</span>, <span class="va">...</span>, result_id <span class="op">=</span> <span class="cn">NULL</span>, config <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>fun</code></dt>
+<dd><p>Function. The function to run in SLURM.</p></dd>
+
+
+<dt><code>...</code></dt>
+<dd><p>Additional arguments to pass to the function (can be positional or named).</p></dd>
+
+
+<dt><code>result_id</code></dt>
+<dd><p>Character. Optional ID for the result file (default: "slurm_result").
+Must be provided by name if function arguments are passed positionally.</p></dd>
+
+
+<dt><code>config</code></dt>
+<dd><p>List. SLURM configuration with optional elements:</p><ul><li><p><code>job_name</code>: Character. Name for the SLURM job (default: analysis name).</p></li>
+<li><p><code>time_limit</code>: Character. SLURM time limit (default: "01:00:00").</p></li>
+<li><p><code>memory</code>: Character. SLURM memory limit (default: "4G").</p></li>
+<li><p><code>cpus</code>: Integer. Number of CPUs to request (default: 1).</p></li>
+<li><p><code>slurm_flags</code>: Character. Additional SLURM flags (default: "").</p></li>
+<li><p><code>modules</code>: Character vector. Modules to load (default: NULL).</p></li>
+</ul></dd>
+
+
+</dl><p></p></div>
+</div>
+<div class="section">
+<h4 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h4>
+<p>This method:</p><ul><li><p>Checks if SLURM is available</p></li>
+<li><p>Creates an R script that runs the function and saves results</p></li>
+<li><p>Creates a SLURM script from the template</p></li>
+<li><p>Submits the job</p></li>
+<li><p>Returns a PMSlurmRun object for monitoring</p></li>
+</ul><p>Results are stored in the intermediate folder.
+All temporary files (function files, scripts) are stored in a temporary directory.</p>
+<p>Function arguments can be passed positionally or by name. If using positional
+arguments, <code>result_id</code> and <code>config</code> must be provided by name.</p>
+</div>
+
+<div class="section">
+<h4 id="returns-4">Returns<a class="anchor" aria-label="anchor" href="#returns-4"></a></h4>
+<p>A <code>PMSlurmRun</code> object with the job ID and paths.</p>
+</div>
+<div class="section">
+<h4 id="examples-4">Examples<a class="anchor" aria-label="anchor" href="#examples-4"></a></h4>
+<p></p><div class="r example copy"><div class="sourceCode"><pre><code>\dontrun{
+analysis &lt;- pm$get_analysis("my_analysis")
+
+# With named arguments
+slurm_run &lt;- analysis$run_in_slurm(function(x, y) {
+  result &lt;- compute_something(x, y)
+  return(result)
+}, x = 10, y = 20)
+
+# With positional arguments
+slurm_run &lt;- analysis$run_in_slurm(function(x) {
+  return(2 * x)
+}, 10, result_id = "my_result")
+
+# Check if done
+slurm_run$is_done()
+
+# Get results (with optional timeout to wait)
+results &lt;- slurm_run$get_results(timeout = 60)
+}
+</code></pre></div><p></p></div>
+</div>
+
+
+</div><p></p><hr><a id="method-PMAnalysis-clone"></a><div class="section">
+<h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
+<p>The objects of this class are cloneable with this method.</p><div class="section">
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PMAnalysis</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
@@ -334,8 +415,8 @@ If provided and name has an extension, the extension will be validated against t
 <span class="r-in"><span><span class="va">analysis</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> PMAnalysis:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Name: data_preparation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpewLzrE/file1026738407983/analyses/data_preparation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpewLzrE/file1026738407983</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd4dbd1085/analyses/data_preparation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd4dbd1085</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Load an existing analysis from project</span></span></span>
 <span class="r-in"><span><span class="va">analysis</span> <span class="op">&lt;-</span> <span class="va">pm</span><span class="op">$</span><span class="fu">get_analysis</span><span class="op">(</span><span class="st">"data_preparation"</span><span class="op">)</span></span></span>
@@ -417,14 +498,39 @@ If provided and name has an extension, the extension will be validated against t
 <span class="r-in"><span><span class="va">output</span><span class="op">$</span><span class="va">id</span>    <span class="co"># "results"</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "results"</span>
 <span class="r-in"><span><span class="va">output</span><span class="op">$</span><span class="va">path</span>  <span class="co"># full path to results.csv in outputs/</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpewLzrE/file1026771b1db11/analyses/my_analysis/outputs/results.csv"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd117b920b/analyses/my_analysis/outputs/results.csv"</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Get intermediate path without extension (will add .parquet for table type)</span></span></span>
 <span class="r-in"><span><span class="va">intermediate</span> <span class="op">&lt;-</span> <span class="va">analysis</span><span class="op">$</span><span class="fu">get_output_path</span><span class="op">(</span><span class="st">"temp_data"</span>, type <span class="op">=</span> <span class="st">"table"</span>, intermediate <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">intermediate</span><span class="op">$</span><span class="va">id</span>    <span class="co"># "temp_data"</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "temp_data"</span>
 <span class="r-in"><span><span class="va">intermediate</span><span class="op">$</span><span class="va">path</span>  <span class="co"># full path to temp_data.parquet in intermediate/</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpewLzrE/file1026771b1db11/analyses/my_analysis/intermediate/temp_data.parquet"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd117b920b/analyses/my_analysis/intermediate/temp_data.parquet"</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">## ------------------------------------------------</span></span></span>
+<span class="r-in"><span><span class="co">## Method `PMAnalysis$run_in_slurm`</span></span></span>
+<span class="r-in"><span><span class="co">## ------------------------------------------------</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="va">analysis</span> <span class="op">&lt;-</span> <span class="va">pm</span><span class="op">$</span><span class="fu">get_analysis</span><span class="op">(</span><span class="st">"my_analysis"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># With named arguments</span></span></span>
+<span class="r-in"><span><span class="va">slurm_run</span> <span class="op">&lt;-</span> <span class="va">analysis</span><span class="op">$</span><span class="fu">run_in_slurm</span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">compute_something</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">result</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span>, x <span class="op">=</span> <span class="fl">10</span>, y <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># With positional arguments</span></span></span>
+<span class="r-in"><span><span class="va">slurm_run</span> <span class="op">&lt;-</span> <span class="va">analysis</span><span class="op">$</span><span class="fu">run_in_slurm</span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">x</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span>, <span class="fl">10</span>, result_id <span class="op">=</span> <span class="st">"my_result"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Check if done</span></span></span>
+<span class="r-in"><span><span class="va">slurm_run</span><span class="op">$</span><span class="fu">is_done</span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Get results (with optional timeout to wait)</span></span></span>
+<span class="r-in"><span><span class="va">results</span> <span class="op">&lt;-</span> <span class="va">slurm_run</span><span class="op">$</span><span class="fu">get_results</span><span class="op">(</span>timeout <span class="op">=</span> <span class="fl">60</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
