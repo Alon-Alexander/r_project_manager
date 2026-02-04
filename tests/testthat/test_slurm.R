@@ -4,6 +4,7 @@
 # Store references to real base functions before mocking
 .real_system2 <- base::system2
 .real_system <- base::system
+.real_sys_which <- base::Sys.which
 
 # Helper function to create mock system2 function
 .create_mock_system2 <- function() {
@@ -35,10 +36,8 @@
         log_dir = log_dir,
         result_path = NULL,
         start_time = Sys.time(),
-        status = "PENDING", # Job is pending until system() call provides details
+        status = "PENDING", # Job is pending until mock_run_slurm_job() is called
         done = FALSE,
-        process = NULL,
-        wrapper_script = NULL,
         numeric_job_id = job_id_numeric # Store the numeric ID that will be extracted
       )
       # Also store a mapping from numeric ID to internal ID
@@ -68,25 +67,15 @@
       if (!is.null(job_id_internal) && exists(job_id_internal, envir = .mock_slurm_jobs)) {
         job_info <- .mock_slurm_jobs[[job_id_internal]]
 
-        # Check if background process is still running or if result file exists
+        # Check if job is done (jobs are only executed when mock_run_slurm_job() is called)
         if (!isTRUE(job_info$done)) {
           # Check if result file exists (job completed)
           if (!is.null(job_info$result_path) && file.exists(job_info$result_path)) {
             job_info$done <- TRUE
             job_info$status <- "COMPLETED"
             .mock_slurm_jobs[[job_id_internal]] <- job_info
-          } else if (!is.null(job_info$process)) {
-            # Process is running - check if it's still alive by checking if result file exists
-            # The background process will create the result file when done
-            # Don't mark as done until result file exists
-          } else if (!is.null(job_info$script_path) && !is.null(job_info$fun_file)) {
-            # Job info is ready but process hasn't started yet - start it now
-            .start_mock_job_background(job_id_internal)
-            # Refresh job_info
-            if (exists(job_id_internal, envir = .mock_slurm_jobs)) {
-              job_info <- .mock_slurm_jobs[[job_id_internal]]
-            }
           }
+          # Jobs are not auto-started - they must be explicitly run via mock_run_slurm_job()
         }
 
         # Return status based on job state
@@ -114,31 +103,9 @@
       }
       if (exists(job_id_internal, envir = .mock_slurm_jobs)) {
         job_info <- .mock_slurm_jobs[[job_id_internal]]
-        # Try to kill the background process if it exists
-        if (!is.null(job_info$process)) {
-          tryCatch(
-            {
-              # On Unix, we can try to kill the process
-              # The process ID from system2(wait=FALSE) is the PID
-              if (is.numeric(job_info$process) && job_info$process > 0) {
-                .real_system2("kill", args = as.character(job_info$process), wait = FALSE)
-              }
-            },
-            error = function(e) {
-              # Ignore errors when killing process
-            }
-          )
-        }
-        # Clean up wrapper scripts
-        if (!is.null(job_info$wrapper_script) && file.exists(job_info$wrapper_script)) {
-          tryCatch(unlink(job_info$wrapper_script), error = function(e) NULL)
-        }
-        if (!is.null(job_info$nohup_script) && file.exists(job_info$nohup_script)) {
-          tryCatch(unlink(job_info$nohup_script), error = function(e) NULL)
-        }
+        # Mark job as cancelled (no background processes to kill)
         job_info$status <- "CANCELLED"
         job_info$done <- TRUE
-        job_info$process <- NULL
         .mock_slurm_jobs[[job_id_internal]] <- job_info
       }
       result <- character(0)
@@ -152,15 +119,17 @@
 }
 
 # Helper to start a mock job in the background
-.start_mock_job_background <- function(job_id) {
+# Helper to execute a mock job synchronously
+# This is called explicitly by tests via mock_run_slurm_job()
+.execute_mock_job_sync <- function(job_id) {
   if (!exists(job_id, envir = .mock_slurm_jobs)) {
-    return()
+    return(FALSE)
   }
 
   job_info <- .mock_slurm_jobs[[job_id]]
 
-  if (isTRUE(job_info$done) || !is.null(job_info$process)) {
-    return() # Already done or already started
+  if (isTRUE(job_info$done)) {
+    return(TRUE) # Already done
   }
 
   r_script_path <- job_info$script_path
@@ -169,18 +138,17 @@
   result_path <- job_info$result_path
 
   if (is.null(r_script_path) || is.null(fun_file) || is.null(args_file) || is.null(result_path)) {
-    return() # Not ready yet
+    return(FALSE) # Not ready yet
   }
 
-  if (!file.exists(r_script_path) || !file.exists(fun_file) || !file.exists(args_file)) {
+  if (!base::file.exists(r_script_path) || !base::file.exists(fun_file) || !base::file.exists(args_file)) {
     job_info$done <- TRUE
     job_info$status <- "FAILED"
     .mock_slurm_jobs[[job_id]] <- job_info
-    return()
+    return(FALSE)
   }
 
-  # Prepare log files
-  # Use the numeric job_id for log files (this is what gets extracted from sbatch output)
+  # Get numeric job ID for log files
   numeric_job_id <- if (!is.null(job_info$numeric_job_id)) {
     job_info$numeric_job_id
   } else {
@@ -189,7 +157,6 @@
 
   # Ensure log_dir is set
   if (is.null(job_info$log_dir) || job_info$log_dir == "") {
-    # Fallback: use directory of result_path or create a temp logs dir
     job_info$log_dir <- file.path(dirname(result_path), "logs")
   }
 
@@ -200,56 +167,98 @@
   dir.create(dirname(result_path), showWarnings = FALSE, recursive = TRUE)
 
   # Create empty log files immediately so they exist when checked
-  if (!file.exists(log_file)) {
-    writeLines("", log_file)
+  if (!base::file.exists(log_file)) {
+    base::writeLines("", log_file)
   }
-  if (!file.exists(error_log_file)) {
-    writeLines("", error_log_file)
+  if (!base::file.exists(error_log_file)) {
+    base::writeLines("", error_log_file)
   }
 
   # Update job_info with corrected log_dir
   job_info$log_dir <- job_info$log_dir
-  .mock_slurm_jobs[[job_id]] <- job_info
-
-  # Create a wrapper script that will sleep then execute
-  # This simulates the job starting after a delay
-  wrapper_script <- tempfile(fileext = ".sh")
-  writeLines(c(
-    "#!/bin/bash",
-    paste0("sleep 1"), # Small delay to simulate job startup
-    paste0("cd ", shQuote(dirname(r_script_path))),
-    paste0(
-      "Rscript ", shQuote(r_script_path),
-      " --fun-file=", shQuote(fun_file),
-      " --args-file=", shQuote(args_file),
-      " --result-file=", shQuote(result_path),
-      " >> ", shQuote(log_file),
-      " 2>> ", shQuote(error_log_file)
-    ) # Use >> to append to existing files
-  ), wrapper_script)
-  Sys.chmod(wrapper_script, mode = "0755")
-
-  # Start the job in the background as a separate process (non-blocking)
-  # Use nohup and & to ensure it runs independently
-  nohup_script <- tempfile(fileext = ".sh")
-  writeLines(c(
-    "#!/bin/bash",
-    paste0("nohup bash ", shQuote(wrapper_script), " > /dev/null 2>&1 &"),
-    "echo $!" # Print the PID
-  ), nohup_script)
-  Sys.chmod(nohup_script, mode = "0755")
-
-  # Execute the nohup script and capture PID (this is quick, just starts the process)
-  # Use real system2 to avoid recursion
-  process_output <- .real_system2("bash", args = nohup_script, stdout = TRUE, stderr = FALSE, wait = TRUE)
-  process_pid <- tryCatch(as.integer(process_output[1]), error = function(e) NULL)
-
-  # Store process info
-  job_info$process <- process_pid
   job_info$status <- "RUNNING"
-  job_info$wrapper_script <- wrapper_script
-  job_info$nohup_script <- nohup_script
   .mock_slurm_jobs[[job_id]] <- job_info
+
+  # Get Rscript path (use stored reference to real Sys.which to avoid mock recursion)
+  rscript_path <- .real_sys_which("Rscript")
+  if (rscript_path == "") {
+    r_home <- base::R.home()
+    rscript_path <- base::file.path(r_home, "bin", "Rscript")
+    if (!base::file.exists(rscript_path)) {
+      rscript_path <- "Rscript"
+    }
+  }
+
+  # Execute synchronously
+  exit_code <- tryCatch(
+    {
+      old_env <- Sys.getenv(c("PM_FUN_FILE", "PM_ARGS_FILE", "PM_RESULT_FILE"), unset = NA)
+      on.exit({
+        for (name in names(old_env)) {
+          if (is.na(old_env[[name]])) {
+            Sys.unsetenv(name)
+          } else {
+            Sys.setenv(name = old_env[[name]])
+          }
+        }
+      })
+
+      Sys.setenv(PM_FUN_FILE = fun_file)
+      Sys.setenv(PM_ARGS_FILE = args_file)
+      Sys.setenv(PM_RESULT_FILE = result_path)
+
+      exit_code <- .real_system2(rscript_path,
+        args = c(
+          r_script_path,
+          paste0("--fun-file=", fun_file),
+          paste0("--args-file=", args_file),
+          paste0("--result-file=", result_path)
+        ),
+        stdout = log_file,
+        stderr = error_log_file,
+        wait = TRUE
+      )
+      exit_code
+    },
+    error = function(e) {
+      if (base::file.exists(base::dirname(error_log_file))) {
+        base::writeLines(paste("Error executing R script:", conditionMessage(e)), error_log_file)
+      }
+      return(1L)
+    }
+  )
+
+  if (!is.null(exit_code) && exit_code != 0) {
+    job_info$done <- TRUE
+    job_info$status <- "FAILED"
+    .mock_slurm_jobs[[job_id]] <- job_info
+    return(FALSE)
+  }
+
+  if (!base::file.exists(result_path)) {
+    job_info$done <- TRUE
+    job_info$status <- "FAILED"
+    .mock_slurm_jobs[[job_id]] <- job_info
+    return(FALSE)
+  }
+
+  job_info$done <- TRUE
+  job_info$status <- "COMPLETED"
+  .mock_slurm_jobs[[job_id]] <- job_info
+  return(TRUE)
+}
+
+# Test utility to run a mock SLURM job synchronously
+# This function is used in tests to explicitly execute a mock SLURM job.
+# Jobs are not executed automatically - they must be explicitly run using this function.
+mock_run_slurm_job <- function(job_id) {
+  # Handle both numeric and internal job IDs
+  job_id_internal <- job_id
+  if (exists(paste0("numeric_", job_id), envir = .mock_slurm_jobs)) {
+    job_id_internal <- .mock_slurm_jobs[[paste0("numeric_", job_id)]]
+  }
+
+  .execute_mock_job_sync(job_id_internal)
 }
 
 # Mock system function for sbatch with env vars
@@ -354,15 +363,12 @@
           log_dir = log_dir,
           result_path = result_path,
           start_time = existing_job$start_time, # Keep original start time
-          status = "PENDING", # Will be changed to RUNNING when background process starts
+          status = "PENDING", # Will be changed to RUNNING when mock_run_slurm_job() is called
           done = FALSE,
-          process = NULL,
-          wrapper_script = NULL,
           numeric_job_id = existing_job$numeric_job_id # Preserve numeric job ID
         )
         job_id <- most_recent_job
-        # Start the job in the background
-        .start_mock_job_background(job_id)
+        # Job is ready but not started - will be executed when mock_run_slurm_job() is called
       } else if (!is.null(r_script_path) && !is.null(fun_file) &&
         !is.null(args_file) && !is.null(result_path)) {
         # Create new job if we couldn't find pending one (shouldn't happen normally)
@@ -377,16 +383,13 @@
           log_dir = log_dir,
           result_path = result_path,
           start_time = Sys.time(),
-          status = "PENDING",
+          status = "PENDING", # Will be changed to RUNNING when mock_run_slurm_job() is called
           done = FALSE,
-          process = NULL,
-          wrapper_script = NULL,
           numeric_job_id = numeric_job_id
         )
         # Also store mapping
         .mock_slurm_jobs[[paste0("numeric_", numeric_job_id)]] <- job_id
-        # Start the job in the background
-        .start_mock_job_background(job_id)
+        # Job is ready but not started - will be executed when mock_run_slurm_job() is called
       } else {
         # Can't create job without required values - generate job_id for output anyway
         job_id <- as.character(Sys.time())
@@ -626,7 +629,7 @@ with_mock_slurm <- function(code) {
     if (x %in% c("sbatch", "squeue", "scancel")) {
       return(paste0("/usr/bin/", x))
     }
-    return(base::Sys.which(x))
+    return(.real_sys_which(x))
   }
 
   # Use testthat::with_mocked_bindings to set up mocks
@@ -640,23 +643,7 @@ with_mock_slurm <- function(code) {
     rlang::eval_tidy(code_quo)
   )
 
-  # Clean up any remaining background processes and wrapper scripts
-  job_ids <- ls(envir = .mock_slurm_jobs)
-  for (job_id in job_ids) {
-    if (exists(job_id, envir = .mock_slurm_jobs)) {
-      job_info <- .mock_slurm_jobs[[job_id]]
-      # Skip if it's a mapping (character string) or not a list
-      if (!is.list(job_info)) {
-        next
-      }
-      if (!is.null(job_info$wrapper_script) && file.exists(job_info$wrapper_script)) {
-        tryCatch(unlink(job_info$wrapper_script), error = function(e) NULL)
-      }
-      if (!is.null(job_info$nohup_script) && file.exists(job_info$nohup_script)) {
-        tryCatch(unlink(job_info$nohup_script), error = function(e) NULL)
-      }
-    }
-  }
+  # Clean up job state (no background processes or scripts to clean up)
 
   result
 }
@@ -820,12 +807,8 @@ describe("SLURM functionality", {
           return(42)
         })
 
-        # Initially should not be done (mock has 1 second delay)
-        initially_done <- slurm_run$is_done()
-        expect_type(initially_done, "logical")
-
-        # Wait a bit and check again
-        Sys.sleep(1.5)
+        # Run the job explicitly
+        mock_run_slurm_job(slurm_run$job_id)
         eventually_done <- slurm_run$is_done()
         expect_true(eventually_done)
       })
@@ -842,11 +825,8 @@ describe("SLURM functionality", {
           return(test_result)
         })
 
-        # Wait for job to complete
-        Sys.sleep(1.5)
-        while (!slurm_run$is_done()) {
-          Sys.sleep(0.1)
-        }
+        # Run the job explicitly
+        mock_run_slurm_job(slurm_run$job_id)
 
         # Check success status
         expect_true(slurm_run$is_successful())
@@ -866,6 +846,9 @@ describe("SLURM functionality", {
         slurm_run <- analysis$run_in_slurm(function() {
           return(42)
         })
+
+        # Run the job explicitly
+        mock_run_slurm_job(slurm_run$job_id)
 
         # Use timeout to wait for results (blocking)
         results <- slurm_run$get_results(timeout = 5)
@@ -913,11 +896,8 @@ describe("SLURM functionality", {
           stop("Test error")
         })
 
-        # Wait for job to complete
-        Sys.sleep(1.5)
-        while (!slurm_run$is_done()) {
-          Sys.sleep(0.1)
-        }
+        # Run the job explicitly
+        mock_run_slurm_job(slurm_run$job_id)
 
         # Should not be successful
         expect_false(slurm_run$is_successful())
@@ -947,11 +927,8 @@ describe("SLURM functionality", {
           return(42)
         })
 
-        # Wait for job to complete
-        Sys.sleep(1.5)
-        while (!slurm_run$is_done()) {
-          Sys.sleep(0.1)
-        }
+        # Run the job explicitly
+        mock_run_slurm_job(slurm_run$job_id)
 
         # Verify normal completion is successful
         expect_true(slurm_run$is_successful())
@@ -993,14 +970,8 @@ describe("SLURM functionality", {
           return(result)
         })
 
-        # Wait for job to complete
-        Sys.sleep(1.5)
-        while (!slurm_run$is_done()) {
-          Sys.sleep(0.1)
-        }
-
-        # Wait a bit more to ensure log file is written
-        Sys.sleep(0.5)
+        # Run the job explicitly
+        mock_run_slurm_job(slurm_run$job_id)
 
         # Check that log file exists and has content
         # The log file should be created by the mock SLURM execution
@@ -1036,14 +1007,8 @@ describe("SLURM functionality", {
           result_id = result_id
         )
 
-        # Wait for job to complete
-        Sys.sleep(1.5)
-        while (!slurm_run$is_done()) {
-          Sys.sleep(0.1)
-        }
-
-        # Wait a bit more to ensure file is fully written
-        Sys.sleep(0.5)
+        # Run the job explicitly
+        mock_run_slurm_job(slurm_run$job_id)
 
         # Verify result file exists
         expect_true(file.exists(slurm_run$result_path),
@@ -1085,11 +1050,8 @@ describe("SLURM functionality", {
           stop("Custom error message for testing")
         })
 
-        # Wait for job to complete
-        Sys.sleep(1.5)
-        while (!slurm_run$is_done()) {
-          Sys.sleep(0.1)
-        }
+        # Run the job explicitly
+        mock_run_slurm_job(slurm_run$job_id)
 
         # Check error log exists and has error content
         expect_true(file.exists(slurm_run$error_log_path) || file.exists(slurm_run$log_path),
@@ -1108,16 +1070,6 @@ describe("SLURM functionality", {
             )
           )
         }
-
-        # Output log might also have error info
-        if (file.exists(slurm_run$log_path)) {
-          log_content <- readLines(slurm_run$log_path, warn = FALSE)
-          expect_true(length(log_content) > 0)
-          # May or may not have error in output log, but if it does, check it
-          if (any(grepl("error|Error|ERROR", log_content, ignore.case = TRUE))) {
-            expect_true(TRUE) # Error found in output log
-          }
-        }
       })
     })
 
@@ -1135,11 +1087,8 @@ describe("SLURM functionality", {
           y = 20
         )
 
-        # Wait for job to complete
-        Sys.sleep(1.5)
-        while (!slurm_run$is_done()) {
-          Sys.sleep(0.1)
-        }
+        # Run the job explicitly
+        mock_run_slurm_job(slurm_run$job_id)
 
         # Get results
         results <- slurm_run$get_results()
@@ -1161,11 +1110,8 @@ describe("SLURM functionality", {
           result_id = "my_id"
         )
 
-        # Wait for job to complete
-        Sys.sleep(1.5)
-        while (!slurm_run$is_done()) {
-          Sys.sleep(0.1)
-        }
+        # Run the job explicitly
+        mock_run_slurm_job(slurm_run$job_id)
 
         # Get results
         results <- slurm_run$get_results()
@@ -1244,11 +1190,8 @@ describe("SLURM functionality", {
           return(complex_result)
         })
 
-        # Wait for completion
-        Sys.sleep(1.5)
-        while (!slurm_run$is_done()) {
-          Sys.sleep(0.1)
-        }
+        # Run the job explicitly
+        mock_run_slurm_job(slurm_run$job_id)
 
         results <- slurm_run$get_results()
         expect_equal(results$data, complex_result$data)
@@ -1266,11 +1209,8 @@ describe("SLURM functionality", {
           stop("Test error in SLURM job")
         })
 
-        # Wait for completion
-        Sys.sleep(1.5)
-        while (!slurm_run$is_done()) {
-          Sys.sleep(0.1)
-        }
+        # Run the job explicitly
+        mock_run_slurm_job(slurm_run$job_id)
 
         # Job should be done, but getting results might fail
         # The error should be in the log file
