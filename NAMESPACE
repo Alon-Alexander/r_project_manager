@@ -3,6 +3,8 @@
 export(PMAnalysis)
 export(PMData)
 export(PMProject)
+export(PMSlurmRun)
+export(is_slurm_available)
 export(pm_create_project)
 export(pm_infer_analysis)
 export(pm_project)
