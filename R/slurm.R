@@ -258,37 +258,32 @@ is_slurm_available <- function() {
     }
   }
 
-  # Filter out non-SLURM environment variables for export
-  slurm_env_vars <- env_vars[!names(env_vars) %in% c(
-    "PM_JOB_NAME", "PM_LOG_DIR", "PM_TIME_LIMIT",
-    "PM_MEMORY", "PM_CPUS", "PM_SLURM_EXTRA_FLAGS"
-  )]
+  # Extract script arguments (positional arguments for the bash script)
+  script_args <- character(0)
+  
+  # Order: PM_FUN_FILE, PM_ARGS_FILE, PM_RESULT_FILE, PM_WORK_DIR, PM_R_SCRIPT_PATH, PM_MODULES
+  if ("PM_FUN_FILE" %in% names(env_vars)) {
+    script_args <- c(script_args, shQuote(env_vars[["PM_FUN_FILE"]]))
+  }
+  if ("PM_ARGS_FILE" %in% names(env_vars)) {
+    script_args <- c(script_args, shQuote(env_vars[["PM_ARGS_FILE"]]))
+  }
+  if ("PM_RESULT_FILE" %in% names(env_vars)) {
+    script_args <- c(script_args, shQuote(env_vars[["PM_RESULT_FILE"]]))
+  }
+  if ("PM_WORK_DIR" %in% names(env_vars)) {
+    script_args <- c(script_args, shQuote(env_vars[["PM_WORK_DIR"]]))
+  }
+  if ("PM_R_SCRIPT_PATH" %in% names(env_vars)) {
+    script_args <- c(script_args, shQuote(env_vars[["PM_R_SCRIPT_PATH"]]))
+  }
+  if ("PM_MODULES" %in% names(env_vars)) {
+    # PM_MODULES is space-separated, so we need to quote it as a single argument
+    script_args <- c(script_args, shQuote(env_vars[["PM_MODULES"]]))
+  }
 
-  # Export environment variables before sbatch (they will be inherited)
-  env_strings <- character(length(slurm_env_vars))
-  for (i in seq_along(slurm_env_vars)) {
-    name <- names(slurm_env_vars)[i]
-    value <- slurm_env_vars[[i]]
-    # Escape single quotes in values
-    value_escaped <- gsub("'", "'\\''", value)
-    env_strings[i] <- paste0(name, "='", value_escaped, "'")
-  }
-  env_cmd <- if (length(env_strings) > 0) {
-    paste(env_strings, collapse = " ")
-  } else {
-    ""
-  }
-
-  # Build command: export env vars, then sbatch with arguments
-  # We need to export environment variables in the shell, then call sbatch
-  if (length(slurm_env_vars) > 0) {
-    # Export environment variables and run sbatch
-    full_cmd <- paste(env_cmd, "sbatch", paste(sbatch_args, collapse = " "), shQuote(slurm_script_path))
-    result <- system(full_cmd, intern = TRUE)
-  } else {
-    # No environment variables to export, just call sbatch directly
-    result <- system2("sbatch", args = c(sbatch_args, slurm_script_path), stdout = TRUE, stderr = TRUE)
-  }
+  # Build sbatch command with script path and positional arguments
+  result <- system2("sbatch", args = c(sbatch_args, shQuote(slurm_script_path), script_args), stdout = TRUE, stderr = TRUE)
 
   if (attr(result, "status") != 0 && !is.null(attr(result, "status"))) {
     stop(sprintf("Failed to submit SLURM job: %s", paste(result, collapse = "\n")))

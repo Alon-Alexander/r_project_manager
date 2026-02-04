@@ -1,6 +1,3 @@
-skip_on_cran()
-skip_on_ci()
-
 # Mock SLURM implementation for testing
 .mock_slurm_jobs <- new.env(parent = emptyenv())
 
@@ -14,40 +11,86 @@ skip_on_ci()
   function(command, args = NULL, stdout = "", stderr = "", ...) {
     if (command == "sbatch") {
       # sbatch is non-blocking - just return a job ID immediately
-      # The actual job info will be stored when system() is called with env vars
-      # Generate a numeric job_id (the extraction regex looks for digits)
-      job_id_numeric <- as.character(Sys.time())
-      job_id_numeric <- gsub("[^0-9]", "", job_id_numeric)
-      # Store with mock_ prefix internally, but return just the numeric part
-      job_id_internal <- paste0("mock_", job_id_numeric)
-
-      # Extract log directory from args for later use
-      log_dir <- NULL
-      for (arg in args) {
-        if (startsWith(arg, "--output=")) {
-          log_dir <- dirname(sub("--output=", "", arg))
-          break
+      # Parse positional arguments from args
+      # Format: [sbatch flags...] script.sh "arg1" "arg2" "arg3" "arg4" "arg5" "arg6"
+      # Where: arg1=PM_FUN_FILE, arg2=PM_ARGS_FILE, arg3=PM_RESULT_FILE, 
+      #        arg4=PM_WORK_DIR, arg5=PM_R_SCRIPT_PATH, arg6=PM_MODULES
+      
+      script_path <- NULL
+      positional_args <- character(0)
+      
+      if (!is.null(args) && length(args) > 0) {
+        # Find script path (first non-flag argument) and positional args after it
+        script_found <- FALSE
+        for (i in seq_along(args)) {
+          arg <- args[i]
+          # Remove quotes if present
+          arg_clean <- gsub("^['\"]|['\"]$", "", arg)
+          if (!startsWith(arg_clean, "--") && !startsWith(arg_clean, "-") && !script_found) {
+            script_path <- arg_clean
+            script_found <- TRUE
+          } else if (script_found) {
+            # All arguments after script path are positional arguments
+            positional_args <- c(positional_args, arg_clean)
+          }
         }
       }
 
-      # Store a placeholder job (will be updated by system() call)
-      # Store with both the internal ID and the numeric ID for lookup
-      .mock_slurm_jobs[[job_id_internal]] <- list(
-        script_path = NULL,
-        fun_file = NULL,
-        args_file = NULL,
-        log_dir = log_dir,
-        result_path = NULL,
-        start_time = Sys.time(),
-        status = "PENDING", # Job is pending until mock_run_slurm_job() is called
-        done = FALSE,
-        numeric_job_id = job_id_numeric # Store the numeric ID that will be extracted
-      )
+      # Extract values from positional arguments
+      # Order: PM_FUN_FILE, PM_ARGS_FILE, PM_RESULT_FILE, PM_WORK_DIR, PM_R_SCRIPT_PATH, PM_MODULES
+      fun_file <- if (length(positional_args) >= 1) positional_args[1] else NULL
+      args_file <- if (length(positional_args) >= 2) positional_args[2] else NULL
+      result_path <- if (length(positional_args) >= 3) positional_args[3] else NULL
+      work_dir <- if (length(positional_args) >= 4) positional_args[4] else NULL
+      r_script_path <- if (length(positional_args) >= 5) positional_args[5] else NULL
+      modules_str <- if (length(positional_args) >= 6) positional_args[6] else NULL
+      
+      # Extract log_dir from sbatch arguments (--output and --error flags)
+      log_dir <- NULL
+      if (!is.null(args)) {
+        for (arg in args) {
+          if (startsWith(arg, "--output=")) {
+            output_path <- sub("--output=", "", arg)
+            # Extract directory from output path (format: dir/slurm-%j.out)
+            log_dir <- dirname(sub("%j", "12345", output_path)) # Use placeholder for %j
+            break
+          }
+        }
+      }
+      
+      # Generate a numeric job_id (the extraction regex looks for digits)
+      job_id_numeric <- as.character(Sys.time())
+      job_id_numeric <- gsub("[^0-9]", "", job_id_numeric)
+      job_id_internal <- paste0("mock_", job_id_numeric)
+
+      # Store job with actual details from positional arguments
+      if (!is.null(r_script_path) && !is.null(fun_file) && 
+          !is.null(args_file) && !is.null(result_path)) {
+        .mock_slurm_jobs[[job_id_internal]] <- list(
+          script_path = r_script_path,
+          fun_file = fun_file,
+          args_file = args_file,
+          log_dir = log_dir,
+          result_path = result_path,
+          start_time = Sys.time(),
+          status = "PENDING", # Job is pending until mock_run_slurm_job() is called
+          done = FALSE,
+          numeric_job_id = job_id_numeric
+        )
+      } else {
+        # Create minimal entry if we don't have all required values
+        .mock_slurm_jobs[[job_id_internal]] <- list(
+          status = "PENDING",
+          done = FALSE,
+          start_time = Sys.time(),
+          numeric_job_id = job_id_numeric
+        )
+      }
+      
       # Also store a mapping from numeric ID to internal ID
       .mock_slurm_jobs[[paste0("numeric_", job_id_numeric)]] <- job_id_internal
 
       # Return immediately (non-blocking) - sbatch is non-blocking
-      # Return with just the numeric part (this is what gets extracted)
       result <- paste("Submitted batch job", job_id_numeric)
       attr(result, "status") <- 0L
       return(result)
@@ -264,150 +307,10 @@ mock_run_slurm_job <- function(job_id) {
   .execute_mock_job_sync(job_id_internal)
 }
 
-# Mock system function for sbatch with env vars
+# Mock system function for sbatch (not used anymore since we use system2, but kept for compatibility)
 .create_mock_system <- function() {
   function(command, intern = FALSE, ...) {
-    # Check if this is an sbatch command
-    if (grepl("sbatch", command)) {
-      # Parse command to extract script path and env vars
-      # The command format is: "VAR1='val1' VAR2='val2' sbatch --args script.sh"
-      # We need to handle quoted values properly (including paths with spaces)
-      env_vars <- list()
-      script_path <- NULL
-
-      if (grepl("sbatch", command)) {
-        # Extract env vars (everything before "sbatch")
-        before_sbatch <- sub("(.*)\\ssbatch.*", "\\1", command)
-        if (nzchar(before_sbatch)) {
-          # Parse env vars - handle quoted values with regex
-          # Pattern: KEY='value' or KEY="value" where value can contain escaped quotes
-          pattern <- "([A-Z_][A-Z0-9_]*)=(['\"])((?:[^'\"\\\\]|\\\\.)*)\\2"
-          matches <- regmatches(before_sbatch, gregexpr(pattern, before_sbatch, perl = TRUE))[[1]]
-          for (match in matches) {
-            # Extract key and value
-            kv_match <- regmatches(match, regexec("([A-Z_][A-Z0-9_]*)=(['\"])(.*)\\2", match))[[1]]
-            if (length(kv_match) >= 4) {
-              key <- kv_match[2]
-              value <- kv_match[4]
-              # Unescape any escaped characters
-              value <- gsub("\\\\(.)", "\\1", value)
-              env_vars[[key]] <- value
-            }
-          }
-        }
-
-        # Extract script path (last argument after sbatch that doesn't start with --)
-        after_sbatch <- sub(".*\\ssbatch\\s+", "", command)
-        # Remove quoted arguments first
-        after_sbatch <- gsub("(['\"])([^'\"]*)\\1", "", after_sbatch)
-        parts <- strsplit(after_sbatch, "\\s+")[[1]]
-        parts <- parts[nzchar(parts)]
-        for (part in rev(parts)) {
-          if (!startsWith(part, "--") && !startsWith(part, "-")) {
-            script_path <- part
-            break
-          }
-        }
-      }
-
-      # Extract values from env vars
-      r_script_path <- env_vars[["PM_R_SCRIPT_PATH"]]
-      fun_file <- env_vars[["PM_FUN_FILE"]]
-      args_file <- env_vars[["PM_ARGS_FILE"]]
-      result_path <- env_vars[["PM_RESULT_FILE"]]
-      log_dir <- env_vars[["PM_LOG_DIR"]]
-
-      # PM_LOG_DIR should be set, but if not, infer from result_path
-      # The logs directory is typically at {analysis_path}/logs
-      if (is.null(log_dir) || log_dir == "") {
-        # Try to infer from result_path - logs are usually in a "logs" subdirectory
-        # of the analysis directory
-        if (!is.null(result_path)) {
-          analysis_dir <- dirname(dirname(result_path)) # Go up from intermediate/outputs
-          log_dir <- file.path(analysis_dir, "logs")
-        } else if (!is.null(r_script_path)) {
-          log_dir <- file.path(dirname(r_script_path), "logs")
-        }
-      }
-
-      # Find the most recent pending job and update it with the env vars
-      # (This job was created by the sbatch system2 call that just happened)
-      job_ids <- ls(envir = .mock_slurm_jobs)
-      most_recent_job <- NULL
-      most_recent_time <- 0
-
-      if (length(job_ids) > 0) {
-        # Get the most recent pending job (highest timestamp in job_id)
-        for (jid in job_ids) {
-          if (exists(jid, envir = .mock_slurm_jobs)) {
-            job_info <- .mock_slurm_jobs[[jid]]
-            if (identical(job_info$status, "PENDING")) {
-              # Extract timestamp from job_id (format: mock_YYYYMMDDHHMMSS...)
-              job_time_str <- gsub("mock_", "", jid)
-              job_time <- tryCatch(as.numeric(job_time_str), error = function(e) 0)
-              if (job_time > most_recent_time) {
-                most_recent_time <- job_time
-                most_recent_job <- jid
-              }
-            }
-          }
-        }
-      }
-
-      # Update the job with env vars if we found one and have the required values
-      if (!is.null(most_recent_job) && !is.null(r_script_path) &&
-        !is.null(fun_file) && !is.null(args_file) && !is.null(result_path)) {
-        # Update existing pending job with actual details
-        existing_job <- .mock_slurm_jobs[[most_recent_job]]
-        .mock_slurm_jobs[[most_recent_job]] <- list(
-          script_path = r_script_path,
-          fun_file = fun_file,
-          args_file = args_file,
-          log_dir = log_dir,
-          result_path = result_path,
-          start_time = existing_job$start_time, # Keep original start time
-          status = "PENDING", # Will be changed to RUNNING when mock_run_slurm_job() is called
-          done = FALSE,
-          numeric_job_id = existing_job$numeric_job_id # Preserve numeric job ID
-        )
-        job_id <- most_recent_job
-        # Job is ready but not started - will be executed when mock_run_slurm_job() is called
-      } else if (!is.null(r_script_path) && !is.null(fun_file) &&
-        !is.null(args_file) && !is.null(result_path)) {
-        # Create new job if we couldn't find pending one (shouldn't happen normally)
-        job_id <- as.character(Sys.time())
-        job_id <- gsub("[^0-9]", "", job_id)
-        job_id <- paste0("mock_", job_id)
-        numeric_job_id <- gsub("mock_", "", job_id)
-        .mock_slurm_jobs[[job_id]] <- list(
-          script_path = r_script_path,
-          fun_file = fun_file,
-          args_file = args_file,
-          log_dir = log_dir,
-          result_path = result_path,
-          start_time = Sys.time(),
-          status = "PENDING", # Will be changed to RUNNING when mock_run_slurm_job() is called
-          done = FALSE,
-          numeric_job_id = numeric_job_id
-        )
-        # Also store mapping
-        .mock_slurm_jobs[[paste0("numeric_", numeric_job_id)]] <- job_id
-        # Job is ready but not started - will be executed when mock_run_slurm_job() is called
-      } else {
-        # Can't create job without required values - generate job_id for output anyway
-        job_id <- as.character(Sys.time())
-        job_id <- gsub("[^0-9]", "", job_id)
-        job_id <- paste0("mock_", job_id)
-      }
-
-      # Return mock output immediately (non-blocking)
-      if (intern) {
-        return(paste("Submitted batch job", job_id))
-      } else {
-        return(0L)
-      }
-    }
-
+    # system() is not used for sbatch anymore - we use system2()
     # For other commands, call real system (use stored reference to avoid recursion)
     .real_system(command, intern = intern, ...)
   }
@@ -652,6 +555,8 @@ with_mock_slurm <- function(code) {
 }
 
 describe("SLURM functionality", {
+  skip_on_cran()
+  skip_on_ci()
   describe("is_slurm_available()", {
     it("Returns TRUE when SLURM commands are available", {
       with_mock_slurm({

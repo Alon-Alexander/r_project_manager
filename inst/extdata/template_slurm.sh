@@ -1,12 +1,21 @@
 #!/bin/bash
 # Generic SLURM script template
 # SLURM directives are passed via sbatch command-line arguments
+# Script parameters are passed as positional arguments:
+#   $1 = PM_FUN_FILE
+#   $2 = PM_ARGS_FILE
+#   $3 = PM_RESULT_FILE
+#   $4 = PM_WORK_DIR
+#   $5 = PM_R_SCRIPT_PATH
+#   $6 = PM_MODULES (space-separated list)
 
-# Export environment variables
-export PM_FUN_FILE=${PM_FUN_FILE}
-export PM_ARGS_FILE=${PM_ARGS_FILE}
-export PM_RESULT_FILE=${PM_RESULT_FILE}
-export PM_WORK_DIR=${PM_WORK_DIR}
+# Parse positional arguments
+PM_FUN_FILE=$1
+PM_ARGS_FILE=$2
+PM_RESULT_FILE=$3
+PM_WORK_DIR=$4
+PM_R_SCRIPT_PATH=$5
+PM_MODULES=$6
 
 # Load modules if specified (parse space-separated list)
 if [ -n "${PM_MODULES}" ]; then
