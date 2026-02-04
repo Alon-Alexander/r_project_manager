@@ -465,8 +465,20 @@ PMAnalysis <- R6Class("PMAnalysis",
       result_data <- self$get_output_path(result_id, type = "rds", intermediate = TRUE)
       result_path <- result_data$path
 
-      # Create .slurm directory in analysis folder for SLURM files (hidden)
-      slurm_dir <- file.path(self$path, ".slurm")
+      # Create .slurm base directory in analysis folder (hidden)
+      slurm_base_dir <- file.path(self$path, ".slurm")
+      dir.create(slurm_base_dir, showWarnings = FALSE, recursive = TRUE)
+
+      # Create job-specific subdirectory with timestamp and result_id
+      timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+      if (!is.null(result_id) && nzchar(result_id)) {
+        # Sanitize result_id for use in directory name (remove invalid chars)
+        safe_result_id <- gsub("[^A-Za-z0-9_-]", "_", result_id)
+        job_dir_name <- paste0("job_", timestamp, "_", safe_result_id)
+      } else {
+        job_dir_name <- paste0("job_", timestamp)
+      }
+      slurm_dir <- file.path(slurm_base_dir, job_dir_name)
       dir.create(slurm_dir, showWarnings = FALSE, recursive = TRUE)
 
       # Save the function and its arguments to RDS files
@@ -486,25 +498,15 @@ PMAnalysis <- R6Class("PMAnalysis",
         stop("SLURM R script template not found. Please reinstall the package.")
       }
 
-      # Copy R script template to .slurm directory
+      # Copy R script template to job directory
       r_script_path <- file.path(slurm_dir, "slurm_run.R")
       file.copy(r_template_path, r_script_path, overwrite = TRUE)
       Sys.chmod(r_script_path, mode = "0755")
 
-      # Copy SLURM template to .slurm directory
+      # Copy SLURM template to job directory
       slurm_script_path <- file.path(slurm_dir, "slurm_job.sh")
       file.copy(slurm_template_path, slurm_script_path, overwrite = TRUE)
       Sys.chmod(slurm_script_path, mode = "0755")
-
-      # Create initialization script for module loading
-      init_script_path <- file.path(slurm_dir, "init.sh")
-      module_commands <- paste0("module load ", modules, collapse = "\n")
-      writeLines(c(
-        "#!/bin/bash",
-        "# Module initialization script",
-        module_commands
-      ), init_script_path)
-      Sys.chmod(init_script_path, mode = "0755")
 
       # Handle extra SLURM flags
       if (nzchar(slurm_flags)) {
@@ -523,6 +525,8 @@ PMAnalysis <- R6Class("PMAnalysis",
       }
 
       # Set environment variables and submit job
+      # Pass modules as space-separated string (will be parsed in bash script)
+      modules_str <- paste(modules, collapse = " ")
       env_vars <- c(
         PM_JOB_NAME = job_name,
         PM_LOG_DIR = logs_dir,
@@ -534,7 +538,7 @@ PMAnalysis <- R6Class("PMAnalysis",
         PM_FUN_FILE = fun_rds_path,
         PM_ARGS_FILE = args_rds_path,
         PM_RESULT_FILE = result_path,
-        PM_INIT_SCRIPT = init_script_path,
+        PM_MODULES = modules_str,
         PM_SLURM_EXTRA_FLAGS = slurm_extra_flags
       )
 

@@ -322,8 +322,9 @@ is_slurm_available <- function() {
   # Real SLURM check
   # Note: squeue may fail with "Invalid job id specified" after job completes
   # This is expected and not an error - we handle it gracefully
+  # Suppress stderr to ignore warnings
   result <- tryCatch({
-    system2("squeue", args = c("-j", job_id, "-h", "-o", "%T"), stdout = TRUE, stderr = TRUE)
+    system2("squeue", args = c("-j", job_id, "-h", "-o", "%T"), stdout = TRUE, stderr = FALSE)
   }, error = function(e) {
     # If squeue fails, job is likely done (invalid job ID)
     return(character(0))
@@ -373,8 +374,9 @@ is_slurm_available <- function() {
   # Real SLURM: check job state
   # Note: squeue may fail with "Invalid job id specified" after job completes
   # This is expected and not an error - we handle it gracefully
+  # Suppress stderr to ignore warnings
   result <- tryCatch({
-    system2("squeue", args = c("-j", job_id, "-h", "-o", "%T"), stdout = TRUE, stderr = TRUE)
+    system2("squeue", args = c("-j", job_id, "-h", "-o", "%T"), stdout = TRUE, stderr = FALSE)
   }, error = function(e) {
     # If squeue fails, job is likely done (invalid job ID)
     return(character(0))

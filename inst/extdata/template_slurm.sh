@@ -8,9 +8,11 @@ export PM_ARGS_FILE=${PM_ARGS_FILE}
 export PM_RESULT_FILE=${PM_RESULT_FILE}
 export PM_WORK_DIR=${PM_WORK_DIR}
 
-# Run initialization script for module loading
-if [ -n "${PM_INIT_SCRIPT}" ] && [ -f "${PM_INIT_SCRIPT}" ]; then
-  source ${PM_INIT_SCRIPT}
+# Load modules if specified (parse space-separated list)
+if [ -n "${PM_MODULES}" ]; then
+  for module in ${PM_MODULES}; do
+    module load ${module}
+  done
 fi
 
 # Set working directory
