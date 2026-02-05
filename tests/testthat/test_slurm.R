@@ -37,13 +37,14 @@
       }
 
       # Extract values from positional arguments
-      # Order: PM_FUN_FILE, PM_ARGS_FILE, PM_RESULT_FILE, PM_WORK_DIR, PM_R_SCRIPT_PATH, PM_MODULES
+      # Order: PM_FUN_FILE, PM_ARGS_FILE, PM_RESULT_FILE, PM_WORK_DIR, PM_R_SCRIPT_PATH, PM_MODULES, PM_IMAGE_FILE
       fun_file <- if (length(positional_args) >= 1) positional_args[1] else NULL
       args_file <- if (length(positional_args) >= 2) positional_args[2] else NULL
       result_path <- if (length(positional_args) >= 3) positional_args[3] else NULL
       work_dir <- if (length(positional_args) >= 4) positional_args[4] else NULL
       r_script_path <- if (length(positional_args) >= 5) positional_args[5] else NULL
       modules_str <- if (length(positional_args) >= 6) positional_args[6] else NULL
+      image_file <- if (length(positional_args) >= 7 && nzchar(positional_args[7])) positional_args[7] else NULL
       
       # Extract log_dir from sbatch arguments (--output and --error flags)
       log_dir <- NULL
@@ -72,6 +73,7 @@
           args_file = args_file,
           log_dir = log_dir,
           result_path = result_path,
+          image_file = image_file, # May be NULL if not provided
           start_time = Sys.time(),
           status = "PENDING", # Job is pending until mock_run_slurm_job() is called
           done = FALSE,
@@ -253,13 +255,21 @@
       Sys.setenv(PM_ARGS_FILE = args_file)
       Sys.setenv(PM_RESULT_FILE = result_path)
 
+      # Build Rscript arguments
+      rscript_args <- c(
+        r_script_path,
+        paste0("--fun-file=", fun_file),
+        paste0("--args-file=", args_file),
+        paste0("--result-file=", result_path)
+      )
+      
+      # Add image file if it exists
+      if (!is.null(job_info$image_file) && nzchar(job_info$image_file) && base::file.exists(job_info$image_file)) {
+        rscript_args <- c(rscript_args, paste0("--image-file=", job_info$image_file))
+      }
+      
       exit_code <- .real_system2(rscript_path,
-        args = c(
-          r_script_path,
-          paste0("--fun-file=", fun_file),
-          paste0("--args-file=", args_file),
-          paste0("--result-file=", result_path)
-        ),
+        args = rscript_args,
         stdout = log_file,
         stderr = error_log_file,
         wait = TRUE

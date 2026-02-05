@@ -350,6 +350,7 @@ PMAnalysis <- R6Class("PMAnalysis",
     #'   - `cpus`: Integer. Number of CPUs to request (default: 1).
     #'   - `slurm_flags`: Character. Additional SLURM flags (default: "").
     #'   - `modules`: Character vector. Modules to load (default: NULL).
+    #'   - `store_image`: Logical. Whether to save and load R workspace image (default: TRUE).
     #'
     #' @return A \code{PMSlurmRun} object with the job ID and paths.
     #'
@@ -419,6 +420,13 @@ PMAnalysis <- R6Class("PMAnalysis",
       chk::chk_scalar(result_id)
       chk::chk_character(result_id)
       chk::chk_list(config)
+      
+      # Get store_image from config (default TRUE)
+      store_image <- config$store_image
+      if (is.null(store_image)) {
+        store_image <- TRUE
+      }
+      chk::chk_flag(store_image)
 
       # Parse config with defaults
       job_name <- config$job_name %||% self$name
@@ -486,6 +494,13 @@ PMAnalysis <- R6Class("PMAnalysis",
       args_rds_path <- file.path(slurm_dir, "args.rds")
       saveRDS(fun, fun_rds_path)
       saveRDS(fun_args, args_rds_path)
+      
+      # Save R workspace image if requested
+      image_path <- NULL
+      if (store_image) {
+        image_path <- file.path(slurm_dir, "workspace.RData")
+        save.image(file = image_path)
+      }
 
       # Get paths to template files
       slurm_template_path <- system.file("extdata", "template_slurm.sh", package = "pm")
@@ -539,7 +554,8 @@ PMAnalysis <- R6Class("PMAnalysis",
         PM_ARGS_FILE = args_rds_path,
         PM_RESULT_FILE = result_path,
         PM_MODULES = modules_str,
-        PM_SLURM_EXTRA_FLAGS = slurm_extra_flags
+        PM_SLURM_EXTRA_FLAGS = slurm_extra_flags,
+        PM_IMAGE_FILE = if (!is.null(image_path)) image_path else ""
       )
 
       # Submit job with environment variables

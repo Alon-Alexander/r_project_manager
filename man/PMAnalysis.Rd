@@ -418,6 +418,7 @@ Must be provided by name if function arguments are passed positionally.}
 \item \code{cpus}: Integer. Number of CPUs to request (default: 1).
 \item \code{slurm_flags}: Character. Additional SLURM flags (default: "").
 \item \code{modules}: Character vector. Modules to load (default: NULL).
+\item \code{store_image}: Logical. Whether to save and load R workspace image (default: TRUE).
 }}
 }
 \if{html}{\out{</div>}}

@@ -261,7 +261,7 @@ is_slurm_available <- function() {
   # Extract script arguments (positional arguments for the bash script)
   script_args <- character(0)
   
-  # Order: PM_FUN_FILE, PM_ARGS_FILE, PM_RESULT_FILE, PM_WORK_DIR, PM_R_SCRIPT_PATH, PM_MODULES
+  # Order: PM_FUN_FILE, PM_ARGS_FILE, PM_RESULT_FILE, PM_WORK_DIR, PM_R_SCRIPT_PATH, PM_MODULES, PM_IMAGE_FILE
   if ("PM_FUN_FILE" %in% names(env_vars)) {
     script_args <- c(script_args, shQuote(env_vars[["PM_FUN_FILE"]]))
   }
@@ -280,6 +280,17 @@ is_slurm_available <- function() {
   if ("PM_MODULES" %in% names(env_vars)) {
     # PM_MODULES is space-separated, so we need to quote it as a single argument
     script_args <- c(script_args, shQuote(env_vars[["PM_MODULES"]]))
+  }
+  if ("PM_IMAGE_FILE" %in% names(env_vars)) {
+    # PM_IMAGE_FILE is optional - pass empty string if not provided
+    image_file <- env_vars[["PM_IMAGE_FILE"]]
+    if (is.null(image_file) || image_file == "") {
+      script_args <- c(script_args, shQuote(""))
+    } else {
+      script_args <- c(script_args, shQuote(image_file))
+    }
+  } else {
+    script_args <- c(script_args, shQuote(""))
   }
 
   # Build sbatch command with script path and positional arguments

@@ -9,6 +9,7 @@ args <- commandArgs(trailingOnly = TRUE)
 fun_file <- Sys.getenv("PM_FUN_FILE", "")
 args_file <- Sys.getenv("PM_ARGS_FILE", "")
 result_file <- Sys.getenv("PM_RESULT_FILE", "")
+image_file <- Sys.getenv("PM_IMAGE_FILE", "")
 
 # Try to get from command line if not in environment
 if (fun_file == "" || args_file == "" || result_file == "") {
@@ -19,8 +20,15 @@ if (fun_file == "" || args_file == "" || result_file == "") {
       args_file <- sub("--args-file=", "", arg)
     } else if (startsWith(arg, "--result-file=")) {
       result_file <- sub("--result-file=", "", arg)
+    } else if (startsWith(arg, "--image-file=")) {
+      image_file <- sub("--image-file=", "", arg)
     }
   }
+}
+
+# Load workspace image if provided
+if (image_file != "" && file.exists(image_file)) {
+  load(image_file, envir = .GlobalEnv)
 }
 
 # Validate inputs
