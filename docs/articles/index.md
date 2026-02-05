@@ -8,3 +8,5 @@
   Example](https://alon-alexander.github.io/r_project_manager/articles/getting-started.md):
 - [Defining Project Inputs: Different Input Formats for
   project.yaml](https://alon-alexander.github.io/r_project_manager/articles/input-definitions.md):
+- [Running Analyses with
+  SLURM](https://alon-alexander.github.io/r_project_manager/articles/slurm-integration.md):

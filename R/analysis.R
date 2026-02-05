@@ -332,6 +332,257 @@ PMAnalysis <- R6Class("PMAnalysis",
       full_path <- normalizePath(file.path(self$path, folder, name), mustWork = FALSE)
 
       PMData$new(id = id, path = full_path)
+    },
+
+    #' @description
+    #' Run a function in SLURM.
+    #' Submits the function as a SLURM job and returns a PMSlurmRun object
+    #' that can be used to check status and retrieve results.
+    #'
+    #' @param fun Function. The function to run in SLURM.
+    #' @param ... Additional arguments to pass to the function (can be positional or named).
+    #' @param result_id Character. Optional ID for the result file (default: "slurm_result").
+    #'   Must be provided by name if function arguments are passed positionally.
+    #' @param config List. SLURM configuration with optional elements:
+    #'   - `job_name`: Character. Name for the SLURM job (default: analysis name).
+    #'   - `time_limit`: Character. SLURM time limit (default: "01:00:00").
+    #'   - `memory`: Character. SLURM memory limit (default: "4G").
+    #'   - `cpus`: Integer. Number of CPUs to request (default: 1).
+    #'   - `slurm_flags`: Character. Additional SLURM flags (default: "").
+    #'   - `modules`: Character vector. Modules to load (default: NULL).
+    #'   - `store_image`: Logical. Whether to save and load R workspace image (default: TRUE).
+    #'
+    #' @return A \code{PMSlurmRun} object with the job ID and paths.
+    #'
+    #' @details
+    #' This method:
+    #' - Checks if SLURM is available
+    #' - Creates an R script that runs the function and saves results
+    #' - Creates a SLURM script from the template
+    #' - Submits the job
+    #' - Returns a PMSlurmRun object for monitoring
+    #'
+    #' Results are stored in the intermediate folder.
+    #' All temporary files (function files, scripts) are stored in a temporary directory.
+    #'
+    #' Function arguments can be passed positionally or by name. If using positional
+    #' arguments, `result_id` and `config` must be provided by name.
+    #'
+    #' @examples
+    #' \dontrun{
+    #' analysis <- pm$get_analysis("my_analysis")
+    #'
+    #' # With named arguments
+    #' slurm_run <- analysis$run_in_slurm(function(x, y) {
+    #'   result <- compute_something(x, y)
+    #'   return(result)
+    #' }, x = 10, y = 20)
+    #'
+    #' # With positional arguments
+    #' slurm_run <- analysis$run_in_slurm(function(x) {
+    #'   return(2 * x)
+    #' }, 10, result_id = "my_result")
+    #'
+    #' # Check if done
+    #' slurm_run$is_done()
+    #'
+    #' # Get results (with optional timeout to wait)
+    #' results <- slurm_run$get_results(timeout = 60)
+    #' }
+    run_in_slurm = function(fun, ..., result_id = NULL, config = list()) {
+      # Check if SLURM is available
+      if (!is_slurm_available()) {
+        stop("SLURM is not available on this system. Install SLURM or use mock mode for testing.")
+      }
+
+      # Validate inputs
+      chk::chk_function(fun)
+
+      # Extract function arguments from ...
+      # Use match.call to separate function args from method args
+      call_obj <- match.call(expand.dots = FALSE)
+      dots <- call_obj$...
+
+      # Get function arguments (everything in ...)
+      fun_args <- if (is.null(dots)) {
+        list()
+      } else {
+        # Evaluate the dots in the calling environment
+        parent_env <- parent.frame()
+        lapply(dots, function(x) eval(x, envir = parent_env))
+      }
+
+      # Validate method parameters
+      if (is.null(result_id)) {
+        timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+        result_id <- paste0("slurm_result_", timestamp)
+      }
+      chk::chk_scalar(result_id)
+      chk::chk_character(result_id)
+      chk::chk_list(config)
+      
+      # Get store_image from config (default TRUE)
+      store_image <- config$store_image
+      if (is.null(store_image)) {
+        store_image <- TRUE
+      }
+      chk::chk_flag(store_image)
+
+      # Parse config with defaults
+      job_name <- config$job_name %||% self$name
+      time_limit <- config$time_limit %||% "01:00:00"
+      memory <- config$memory %||% "32G"
+      cpus <- config$cpus %||% 1L
+      slurm_flags <- config$slurm_flags %||% ""
+      modules <- config$modules
+      
+      # Ensure R is always in modules (needed for Rscript)
+      if (is.null(modules) || length(modules) == 0) {
+        modules <- c("R")
+      } else {
+        # Validate modules before processing
+        chk::chk_character(modules)
+        # Check if R or R/... is in modules
+        has_r <- any(grepl("^R(/|$)", modules))
+        if (!has_r) {
+          modules <- c("R", modules)
+        }
+      }
+
+      # Validate config values
+      chk::chk_scalar(job_name)
+      chk::chk_character(job_name)
+      chk::chk_scalar(time_limit)
+      chk::chk_character(time_limit)
+      chk::chk_scalar(memory)
+      chk::chk_character(memory)
+      chk::chk_scalar(cpus)
+      chk::chk_whole_number(cpus)
+      chk::chk_scalar(slurm_flags)
+      chk::chk_character(slurm_flags)
+
+      # Get paths
+      logs_dir <- file.path(self$path, "logs")
+      intermediate_dir <- file.path(self$path, constants$ANALYSIS_INTERMEDIATE_DIR)
+
+      # Ensure directories exist
+      dir.create(logs_dir, showWarnings = FALSE, recursive = TRUE)
+      dir.create(intermediate_dir, showWarnings = FALSE, recursive = TRUE)
+
+      # Create result path (use RDS format for direct loading)
+      result_data <- self$get_output_path(result_id, type = "rds", intermediate = TRUE)
+      result_path <- result_data$path
+
+      # Create .slurm base directory in analysis folder (hidden)
+      slurm_base_dir <- file.path(self$path, ".slurm")
+      dir.create(slurm_base_dir, showWarnings = FALSE, recursive = TRUE)
+
+      # Create job-specific subdirectory with timestamp and result_id
+      timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+      if (!is.null(result_id) && nzchar(result_id)) {
+        # Sanitize result_id for use in directory name (remove invalid chars)
+        safe_result_id <- gsub("[^A-Za-z0-9_-]", "_", result_id)
+        job_dir_name <- paste0("job_", timestamp, "_", safe_result_id)
+      } else {
+        job_dir_name <- paste0("job_", timestamp)
+      }
+      slurm_dir <- file.path(slurm_base_dir, job_dir_name)
+      dir.create(slurm_dir, showWarnings = FALSE, recursive = TRUE)
+
+      # Save the function and its arguments to RDS files
+      fun_rds_path <- file.path(slurm_dir, "fun.rds")
+      args_rds_path <- file.path(slurm_dir, "args.rds")
+      saveRDS(fun, fun_rds_path)
+      saveRDS(fun_args, args_rds_path)
+      
+      # Extract and save loaded packages
+      loaded_packages <- grep("^package:", search(), value = TRUE)
+      loaded_packages <- sub("^package:", "", loaded_packages)
+      # Filter out base packages that are always available
+      base_packages <- c("base", "datasets", "graphics", "grDevices", "methods", "stats", "stats4", "tools", "utils")
+      loaded_packages <- setdiff(loaded_packages, base_packages)
+      packages_rds_path <- file.path(slurm_dir, "packages.rds")
+      saveRDS(loaded_packages, packages_rds_path)
+      
+      # Save R workspace image if requested
+      image_path <- NULL
+      if (store_image) {
+        image_path <- file.path(slurm_dir, "workspace.RData")
+        save.image(file = image_path)
+      }
+
+      # Get paths to template files
+      slurm_template_path <- system.file("extdata", "template_slurm.sh", package = "pm")
+      r_template_path <- system.file("extdata", "template_slurm_r.R", package = "pm")
+
+      if (!file.exists(slurm_template_path)) {
+        stop("SLURM template file not found. Please reinstall the package.")
+      }
+      if (!file.exists(r_template_path)) {
+        stop("SLURM R script template not found. Please reinstall the package.")
+      }
+
+      # Copy R script template to job directory
+      r_script_path <- file.path(slurm_dir, "slurm_run.R")
+      file.copy(r_template_path, r_script_path, overwrite = TRUE)
+      Sys.chmod(r_script_path, mode = "0755")
+
+      # Copy SLURM template to job directory
+      slurm_script_path <- file.path(slurm_dir, "slurm_job.sh")
+      file.copy(slurm_template_path, slurm_script_path, overwrite = TRUE)
+      Sys.chmod(slurm_script_path, mode = "0755")
+
+      # Handle extra SLURM flags
+      if (nzchar(slurm_flags)) {
+        # Split flags by newline and add #SBATCH prefix if needed
+        flags_lines <- strsplit(slurm_flags, "\n")[[1]]
+        flags_lines <- trimws(flags_lines)
+        flags_lines <- flags_lines[nzchar(flags_lines)]
+        flags_lines <- ifelse(
+          startsWith(flags_lines, "#SBATCH"),
+          flags_lines,
+          paste0("#SBATCH ", flags_lines)
+        )
+        slurm_extra_flags <- paste(flags_lines, collapse = "\n")
+      } else {
+        slurm_extra_flags <- ""
+      }
+
+      # Set environment variables and submit job
+      # Pass modules as space-separated string (will be parsed in bash script)
+      modules_str <- paste(modules, collapse = " ")
+      env_vars <- c(
+        PM_JOB_NAME = job_name,
+        PM_LOG_DIR = logs_dir,
+        PM_TIME_LIMIT = time_limit,
+        PM_MEMORY = memory,
+        PM_CPUS = as.character(cpus),
+        PM_WORK_DIR = self$path,
+        PM_R_SCRIPT_PATH = r_script_path,
+        PM_FUN_FILE = fun_rds_path,
+        PM_ARGS_FILE = args_rds_path,
+        PM_RESULT_FILE = result_path,
+        PM_MODULES = modules_str,
+        PM_SLURM_EXTRA_FLAGS = slurm_extra_flags,
+        PM_PACKAGES_FILE = packages_rds_path,
+        PM_IMAGE_FILE = if (!is.null(image_path)) image_path else ""
+      )
+
+      # Submit job with environment variables
+      job_id <- .submit_slurm_job_with_env(slurm_script_path, env_vars)
+
+      # Determine log path (SLURM will create it with job ID)
+      log_path <- file.path(logs_dir, paste0("slurm-", job_id, ".out"))
+      error_log_path <- file.path(logs_dir, paste0("slurm-", job_id, ".err"))
+
+      # Return PMSlurmRun object
+      PMSlurmRun$new(
+        job_id = job_id,
+        analysis_path = self$path,
+        result_path = result_path,
+        log_path = log_path,
+        error_log_path = error_log_path
+      )
     }
   ),
   active = list(

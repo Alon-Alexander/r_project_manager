@@ -8,6 +8,10 @@
   : Data input class
 - [`PMProject`](https://alon-alexander.github.io/r_project_manager/reference/PMProject.md)
   : Project class to manage a project folder
+- [`PMSlurmRun`](https://alon-alexander.github.io/r_project_manager/reference/PMSlurmRun.md)
+  : SLURM Run class to manage SLURM job execution
+- [`is_slurm_available()`](https://alon-alexander.github.io/r_project_manager/reference/is_slurm_available.md)
+  : Check if SLURM is available on the system
 - [`pm_create_project()`](https://alon-alexander.github.io/r_project_manager/reference/pm_create_project.md)
   : Create a new project from template in the given folder
 - [`pm_infer_analysis()`](https://alon-alexander.github.io/r_project_manager/reference/pm_infer_analysis.md)

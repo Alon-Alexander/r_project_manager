@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">pm</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -21,6 +21,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/file-formats.html">Working with File Formats: Read and Write Operations</a></li>
     <li><a class="dropdown-item" href="../articles/getting-started.html">Getting Started with pm: A Complete Workflow Example</a></li>
     <li><a class="dropdown-item" href="../articles/input-definitions.html">Defining Project Inputs: Different Input Formats for project.yaml</a></li>
+    <li><a class="dropdown-item" href="../articles/slurm-integration.html">Running Analyses with SLURM</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -37,6 +38,23 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.9" id="pm-019">pm 0.1.9<a class="anchor" aria-label="anchor" href="#pm-019"></a></h2>
+<div class="section level3">
+<h3 id="new-features-0-1-9">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-1-9"></a></h3>
+<ul><li>Added <code>pm_infer_analysis</code> to easily use package when writing code</li>
+<li>Added active binding <code>project</code> to <code>PMAnalysis</code> object to easily access containing project</li>
+<li>Add <code>run_in_slurm()</code> method to <code>PMAnalysis</code> for running R functions in SLURM batch jobs</li>
+<li>Add <code>PMSlurmRun</code> R6 class for managing SLURM job execution (non-blocking submission, status checking, result retrieval)</li>
+<li>Support for passing function arguments via <code>...</code> and SLURM configuration via <code>config</code> parameter</li>
+<li>Automatic job status checking with <code>is_done()</code> and <code>is_successful()</code> methods</li>
+<li>Support for timeout-based blocking result retrieval with <code>get_results(timeout = ...)</code>
+</li>
+<li>Results saved as RDS files for direct loading (intermediate artifact)</li>
+<li>Generic SLURM script templates using environment variables for configuration</li>
+<li>Comprehensive test suite with mock SLURM implementation for testing without actual SLURM</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.8" id="pm-018">pm 0.1.8<a class="anchor" aria-label="anchor" href="#pm-018"></a></h2>
 <div class="section level3">

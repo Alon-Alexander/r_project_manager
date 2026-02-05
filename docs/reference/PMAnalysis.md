@@ -42,6 +42,8 @@ Each analysis contains code, outputs, intermediate results, and logs.
 
 - [`PMAnalysis$get_output_path()`](#method-PMAnalysis-get_output_path)
 
+- [`PMAnalysis$run_in_slurm()`](#method-PMAnalysis-run_in_slurm)
+
 - [`PMAnalysis$clone()`](#method-PMAnalysis-clone)
 
 ------------------------------------------------------------------------
@@ -277,6 +279,99 @@ A `PMData` object with:
 
 ------------------------------------------------------------------------
 
+### Method `run_in_slurm()`
+
+Run a function in SLURM. Submits the function as a SLURM job and returns
+a PMSlurmRun object that can be used to check status and retrieve
+results.
+
+#### Usage
+
+    PMAnalysis$run_in_slurm(fun, ..., result_id = NULL, config = list())
+
+#### Arguments
+
+- `fun`:
+
+  Function. The function to run in SLURM.
+
+- `...`:
+
+  Additional arguments to pass to the function (can be positional or
+  named).
+
+- `result_id`:
+
+  Character. Optional ID for the result file (default: "slurm_result").
+  Must be provided by name if function arguments are passed
+  positionally.
+
+- `config`:
+
+  List. SLURM configuration with optional elements:
+
+  - `job_name`: Character. Name for the SLURM job (default: analysis
+    name).
+
+  - `time_limit`: Character. SLURM time limit (default: "01:00:00").
+
+  - `memory`: Character. SLURM memory limit (default: "4G").
+
+  - `cpus`: Integer. Number of CPUs to request (default: 1).
+
+  - `slurm_flags`: Character. Additional SLURM flags (default: "").
+
+  - `modules`: Character vector. Modules to load (default: NULL).
+
+#### Details
+
+This method:
+
+- Checks if SLURM is available
+
+- Creates an R script that runs the function and saves results
+
+- Creates a SLURM script from the template
+
+- Submits the job
+
+- Returns a PMSlurmRun object for monitoring
+
+Results are stored in the intermediate folder. All temporary files
+(function files, scripts) are stored in a temporary directory.
+
+Function arguments can be passed positionally or by name. If using
+positional arguments, `result_id` and `config` must be provided by name.
+
+#### Returns
+
+A `PMSlurmRun` object with the job ID and paths.
+
+#### Examples
+
+    \dontrun{
+    analysis <- pm$get_analysis("my_analysis")
+
+    # With named arguments
+    slurm_run <- analysis$run_in_slurm(function(x, y) {
+      result <- compute_something(x, y)
+      return(result)
+    }, x = 10, y = 20)
+
+    # With positional arguments
+    slurm_run <- analysis$run_in_slurm(function(x) {
+      return(2 * x)
+    }, 10, result_id = "my_result")
+
+    # Check if done
+    slurm_run$is_done()
+
+    # Get results (with optional timeout to wait)
+    results <- slurm_run$get_results(timeout = 60)
+    }
+
+------------------------------------------------------------------------
+
 ### Method `clone()`
 
 The objects of this class are cloneable with this method.
@@ -303,8 +398,8 @@ analysis <- pm$create_analysis("data_preparation")
 analysis
 #> PMAnalysis:
 #>   Name: data_preparation
-#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpewLzrE/file1026738407983/analyses/data_preparation
-#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpewLzrE/file1026738407983
+#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd4dbd1085/analyses/data_preparation
+#>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd4dbd1085
 
 # Load an existing analysis from project
 analysis <- pm$get_analysis("data_preparation")
@@ -386,12 +481,37 @@ output <- analysis$get_output_path("results.csv", type = "table")
 output$id    # "results"
 #> [1] "results"
 output$path  # full path to results.csv in outputs/
-#> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpewLzrE/file1026771b1db11/analyses/my_analysis/outputs/results.csv"
+#> [1] "/private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd117b920b/analyses/my_analysis/outputs/results.csv"
 
 # Get intermediate path without extension (will add .parquet for table type)
 intermediate <- analysis$get_output_path("temp_data", type = "table", intermediate = TRUE)
 intermediate$id    # "temp_data"
 #> [1] "temp_data"
 intermediate$path  # full path to temp_data.parquet in intermediate/
-#> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpewLzrE/file1026771b1db11/analyses/my_analysis/intermediate/temp_data.parquet"
+#> [1] "/private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd117b920b/analyses/my_analysis/intermediate/temp_data.parquet"
+
+## ------------------------------------------------
+## Method `PMAnalysis$run_in_slurm`
+## ------------------------------------------------
+
+if (FALSE) { # \dontrun{
+analysis <- pm$get_analysis("my_analysis")
+
+# With named arguments
+slurm_run <- analysis$run_in_slurm(function(x, y) {
+  result <- compute_something(x, y)
+  return(result)
+}, x = 10, y = 20)
+
+# With positional arguments
+slurm_run <- analysis$run_in_slurm(function(x) {
+  return(2 * x)
+}, 10, result_id = "my_result")
+
+# Check if done
+slurm_run$is_done()
+
+# Get results (with optional timeout to wait)
+results <- slurm_run$get_results(timeout = 60)
+} # }
 ```

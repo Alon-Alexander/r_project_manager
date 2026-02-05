@@ -99,6 +99,31 @@ output$path  # full path to results.csv in outputs/
 intermediate <- analysis$get_output_path("temp_data", type = "table", intermediate = TRUE)
 intermediate$id    # "temp_data"
 intermediate$path  # full path to temp_data.parquet in intermediate/
+
+## ------------------------------------------------
+## Method `PMAnalysis$run_in_slurm`
+## ------------------------------------------------
+
+\dontrun{
+analysis <- pm$get_analysis("my_analysis")
+
+# With named arguments
+slurm_run <- analysis$run_in_slurm(function(x, y) {
+  result <- compute_something(x, y)
+  return(result)
+}, x = 10, y = 20)
+
+# With positional arguments
+slurm_run <- analysis$run_in_slurm(function(x) {
+  return(2 * x)
+}, 10, result_id = "my_result")
+
+# Check if done
+slurm_run$is_done()
+
+# Get results (with optional timeout to wait)
+results <- slurm_run$get_results(timeout = 60)
+}
 }
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
@@ -129,6 +154,7 @@ Get the project containing this analysis}
 \item \href{#method-PMAnalysis-get_intermediate_artifact}{\code{PMAnalysis$get_intermediate_artifact()}}
 \item \href{#method-PMAnalysis-list_outputs}{\code{PMAnalysis$list_outputs()}}
 \item \href{#method-PMAnalysis-get_output_path}{\code{PMAnalysis$get_output_path()}}
+\item \href{#method-PMAnalysis-run_in_slurm}{\code{PMAnalysis$run_in_slurm()}}
 \item \href{#method-PMAnalysis-clone}{\code{PMAnalysis$clone()}}
 }
 }
@@ -357,6 +383,88 @@ output$path  # full path to results.csv in outputs/
 intermediate <- analysis$get_output_path("temp_data", type = "table", intermediate = TRUE)
 intermediate$id    # "temp_data"
 intermediate$path  # full path to temp_data.parquet in intermediate/
+}
+\if{html}{\out{</div>}}
+
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-PMAnalysis-run_in_slurm"></a>}}
+\if{latex}{\out{\hypertarget{method-PMAnalysis-run_in_slurm}{}}}
+\subsection{Method \code{run_in_slurm()}}{
+Run a function in SLURM.
+Submits the function as a SLURM job and returns a PMSlurmRun object
+that can be used to check status and retrieve results.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{PMAnalysis$run_in_slurm(fun, ..., result_id = NULL, config = list())}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{fun}}{Function. The function to run in SLURM.}
+
+\item{\code{...}}{Additional arguments to pass to the function (can be positional or named).}
+
+\item{\code{result_id}}{Character. Optional ID for the result file (default: "slurm_result").
+Must be provided by name if function arguments are passed positionally.}
+
+\item{\code{config}}{List. SLURM configuration with optional elements:
+\itemize{
+\item \code{job_name}: Character. Name for the SLURM job (default: analysis name).
+\item \code{time_limit}: Character. SLURM time limit (default: "01:00:00").
+\item \code{memory}: Character. SLURM memory limit (default: "4G").
+\item \code{cpus}: Integer. Number of CPUs to request (default: 1).
+\item \code{slurm_flags}: Character. Additional SLURM flags (default: "").
+\item \code{modules}: Character vector. Modules to load (default: NULL).
+\item \code{store_image}: Logical. Whether to save and load R workspace image (default: TRUE).
+}}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Details}{
+This method:
+\itemize{
+\item Checks if SLURM is available
+\item Creates an R script that runs the function and saves results
+\item Creates a SLURM script from the template
+\item Submits the job
+\item Returns a PMSlurmRun object for monitoring
+}
+
+Results are stored in the intermediate folder.
+All temporary files (function files, scripts) are stored in a temporary directory.
+
+Function arguments can be passed positionally or by name. If using positional
+arguments, \code{result_id} and \code{config} must be provided by name.
+}
+
+\subsection{Returns}{
+A \code{PMSlurmRun} object with the job ID and paths.
+}
+\subsection{Examples}{
+\if{html}{\out{<div class="r example copy">}}
+\preformatted{\dontrun{
+analysis <- pm$get_analysis("my_analysis")
+
+# With named arguments
+slurm_run <- analysis$run_in_slurm(function(x, y) {
+  result <- compute_something(x, y)
+  return(result)
+}, x = 10, y = 20)
+
+# With positional arguments
+slurm_run <- analysis$run_in_slurm(function(x) {
+  return(2 * x)
+}, 10, result_id = "my_result")
+
+# Check if done
+slurm_run$is_done()
+
+# Get results (with optional timeout to wait)
+results <- slurm_run$get_results(timeout = 60)
+}
 }
 \if{html}{\out{</div>}}
 
