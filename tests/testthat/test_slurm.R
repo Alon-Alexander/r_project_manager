@@ -37,14 +37,15 @@
       }
 
       # Extract values from positional arguments
-      # Order: PM_FUN_FILE, PM_ARGS_FILE, PM_RESULT_FILE, PM_WORK_DIR, PM_R_SCRIPT_PATH, PM_MODULES, PM_IMAGE_FILE
+      # Order: PM_FUN_FILE, PM_ARGS_FILE, PM_RESULT_FILE, PM_WORK_DIR, PM_R_SCRIPT_PATH, PM_MODULES, PM_PACKAGES_FILE, PM_IMAGE_FILE
       fun_file <- if (length(positional_args) >= 1) positional_args[1] else NULL
       args_file <- if (length(positional_args) >= 2) positional_args[2] else NULL
       result_path <- if (length(positional_args) >= 3) positional_args[3] else NULL
       work_dir <- if (length(positional_args) >= 4) positional_args[4] else NULL
       r_script_path <- if (length(positional_args) >= 5) positional_args[5] else NULL
       modules_str <- if (length(positional_args) >= 6) positional_args[6] else NULL
-      image_file <- if (length(positional_args) >= 7 && nzchar(positional_args[7])) positional_args[7] else NULL
+      packages_file <- if (length(positional_args) >= 7 && nzchar(positional_args[7])) positional_args[7] else NULL
+      image_file <- if (length(positional_args) >= 8 && nzchar(positional_args[8])) positional_args[8] else NULL
       
       # Extract log_dir from sbatch arguments (--output and --error flags)
       log_dir <- NULL
@@ -73,6 +74,7 @@
           args_file = args_file,
           log_dir = log_dir,
           result_path = result_path,
+          packages_file = packages_file, # May be NULL if not provided
           image_file = image_file, # May be NULL if not provided
           start_time = Sys.time(),
           status = "PENDING", # Job is pending until mock_run_slurm_job() is called
@@ -260,7 +262,8 @@
         r_script_path,
         paste0("--fun-file=", fun_file),
         paste0("--args-file=", args_file),
-        paste0("--result-file=", result_path)
+        paste0("--result-file=", result_path),
+        paste0("--packages-file=", if (!is.null(job_info$packages_file) && nzchar(job_info$packages_file)) job_info$packages_file else "")
       )
       
       # Add image file if it exists

@@ -261,7 +261,7 @@ is_slurm_available <- function() {
   # Extract script arguments (positional arguments for the bash script)
   script_args <- character(0)
   
-  # Order: PM_FUN_FILE, PM_ARGS_FILE, PM_RESULT_FILE, PM_WORK_DIR, PM_R_SCRIPT_PATH, PM_MODULES, PM_IMAGE_FILE
+  # Order: PM_FUN_FILE, PM_ARGS_FILE, PM_RESULT_FILE, PM_WORK_DIR, PM_R_SCRIPT_PATH, PM_MODULES, PM_PACKAGES_FILE, PM_IMAGE_FILE
   if ("PM_FUN_FILE" %in% names(env_vars)) {
     script_args <- c(script_args, shQuote(env_vars[["PM_FUN_FILE"]]))
   }
@@ -280,6 +280,11 @@ is_slurm_available <- function() {
   if ("PM_MODULES" %in% names(env_vars)) {
     # PM_MODULES is space-separated, so we need to quote it as a single argument
     script_args <- c(script_args, shQuote(env_vars[["PM_MODULES"]]))
+  }
+  if ("PM_PACKAGES_FILE" %in% names(env_vars)) {
+    script_args <- c(script_args, shQuote(env_vars[["PM_PACKAGES_FILE"]]))
+  } else {
+    script_args <- c(script_args, shQuote(""))
   }
   if ("PM_IMAGE_FILE" %in% names(env_vars)) {
     # PM_IMAGE_FILE is optional - pass empty string if not provided

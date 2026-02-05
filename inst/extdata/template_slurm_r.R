@@ -9,6 +9,7 @@ args <- commandArgs(trailingOnly = TRUE)
 fun_file <- Sys.getenv("PM_FUN_FILE", "")
 args_file <- Sys.getenv("PM_ARGS_FILE", "")
 result_file <- Sys.getenv("PM_RESULT_FILE", "")
+packages_file <- Sys.getenv("PM_PACKAGES_FILE", "")
 image_file <- Sys.getenv("PM_IMAGE_FILE", "")
 
 # Try to get from command line if not in environment
@@ -20,8 +21,20 @@ if (fun_file == "" || args_file == "" || result_file == "") {
       args_file <- sub("--args-file=", "", arg)
     } else if (startsWith(arg, "--result-file=")) {
       result_file <- sub("--result-file=", "", arg)
+    } else if (startsWith(arg, "--packages-file=")) {
+      packages_file <- sub("--packages-file=", "", arg)
     } else if (startsWith(arg, "--image-file=")) {
       image_file <- sub("--image-file=", "", arg)
+    }
+  }
+}
+
+# Load packages if provided
+if (packages_file != "" && file.exists(packages_file)) {
+  packages <- readRDS(packages_file)
+  for (pkg in packages) {
+    if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
+      warning(sprintf("Failed to load package: %s", pkg))
     }
   }
 }

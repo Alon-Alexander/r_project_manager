@@ -495,6 +495,15 @@ PMAnalysis <- R6Class("PMAnalysis",
       saveRDS(fun, fun_rds_path)
       saveRDS(fun_args, args_rds_path)
       
+      # Extract and save loaded packages
+      loaded_packages <- grep("^package:", search(), value = TRUE)
+      loaded_packages <- sub("^package:", "", loaded_packages)
+      # Filter out base packages that are always available
+      base_packages <- c("base", "datasets", "graphics", "grDevices", "methods", "stats", "stats4", "tools", "utils")
+      loaded_packages <- setdiff(loaded_packages, base_packages)
+      packages_rds_path <- file.path(slurm_dir, "packages.rds")
+      saveRDS(loaded_packages, packages_rds_path)
+      
       # Save R workspace image if requested
       image_path <- NULL
       if (store_image) {
