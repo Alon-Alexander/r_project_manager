@@ -33,9 +33,11 @@ if (fun_file == "" || args_file == "" || result_file == "") {
 if (packages_file != "" && file.exists(packages_file)) {
   packages <- readRDS(packages_file)
   for (pkg in packages) {
-    if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
-      warning(sprintf("Failed to load package: %s", pkg))
-    }
+    tryCatch({
+      library(pkg, character.only = TRUE)
+    }, error = function(e) {
+      warning(sprintf("Failed to load package: %s - %s", pkg, conditionMessage(e)))
+    })
   }
 }
 
