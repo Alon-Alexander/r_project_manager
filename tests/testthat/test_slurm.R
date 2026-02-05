@@ -961,6 +961,55 @@ describe("SLURM functionality", {
       })
     })
 
+    it("Loads packages in SLURM environment", {
+      # Skip if arrow is not available
+      skip_if_not_installed("arrow")
+      
+      dir <- .get_good_project_path()
+      pm <- pm::PMProject$new(dir)
+      analysis <- pm$create_analysis("test_analysis")
+
+      # Load arrow package before submitting job
+      library(arrow)
+
+      with_mock_slurm({
+        # Use arrow function inside the SLURM function
+        # This tests that packages are properly loaded in the SLURM environment
+        slurm_run <- analysis$run_in_slurm(function() {
+          # Create a simple data frame
+          df <- data.frame(x = 1:5, y = letters[1:5])
+          
+          # Use arrow::as_arrow_table to verify package functions work
+          # This will fail if arrow package is not loaded
+          tbl <- arrow::as_arrow_table(df)
+          
+          # Return something that proves arrow was used
+          return(list(
+            table_rows = nrow(tbl),
+            table_cols = ncol(tbl),
+            class_name = class(tbl)[1]
+          ))
+        })
+
+        # Run the job explicitly
+        mock_run_slurm_job(slurm_run$job_id)
+
+        # Verify job completed successfully
+        expect_true(slurm_run$is_successful())
+
+        # Get results and verify arrow was used
+        results <- slurm_run$get_results()
+        expect_true(is.list(results))
+        expect_equal(results$table_rows, 5)
+        expect_equal(results$table_cols, 2)
+        # Verify it's an Arrow table (proves arrow package was loaded)
+        # The class should be "Table" from arrow package
+        expect_true(grepl("Table|Arrow", results$class_name, ignore.case = TRUE))
+
+        cat(readLines(slurm_run$log_path, warn = FALSE), sep = "\n")
+      })
+    })
+
     it("Checks error log content for failed jobs", {
       dir <- .get_good_project_path()
       pm <- pm::PMProject$new(dir)

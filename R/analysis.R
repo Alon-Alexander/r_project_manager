@@ -564,6 +564,7 @@ PMAnalysis <- R6Class("PMAnalysis",
         PM_RESULT_FILE = result_path,
         PM_MODULES = modules_str,
         PM_SLURM_EXTRA_FLAGS = slurm_extra_flags,
+        PM_PACKAGES_FILE = packages_rds_path,
         PM_IMAGE_FILE = if (!is.null(image_path)) image_path else ""
       )
 
