@@ -1005,8 +1005,6 @@ describe("SLURM functionality", {
         # Verify it's an Arrow table (proves arrow package was loaded)
         # The class should be "Table" from arrow package
         expect_true(grepl("Table|Arrow", results$class_name, ignore.case = TRUE))
-
-        cat(readLines(slurm_run$log_path, warn = FALSE), sep = "\n")
       })
     })
 

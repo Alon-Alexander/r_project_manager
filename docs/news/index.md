@@ -1,5 +1,13 @@
 # Changelog
 
+## pm 0.1.10
+
+### New Features
+
+- Support multiple names for the code folder name apart from “code”
+  (also “src” and “scripts)
+- Update the template README to include reference to this package :)
+
 ## pm 0.1.9
 
 ### New Features

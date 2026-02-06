@@ -54,7 +54,10 @@ PMAnalysis <- R6Class("PMAnalysis",
         chk::chk_character(path)
 
         self$path <- normalizePath(path, mustWork = FALSE)
+        chk::check_dirs(self$path, x_name = "Analysis folder")
+
         self$name <- basename(self$path)
+        private$code_folder_name <- .find_code_folder_name(self$path)
 
         # Try to infer project path (parent of analyses directory)
         parent <- dirname(self$path)
@@ -78,7 +81,7 @@ PMAnalysis <- R6Class("PMAnalysis",
         x_name = "Analysis README file"
       )
       chk::check_dirs(
-        file.path(self$path, "code"),
+        file.path(self$path, private$code_folder_name),
         x_name = "Code folder"
       )
       chk::check_dirs(
@@ -595,6 +598,9 @@ PMAnalysis <- R6Class("PMAnalysis",
 
       PMProject$new(self$project_path)
     }
+  ),
+  private = list(
+    code_folder_name = NULL
   )
 )
 
@@ -603,7 +609,7 @@ PMAnalysis <- R6Class("PMAnalysis",
 #' @description
 #' Find the relevant analysis object based on the current directory.
 #' Currently supported being called from an analysis folder inside
-#' "analyses" folder, or from the "code" folder of an analysis.
+#' "analyses" folder, or from the code folder of an analysis.
 #'
 #' @return \code{PMAnalysis} object representing the inferred analysis
 #'
@@ -635,7 +641,7 @@ pm_infer_analysis <- function() {
   }
 
   # Check if in "code" folder in an analysis folder
-  if (basename(current_path) == "code") {
+  if (basename(current_path) %in% constants$ANALYSIS_CODE_DIR_OPTIONS) {
     grandparent <- dirname(parent)
     if (basename(grandparent) == constants$ANALYSES_DIR) {
       return(PMAnalysis$new(path = parent))
@@ -643,4 +649,23 @@ pm_infer_analysis <- function() {
   }
 
   stop("Couldn't infer analysis path from current folder, please provide a direct path")
+}
+
+#' @title Find the name of the code folder in an analysis
+#'
+#' @description
+#' Find which name is used for the analysis' code folder.
+#' This expects and validates that it is one of the known options.
+#'
+#' @param analysis_path Character. Path to the analysis folder to inspect
+#'
+#' @keywords internal
+.find_code_folder_name <- function(analysis_path) {
+  for (option in constants$ANALYSIS_CODE_DIR_OPTIONS) {
+    if (dir.exists(file.path(analysis_path, option))){
+      return(option)
+    }
+  }
+
+  stop(paste("Failed to find code folder with valid name for analysis at", analysis_path))
 }

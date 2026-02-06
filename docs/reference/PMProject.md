@@ -200,13 +200,21 @@ intermediate/, logs/), and .gitignore file.
 
 #### Usage
 
-    PMProject$create_analysis(name)
+    PMProject$create_analysis(
+      name,
+      code_folder_name = constants$ANALYSIS_CODE_DIR_OPTIONS
+    )
 
 #### Arguments
 
 - `name`:
 
   Character. Name of the analysis (will be the folder name).
+
+- `code_folder_name`:
+
+  Character. Name of the source code folder to be used in the analysis.
+  Defaults to "code".
 
 #### Returns
 
@@ -246,7 +254,7 @@ invisible(pm_create_project(folder))
 pm <- PMProject$new(folder)
 pm
 #> PMProject:
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd6e451191
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab712f99e4
 #>   Analyses: 0
 
 
@@ -282,8 +290,8 @@ analysis <- pm$get_analysis("data_preparation")
 analysis
 #> PMAnalysis:
 #>   Name: data_preparation
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd225258bd/analyses/data_preparation
-#>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd225258bd
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab4440c095/analyses/data_preparation
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab4440c095
 
 ## ------------------------------------------------
 ## Method `PMProject$get_artifact`
@@ -313,6 +321,6 @@ analysis <- pm$create_analysis("data_preparation")
 analysis
 #> PMAnalysis:
 #>   Name: data_preparation
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd7a22187e/analyses/data_preparation
-#>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd7a22187e
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab421f6207/analyses/data_preparation
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab421f6207
 ```

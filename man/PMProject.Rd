@@ -274,13 +274,19 @@ Creates a new analysis folder with template structure including
 README.md, directories (code/, outputs/, intermediate/, logs/),
 and .gitignore file.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{PMProject$create_analysis(name)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{PMProject$create_analysis(
+  name,
+  code_folder_name = constants$ANALYSIS_CODE_DIR_OPTIONS
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{name}}{Character. Name of the analysis (will be the folder name).}
+
+\item{\code{code_folder_name}}{Character. Name of the source code folder to
+be used in the analysis. Defaults to "code".}
 }
 \if{html}{\out{</div>}}
 }

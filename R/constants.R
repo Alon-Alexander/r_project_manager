@@ -8,6 +8,7 @@ constants <- list(
   TEMPLATE_GITIGNORE_FILENAME = "template_gitignore",
   ANALYSIS_INTERMEDIATE_DIR = "intermediate",
   ANALYSIS_OUTPUT_DIR = "outputs",
+  ANALYSIS_CODE_DIR_OPTIONS = c("code", "src", "scripts"),
   TYPE_MAPPINGS = list(
     defaults = list(
       table = "parquet",

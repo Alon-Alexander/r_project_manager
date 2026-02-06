@@ -12,7 +12,7 @@ pm_infer_analysis()
 \description{
 Find the relevant analysis object based on the current directory.
 Currently supported being called from an analysis folder inside
-"analyses" folder, or from the "code" folder of an analysis.
+"analyses" folder, or from the code folder of an analysis.
 }
 \examples{
 empty_folder <- withr::local_tempdir()

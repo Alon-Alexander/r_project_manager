@@ -9,7 +9,7 @@ Use it to create analyses, freeze input files, etc."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">pm</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -230,13 +230,21 @@ Creates a new analysis folder with template structure including
 README.md, directories (code/, outputs/, intermediate/, logs/),
 and .gitignore file.</p><div class="section">
 <h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PMProject</span><span class="op">$</span><span class="fu">create_analysis</span><span class="op">(</span><span class="va">name</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">PMProject</span><span class="op">$</span><span class="fu">create_analysis</span><span class="op">(</span></span>
+<span>  <span class="va">name</span>,</span>
+<span>  code_folder_name <span class="op">=</span> <span class="va">constants</span><span class="op">$</span><span class="va">ANALYSIS_CODE_DIR_OPTIONS</span></span>
+<span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>name</code></dt>
 <dd><p>Character. Name of the analysis (will be the folder name).</p></dd>
+
+
+<dt><code>code_folder_name</code></dt>
+<dd><p>Character. Name of the source code folder to
+be used in the analysis. Defaults to "code".</p></dd>
 
 
 </dl><p></p></div>
@@ -284,7 +292,7 @@ and .gitignore file.</p><div class="section">
 <span class="r-in"><span><span class="va">pm</span> <span class="op">&lt;-</span> <span class="va">PMProject</span><span class="op">$</span><span class="fu">new</span><span class="op">(</span><span class="va">folder</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">pm</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> PMProject:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd6e451191</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab712f99e4</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Analyses: 0</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span></span></span>
@@ -320,8 +328,8 @@ and .gitignore file.</p><div class="section">
 <span class="r-in"><span><span class="va">analysis</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> PMAnalysis:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Name: data_preparation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd225258bd/analyses/data_preparation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd225258bd</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab4440c095/analyses/data_preparation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab4440c095</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## ------------------------------------------------</span></span></span>
 <span class="r-in"><span><span class="co">## Method `PMProject$get_artifact`</span></span></span>
@@ -351,8 +359,8 @@ and .gitignore file.</p><div class="section">
 <span class="r-in"><span><span class="va">analysis</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> PMAnalysis:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Name: data_preparation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd7a22187e/analyses/data_preparation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd7a22187e</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab421f6207/analyses/data_preparation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab421f6207</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
