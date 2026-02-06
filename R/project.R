@@ -339,6 +339,8 @@ PMProject <- R6Class("PMProject",
     #' and .gitignore file.
     #'
     #' @param name Character. Name of the analysis (will be the folder name).
+    #' @param code_folder_name Character. Name of the source code folder to
+    #'     be used in the analysis. Defaults to "code".
     #'
     #' @return \code{PMAnalysis} object representing the newly created analysis
     #'
@@ -347,9 +349,12 @@ PMProject <- R6Class("PMProject",
     #' pm <- pm_create_project(folder)
     #' analysis <- pm$create_analysis("data_preparation")
     #' analysis
-    create_analysis = function(name) {
+    create_analysis = function(name, code_folder_name = constants$ANALYSIS_CODE_DIR_OPTIONS) {
+      code_folder_name <- match.arg(code_folder_name)
       chk::chk_scalar(name)
       chk::chk_character(name)
+      chk::chk_scalar(code_folder_name)
+      chk::chk_character(code_folder_name)
 
       # Check if analysis already exists
       analysis_path <- private$at(constants$ANALYSES_DIR, name)
@@ -376,6 +381,14 @@ PMProject <- R6Class("PMProject",
       # Copy template structure
       template_dir <- system.file("extdata", constants$TEMPLATE_ANALYSIS_DIR, package = "pm")
       .recursive_copy(template_dir, analysis_path)
+
+      # Rename code folder name if not default "code"
+      if (code_folder_name != "code") {
+        file.rename(
+          from = file.path(analysis_path, "code"),
+          to = file.path(analysis_path, code_folder_name)
+        )
+      }
 
       # Replace {{ANALYSIS_NAME}} placeholder in README.md
       readme_path <- file.path(analysis_path, constants$README_FILENAME)

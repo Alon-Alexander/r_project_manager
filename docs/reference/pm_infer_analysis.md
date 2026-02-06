@@ -2,7 +2,7 @@
 
 Find the relevant analysis object based on the current directory.
 Currently supported being called from an analysis folder inside
-"analyses" folder, or from the "code" folder of an analysis.
+"analyses" folder, or from the code folder of an analysis.
 
 ## Usage
 
@@ -22,8 +22,8 @@ pm <- pm_create_project(empty_folder)
 pm$create_analysis("my_analysis")
 #> PMAnalysis:
 #>   Name: my_analysis
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd4f324467/analyses/my_analysis
-#>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd4f324467
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab554c19b8/analyses/my_analysis
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab554c19b8
 
 # Infer from analysis folder
 withr::with_dir(file.path(empty_folder, "analyses", "my_analysis"), {
@@ -32,8 +32,8 @@ withr::with_dir(file.path(empty_folder, "analyses", "my_analysis"), {
 })
 #> PMAnalysis:
 #>   Name: my_analysis
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd4f324467/analyses/my_analysis
-#>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd4f324467
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab554c19b8/analyses/my_analysis
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab554c19b8
 
 # Infer from code folder
 withr::with_dir(file.path(empty_folder, "analyses", "my_analysis", "code"), {
@@ -42,6 +42,6 @@ withr::with_dir(file.path(empty_folder, "analyses", "my_analysis", "code"), {
 })
 #> PMAnalysis:
 #>   Name: my_analysis
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd4f324467/analyses/my_analysis
-#>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd4f324467
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab554c19b8/analyses/my_analysis
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab554c19b8
 ```

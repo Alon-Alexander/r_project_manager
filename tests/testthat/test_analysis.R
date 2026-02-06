@@ -259,6 +259,46 @@ describe("PMProject$create_analysis() works correctly", {
       regexp = "class|character"
     )
   })
+
+  it("works with different code folder name", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+
+    options <- c("code", "src", "scripts")
+
+    i <- 0
+    for (option_name in options) {
+      i <- i + 1
+      analysis <- pm$create_analysis(
+        paste0("test_analysis_", i),
+        code_folder_name = option_name
+      )
+
+      # Check directory structure
+      analysis_path <- analysis$path
+      expect_true(dir.exists(analysis_path))
+
+      # The selected option should exist
+      expect_true(dir.exists(file.path(analysis_path, option_name)))
+
+      # Other options should not exist
+      for (other_option in options) {
+        if (other_option != option_name) {
+          expect_false(dir.exists(file.path(analysis_path, other_option)))
+        }
+      }
+    }
+  })
+
+  it("Fails when given an invalid code folder name", {
+    expect_error(
+      pm$create_analysis(
+        "test_analysis",
+        code_folder_name = "invalid_name"
+      ),
+      regexpr = "should be one of"
+    )
+  })
 })
 
 describe("PMProject$list_analyses() works correctly", {
@@ -1366,6 +1406,16 @@ describe("pm_infer_analysis works correctly", {
 
       expect_equal(expected$path, analysis$path)
       expect_equal(expected$name, analysis$name)
+    })
+  })
+
+  it("Infers correctly from code folder with another name", {
+    expected_other <- pm$create_analysis("data_prep2", code_folder_name = "src")
+    withr::with_dir(file.path(dir, "analyses", "data_prep2", "src"), {
+      analysis <- pm_infer_analysis()
+
+      expect_equal(expected_other$path, analysis$path)
+      expect_equal(expected_other$name, analysis$name)
     })
   })
 

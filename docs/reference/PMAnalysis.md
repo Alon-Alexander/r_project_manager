@@ -323,6 +323,9 @@ results.
 
   - `modules`: Character vector. Modules to load (default: NULL).
 
+  - `store_image`: Logical. Whether to save and load R workspace image
+    (default: TRUE).
+
 #### Details
 
 This method:
@@ -398,8 +401,8 @@ analysis <- pm$create_analysis("data_preparation")
 analysis
 #> PMAnalysis:
 #>   Name: data_preparation
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd4dbd1085/analyses/data_preparation
-#>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd4dbd1085
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab7e847848/analyses/data_preparation
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab7e847848
 
 # Load an existing analysis from project
 analysis <- pm$get_analysis("data_preparation")
@@ -481,14 +484,14 @@ output <- analysis$get_output_path("results.csv", type = "table")
 output$id    # "results"
 #> [1] "results"
 output$path  # full path to results.csv in outputs/
-#> [1] "/private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd117b920b/analyses/my_analysis/outputs/results.csv"
+#> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eabc4e15a9/analyses/my_analysis/outputs/results.csv"
 
 # Get intermediate path without extension (will add .parquet for table type)
 intermediate <- analysis$get_output_path("temp_data", type = "table", intermediate = TRUE)
 intermediate$id    # "temp_data"
 #> [1] "temp_data"
 intermediate$path  # full path to temp_data.parquet in intermediate/
-#> [1] "/private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpTMTVin/file53dd117b920b/analyses/my_analysis/intermediate/temp_data.parquet"
+#> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eabc4e15a9/analyses/my_analysis/intermediate/temp_data.parquet"
 
 ## ------------------------------------------------
 ## Method `PMAnalysis$run_in_slurm`

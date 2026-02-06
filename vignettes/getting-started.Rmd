@@ -45,7 +45,10 @@ inputs <- pm$parse_inputs()
 # Create a new analysis
 prep_analysis <- pm$create_analysis("data_preprocessing")
 
-# Create analysis from path (for example in the analysis's code)
+# Create analysis object based on the current folder
+analysis <- pm_infer_analysis()
+
+# Create analysis from specific path
 analysis <- pm::PMAnalysis$new(path = ".")
 
 # Get output path for storing artifact
