@@ -286,7 +286,7 @@ PMAnalysis <- R6Class("PMAnalysis",
     #'
     #' # Get output path with nested folders
     #' output2 <- analysis$get_output_path("unique\\complex\\structure.rds")
-    #' output2$id   # "unique/complex/structure.rds"
+    #' output2$id   # "unique/complex/structure"
     #' output2$path
     get_output_path = function(name, type = NULL, intermediate = FALSE) {
       # Store original name for ID (without extension)

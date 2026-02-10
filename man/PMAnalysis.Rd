@@ -102,7 +102,7 @@ intermediate$path  # full path to temp_data.parquet in intermediate/
 
 # Get output path with nested folders
 output2 <- analysis$get_output_path("unique\\\\complex\\\\structure.rds")
-output2$id   # "unique/complex/structure.rds"
+output2$id   # "unique/complex/structure"
 output2$path
 
 ## ------------------------------------------------
@@ -392,7 +392,7 @@ intermediate$path  # full path to temp_data.parquet in intermediate/
 
 # Get output path with nested folders
 output2 <- analysis$get_output_path("unique\\\\complex\\\\structure.rds")
-output2$id   # "unique/complex/structure.rds"
+output2$id   # "unique/complex/structure"
 output2$path
 }
 \if{html}{\out{</div>}}

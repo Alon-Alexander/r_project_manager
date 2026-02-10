@@ -1,5 +1,14 @@
 # Changelog
 
+## pm 0.1.11
+
+### New Features
+
+- Support subfolders in `PMAnalysis$get_output_path`
+- Support subfolders in `PMAnalysis$list_outputs`
+- Support subfolders in `get_artifact` (both `PMAnalysis` and
+  `PmProject`)
+
 ## pm 0.1.10
 
 ### New Features
