@@ -275,6 +275,10 @@ PMProject <- R6Class("PMProject",
       chk::chk_scalar(id)
       chk::chk_character(id)
 
+      # Normalize (subfolder) id
+      prev_id = id
+      id <- gsub("\\", "/", id, fixed = TRUE)
+
       # Determine which analyses to search
       if (!is.null(analysis_name)) {
         chk::chk_scalar(analysis_name)
