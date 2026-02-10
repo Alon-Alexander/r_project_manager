@@ -744,4 +744,3 @@ pm_write_file <- function(file, x, ..., object_names = NULL) {
 
   invisible(file)
 }
-

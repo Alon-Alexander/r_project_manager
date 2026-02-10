@@ -1386,6 +1386,82 @@ describe("PMAnalysis$get_artifact() works correctly", {
   })
 })
 
+describe("Writing/reading outputs with subfolders works", {
+  dir <- .get_good_project_path()
+  pm <- pm::PMProject$new(dir)
+  analysis <- pm$create_analysis("data_prep")
+
+  it("Writes and readsproperly to unix-style subfolder", {
+    # Write
+    expected <- 123
+    analysis$get_output_path("t1/file.rds")$write(expected)
+    expect_true(dir.exists(file.path(analysis$path, "outputs", "t1")))
+    expect_true(file.exists(file.path(analysis$path, "outputs", "t1", "file.rds")))
+
+    # Read using unix style
+    result <- analysis$get_output_path("t1/file.rds")$read()
+    expect_equal(result, expected)
+
+    # Read using windows style
+    result2 <- analysis$get_output_path("t1\\file.rds")$read()
+    expect_equal(result2, expected)
+
+    # Find as artifact unix style
+    result3 <- analysis$get_artifact("t1/file")$read()
+    expect_equal(result3, expected)
+
+    # Find as artifact windows style
+    result4 <- analysis$get_artifact("t1\\file")$read()
+    expect_equal(result4, expected)
+  })
+
+  it("Writes and reads properly to windows-style subfolder", {
+    expected <- 456
+    analysis$get_output_path("t2\\file.rds")$write(expected)
+    expect_true(dir.exists(file.path(analysis$path, "outputs", "t2")))
+    expect_true(file.exists(file.path(analysis$path, "outputs", "t2", "file.rds")))
+
+    # Read using unix style
+    result <- analysis$get_output_path("t2/file.rds")$read()
+    expect_equal(result, expected)
+
+    # Read using windows style
+    result2 <- analysis$get_output_path("t2\\file.rds")$read()
+    expect_equal(result2, expected)
+
+    # Find as artifact unix style
+    result3 <- analysis$get_artifact("t2/file")$read()
+    expect_equal(result3, expected)
+
+    # Find as artifact windows style
+    result4 <- analysis$get_artifact("t2\\file")$read()
+    expect_equal(result4, expected)
+  })
+
+  it("Works with deep subfolders", {
+    # Write
+    expected <- 100
+    analysis$get_output_path("t3/another/level/file.rds")$write(expected)
+    expect_true(dir.exists(file.path(analysis$path, "outputs", "t3")))
+    expect_true(dir.exists(file.path(analysis$path, "outputs", "t3", "another")))
+    expect_true(dir.exists(file.path(analysis$path, "outputs", "t3", "another", "level")))
+    expect_true(file.exists(file.path(analysis$path, "outputs", "t3", "another", "level", "file.rds")))
+
+    expect_equal(analysis$get_output_path("t3/another/level/file.rds")$read(), expected)
+    expect_equal(analysis$get_output_path("t3\\another\\level\\file.rds")$read(), expected)
+
+    # Works with combinations of separators
+    expect_equal(analysis$get_output_path("t3\\another\\level/file.rds")$read(), expected)
+    expect_equal(analysis$get_output_path("t3/another/level\\file.rds")$read(), expected)
+
+    # Find as artifact
+    expect_equal(analysis$get_artifact("t3/another/level/file")$read(), expected)
+    expect_equal(analysis$get_artifact("t3\\another\\level\\file")$read(), expected)
+    expect_equal(analysis$get_artifact("t3\\another/level/file")$read(), expected)
+    expect_equal(analysis$get_artifact("t3\\another/level\\file")$read(), expected)
+  })
+})
+
 describe("pm_infer_analysis works correctly", {
   dir <- .get_good_project_path()
   pm <- pm::PMProject$new(dir)

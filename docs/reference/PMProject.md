@@ -254,7 +254,7 @@ invisible(pm_create_project(folder))
 pm <- PMProject$new(folder)
 pm
 #> PMProject:
-#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab712f99e4
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpvU8Hl6/file105b6351f0ed9
 #>   Analyses: 0
 
 
@@ -290,8 +290,8 @@ analysis <- pm$get_analysis("data_preparation")
 analysis
 #> PMAnalysis:
 #>   Name: data_preparation
-#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab4440c095/analyses/data_preparation
-#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab4440c095
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpvU8Hl6/file105b6a8fe737/analyses/data_preparation
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpvU8Hl6/file105b6a8fe737
 
 ## ------------------------------------------------
 ## Method `PMProject$get_artifact`
@@ -321,6 +321,6 @@ analysis <- pm$create_analysis("data_preparation")
 analysis
 #> PMAnalysis:
 #>   Name: data_preparation
-#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab421f6207/analyses/data_preparation
-#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpPuHppX/file12eab421f6207
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpvU8Hl6/file105b64538cb21/analyses/data_preparation
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpvU8Hl6/file105b64538cb21
 ```

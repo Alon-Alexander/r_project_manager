@@ -27,6 +27,13 @@
     )
   )
   yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
-  
+
   dir
+}
+
+.compare_paths <- function(actual, expected) {
+  actual <- gsub("\\", "/", normalizePath(actual, mustWork = FALSE), fixed = TRUE)
+  expected <- gsub("\\", "/", normalizePath(expected, mustWork = FALSE), fixed = TRUE)
+
+  expect_equal(actual, expected)
 }

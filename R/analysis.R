@@ -241,31 +241,23 @@ PMAnalysis <- R6Class("PMAnalysis",
       }
 
       # Get all files in the directory
-      files <- list.files(outputs_dir, full.names = TRUE)
+      files <- list.files(outputs_dir, full.names = FALSE, recursive = TRUE)
       if (length(files) == 0) {
         return(list())
       }
 
-      # Filter to only files (not directories) using vectorized approach
-      file_info <- file.info(files)
-      is_file <- !is.na(file_info$isdir) & !file_info$isdir
-      files_only <- files[is_file]
-
-      if (length(files_only) == 0) {
-        return(list())
-      }
-
       # Create PMData objects using lapply
-      file_ids <- tools::file_path_sans_ext(basename(files_only))
-      file_paths <- normalizePath(files_only, mustWork = FALSE)
+      file_ids <- gsub("\\", "/", tools::file_path_sans_ext(files), fixed = TRUE)
+      file_paths <- normalizePath(file.path(outputs_dir, files), mustWork = FALSE)
 
-      lapply(seq_along(files_only), function(i) {
+      lapply(seq_along(files), function(i) {
         PMData$new(id = file_ids[i], path = file_paths[i])
       })
     },
 
     #' @description
     #' Get output path for a file, returning a PMData object.
+    #' Supports also subfolders using both unix-style and windows-style delimeteres ("/" and "\\").
     #'
     #' @param name Character. Name of the output file (with or without extension).
     #' @param type Character. Optional type of output (table, object, image, figure, parquet, csv).
@@ -291,6 +283,11 @@ PMAnalysis <- R6Class("PMAnalysis",
     #' intermediate <- analysis$get_output_path("temp_data", type = "table", intermediate = TRUE)
     #' intermediate$id    # "temp_data"
     #' intermediate$path  # full path to temp_data.parquet in intermediate/
+    #'
+    #' # Get output path with nested folders
+    #' output2 <- analysis$get_output_path("unique\\complex\\structure.rds")
+    #' output2$id   # "unique/complex/structure"
+    #' output2$path
     get_output_path = function(name, type = NULL, intermediate = FALSE) {
       # Store original name for ID (without extension)
       original_name <- name
@@ -332,7 +329,9 @@ PMAnalysis <- R6Class("PMAnalysis",
 
       folder <- if (intermediate) constants$ANALYSIS_INTERMEDIATE_DIR else constants$ANALYSIS_OUTPUT_DIR
 
-      full_path <- normalizePath(file.path(self$path, folder, name), mustWork = FALSE)
+      name <- strsplit(name, "\\\\|/")
+      full_path_raw <- do.call(file.path, as.list(c(self$path, folder, unlist(name))))
+      full_path <- normalizePath(full_path_raw, mustWork = FALSE)
 
       PMData$new(id = id, path = full_path)
     },

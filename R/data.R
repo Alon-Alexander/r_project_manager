@@ -31,7 +31,7 @@ PMData <- R6Class("PMData",
       chk::chk_scalar(path)
       chk::chk_character(path)
       self$id <- id
-      self$path <- path
+      self$path <- normalizePath(path, mustWork = FALSE)
     },
 
     #' @description
@@ -101,6 +101,9 @@ PMData <- R6Class("PMData",
     #'   data_rdata$write(obj1, obj2, obj3 = 42)
     #' })
     write = function(x, ...) {
+      # Create the folder in case it doesn't exist
+      dir.create(dirname(self$path), showWarnings = FALSE, recursive = TRUE)
+
       # For RData files, we need   to preserve object names from the original call
       ext <- tolower(tools::file_ext(self$path))
       if (ext %in% c("rdata", "rda")) {
@@ -129,7 +132,7 @@ PMData <- R6Class("PMData",
             obj_names <- c(obj_names, obj_name)
           }
         }
-        
+
         # Call pm_write_file with explicit object names
         pm_write_file(self$path, x, ..., object_names = obj_names)
       } else {
