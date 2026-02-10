@@ -694,7 +694,7 @@ describe("PMData write method works correctly", {
 
     # Check that file was created
     expect_true(file.exists(csv_file))
-    expect_equal(result, csv_file)
+    .compare_paths(result, csv_file)
 
     # Read it back and verify
     read_back <- read.csv(csv_file)
@@ -763,7 +763,7 @@ describe("PMData write method works correctly", {
     result <- data_obj$write(test_data)
 
     # Should return the file path
-    expect_equal(result, csv_file)
+    .compare_paths(result, csv_file)
     expect_true(file.exists(result))
   })
 
