@@ -229,13 +229,12 @@
   job_info$status <- "RUNNING"
   .mock_slurm_jobs[[job_id]] <- job_info
 
-  # Get Rscript path (use stored reference to real Sys.which to avoid mock recursion)
-  rscript_path <- .real_sys_which("Rscript")
-  if (rscript_path == "") {
-    r_home <- base::R.home()
-    rscript_path <- base::file.path(r_home, "bin", "Rscript")
-    if (!base::file.exists(rscript_path)) {
-      rscript_path <- "Rscript"
+  # R CMD check requires a full path to Rscript; never use bare "Rscript"
+  rscript_path <- base::file.path(base::R.home(), "bin", "Rscript")
+  if (!base::file.exists(rscript_path)) {
+    alt <- .real_sys_which("Rscript")
+    if (alt != "" && grepl("[/\\\\]", alt)) {
+      rscript_path <- alt
     }
   }
 
@@ -446,8 +445,15 @@ mock_run_slurm_job <- function(job_id) {
         Sys.setenv(PM_ARGS_FILE = args_file)
         Sys.setenv(PM_RESULT_FILE = result_path)
 
+        # R CMD check requires full path to Rscript
+        rscript_path <- file.path(R.home(), "bin", "Rscript")
+        if (!file.exists(rscript_path)) {
+          alt <- .real_sys_which("Rscript")
+          if (alt != "" && grepl("[/\\\\]", alt)) rscript_path <- alt
+        }
+
         # Run Rscript with proper redirection
-        exit_code <- system2("Rscript",
+        exit_code <- system2(rscript_path,
           args = c(
             r_script_path,
             paste0("--fun-file=", fun_file),
@@ -568,8 +574,6 @@ with_mock_slurm <- function(code) {
 }
 
 describe("SLURM functionality", {
-  skip_on_cran()
-  skip_on_ci()
   describe("is_slurm_available()", {
     it("Returns TRUE when SLURM commands are available", {
       with_mock_slurm({
