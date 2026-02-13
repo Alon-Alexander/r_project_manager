@@ -128,13 +128,11 @@
           # Jobs are not auto-started - they must be explicitly run via mock_run_slurm_job()
         }
 
-        # Return status based on job state
+        # Return status based on job state (squeue returns nothing when job is done)
         if (isTRUE(job_info$done)) {
-          # Job is done, return empty (squeue returns nothing for completed jobs)
           result <- character(0)
         } else {
-          # Job is running or pending
-          result <- character(0) # squeue with -j returns empty if job is done
+          result <- "PENDING"
         }
       } else {
         # Job not found, consider it done
@@ -229,13 +227,12 @@
   job_info$status <- "RUNNING"
   .mock_slurm_jobs[[job_id]] <- job_info
 
-  # Get Rscript path (use stored reference to real Sys.which to avoid mock recursion)
-  rscript_path <- .real_sys_which("Rscript")
-  if (rscript_path == "") {
-    r_home <- base::R.home()
-    rscript_path <- base::file.path(r_home, "bin", "Rscript")
-    if (!base::file.exists(rscript_path)) {
-      rscript_path <- "Rscript"
+  # R CMD check requires a full path to Rscript; never use bare "Rscript"
+  rscript_path <- base::file.path(base::R.home(), "bin", "Rscript")
+  if (!base::file.exists(rscript_path)) {
+    alt <- .real_sys_which("Rscript")
+    if (alt != "" && grepl("[/\\\\]", alt)) {
+      rscript_path <- alt
     }
   }
 
@@ -446,8 +443,15 @@ mock_run_slurm_job <- function(job_id) {
         Sys.setenv(PM_ARGS_FILE = args_file)
         Sys.setenv(PM_RESULT_FILE = result_path)
 
+        # R CMD check requires full path to Rscript
+        rscript_path <- file.path(R.home(), "bin", "Rscript")
+        if (!file.exists(rscript_path)) {
+          alt <- .real_sys_which("Rscript")
+          if (alt != "" && grepl("[/\\\\]", alt)) rscript_path <- alt
+        }
+
         # Run Rscript with proper redirection
-        exit_code <- system2("Rscript",
+        exit_code <- system2(rscript_path,
           args = c(
             r_script_path,
             paste0("--fun-file=", fun_file),
@@ -568,8 +572,6 @@ with_mock_slurm <- function(code) {
 }
 
 describe("SLURM functionality", {
-  skip_on_cran()
-  skip_on_ci()
   describe("is_slurm_available()", {
     it("Returns TRUE when SLURM commands are available", {
       with_mock_slurm({
@@ -669,6 +671,78 @@ describe("SLURM functionality", {
       })
     })
 
+    it("Accepts store_image = FALSE in config", {
+      dir <- .get_good_project_path()
+      pm <- pm::PMProject$new(dir)
+      analysis <- pm$create_analysis("test_analysis")
+
+      with_mock_slurm({
+        slurm_run <- analysis$run_in_slurm(
+          function() {
+            return(1)
+          },
+          config = list(store_image = FALSE)
+        )
+        expect_s3_class(slurm_run, "PMSlurmRun")
+        mock_run_slurm_job(slurm_run$job_id)
+        expect_equal(slurm_run$get_results(), 1)
+      })
+    })
+
+    it("Accepts slurm_flags in config", {
+      dir <- .get_good_project_path()
+      pm <- pm::PMProject$new(dir)
+      analysis <- pm$create_analysis("test_analysis")
+
+      with_mock_slurm({
+        slurm_run <- analysis$run_in_slurm(
+          function() {
+            return(2)
+          },
+          config = list(slurm_flags = "--export=ALL")
+        )
+        expect_s3_class(slurm_run, "PMSlurmRun")
+        mock_run_slurm_job(slurm_run$job_id)
+        expect_equal(slurm_run$get_results(), 2)
+      })
+    })
+
+    it("Prepends R to modules when not in config", {
+      dir <- .get_good_project_path()
+      pm <- pm::PMProject$new(dir)
+      analysis <- pm$create_analysis("test_analysis")
+
+      with_mock_slurm({
+        slurm_run <- analysis$run_in_slurm(
+          function() {
+            return(1)
+          },
+          config = list(modules = c("gcc/9", "openmpi/4.0"))
+        )
+        expect_s3_class(slurm_run, "PMSlurmRun")
+        mock_run_slurm_job(slurm_run$job_id)
+        expect_equal(slurm_run$get_results(), 1)
+      })
+    })
+
+    it("Accepts empty result_id (uses timestamp-only job dir)", {
+      dir <- .get_good_project_path()
+      pm <- pm::PMProject$new(dir)
+      analysis <- pm$create_analysis("test_analysis")
+
+      with_mock_slurm({
+        slurm_run <- analysis$run_in_slurm(
+          function() {
+            return(3)
+          },
+          result_id = ""
+        )
+        expect_s3_class(slurm_run, "PMSlurmRun")
+        mock_run_slurm_job(slurm_run$job_id)
+        expect_equal(slurm_run$get_results(), 3)
+      })
+    })
+
     it("Validates function parameter", {
       dir <- .get_good_project_path()
       pm <- pm::PMProject$new(dir)
@@ -715,6 +789,65 @@ describe("SLURM functionality", {
         output <- capture.output(print(slurm_run))
         expect_true(any(grepl("PMSlurmRun", output)))
         expect_true(any(grepl("Job ID", output)))
+      })
+    })
+
+    it("Print shows Running when job not yet done", {
+      dir <- .get_good_project_path()
+      pm <- pm::PMProject$new(dir)
+      analysis <- pm$create_analysis("test_analysis")
+
+      with_mock_slurm({
+        slurm_run <- analysis$run_in_slurm(function() {
+          return(42)
+        })
+        # Do not run the job; print should show Running
+        output <- capture.output(print(slurm_run))
+        expect_true(any(grepl("Running", output)))
+      })
+    })
+
+    it("Print shows Completed when job succeeded", {
+      dir <- .get_good_project_path()
+      pm <- pm::PMProject$new(dir)
+      analysis <- pm$create_analysis("test_analysis")
+
+      with_mock_slurm({
+        slurm_run <- analysis$run_in_slurm(function() {
+          return(42)
+        })
+        mock_run_slurm_job(slurm_run$job_id)
+        output <- capture.output(print(slurm_run))
+        expect_true(any(grepl("Completed", output)))
+      })
+    })
+
+    it("Print shows Failed when job failed", {
+      dir <- .get_good_project_path()
+      pm <- pm::PMProject$new(dir)
+      analysis <- pm$create_analysis("test_analysis")
+
+      with_mock_slurm({
+        slurm_run <- analysis$run_in_slurm(function() {
+          stop("job error")
+        })
+        mock_run_slurm_job(slurm_run$job_id)
+        output <- capture.output(print(slurm_run))
+        expect_true(any(grepl("Failed", output)))
+      })
+    })
+
+    it("is_successful returns FALSE when job not done", {
+      dir <- .get_good_project_path()
+      pm <- pm::PMProject$new(dir)
+      analysis <- pm$create_analysis("test_analysis")
+
+      with_mock_slurm({
+        slurm_run <- analysis$run_in_slurm(function() {
+          return(42)
+        })
+        # Before running the job, is_successful should be FALSE
+        expect_false(slurm_run$is_successful())
       })
     })
 
@@ -1139,6 +1272,37 @@ describe("SLURM functionality", {
 
         # After cancellation, job should be done
         expect_true(slurm_run$is_done())
+      })
+    })
+
+    it("Errors when cancel (scancel) fails", {
+      dir <- .get_good_project_path()
+      pm <- pm::PMProject$new(dir)
+      analysis <- pm$create_analysis("test_analysis")
+
+      with_mock_slurm({
+        slurm_run <- analysis$run_in_slurm(function() {
+          return(42)
+        })
+        # Mock system2 so scancel returns non-zero status
+        mock_system2_fail_scancel <- function(command, args = NULL, stdout = "", stderr = "", ...) {
+          if (command == "scancel") {
+            result <- "scancel: Invalid job id"
+            attr(result, "status") <- 1L
+            return(result)
+          }
+          .real_system2(command, args, stdout = stdout, stderr = stderr, ...)
+        }
+        testthat::with_mocked_bindings(
+          system2 = mock_system2_fail_scancel,
+          .package = "base",
+          {
+            expect_error(
+              slurm_run$cancel(),
+              regexp = "Failed to cancel"
+            )
+          }
+        )
       })
     })
 

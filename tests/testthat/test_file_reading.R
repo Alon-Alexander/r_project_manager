@@ -424,6 +424,31 @@ describe("pm_write_file function works correctly", {
     expect_equal(env$obj2, obj2)
   })
 
+  it("Can write RData files with object_names argument", {
+    rdata_file <- withr::local_tempfile(fileext = ".RData")
+    obj1 <- data.frame(a = 1:2)
+    obj2 <- c("x", "y")
+
+    pm::pm_write_file(rdata_file, obj1, obj2, object_names = c("my_df", "my_vec"))
+
+    env <- new.env()
+    load(rdata_file, envir = env)
+    expect_true("my_df" %in% ls(env))
+    expect_true("my_vec" %in% ls(env))
+    expect_equal(env$my_df, obj1)
+    expect_equal(env$my_vec, obj2)
+  })
+
+  it("Errors when object_names length does not match number of objects", {
+    rdata_file <- withr::local_tempfile(fileext = ".RData")
+    obj1 <- 1
+    obj2 <- 2
+    expect_error(
+      pm::pm_write_file(rdata_file, obj1, obj2, object_names = c("a")),
+      regexp = "object_names must have length equal"
+    )
+  })
+
   it("Can write RData files with multiple named objects", {
     rdata_file <- withr::local_tempfile(fileext = ".RData")
     obj1 <- data.frame(x = 1:2)

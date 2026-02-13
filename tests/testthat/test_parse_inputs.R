@@ -49,6 +49,128 @@ describe("parse_inputs method works correctly", {
     expect_equal(data_list$sample_metadata$path, normalizePath(file2, mustWork = FALSE))
   })
 
+  it("Validates inputs schema array element with id-only (null value)", {
+    # Array format: element is list(id_key = NULL) with no other keys -> next
+    inputs_def <- list(inputs = list(list(my_input = NULL)))
+    expect_silent(pm:::.validate_inputs_schema(inputs_def))
+  })
+
+  it("Errors when inputs schema array element has fields but no ID key", {
+    # Element with multiple keys but no NULL (no key is the ID)
+    inputs_def <- list(inputs = list(list(foo = "bar", baz = 1L)))
+    expect_error(
+      pm:::.validate_inputs_schema(inputs_def),
+      regexp = "has fields but no ID key"
+    )
+  })
+
+  it("Errors when inputs schema array element is not string or object", {
+    inputs_def <- list(inputs = list(123L))
+    expect_error(
+      pm:::.validate_inputs_schema(inputs_def),
+      regexp = "must be a string \\(ID\\) or an object"
+    )
+  })
+
+  it("Validates inputs schema object format", {
+    inputs_def <- list(inputs = list(id1 = NULL, id2 = list(description = "x")))
+    expect_silent(pm:::.validate_inputs_schema(inputs_def))
+  })
+
+  it("Errors when project.yaml cannot be parsed as YAML", {
+    dir <- .get_good_project_path()
+    writeLines("not: valid: yaml: [", file.path(dir, "project.yaml"))
+    expect_error(
+      pm::PMProject$new(dir),
+      regexp = "project.yaml|Failed to read"
+    )
+  })
+
+  it("Errors when inputs.local.yaml cannot be parsed as YAML", {
+    dir <- .get_good_project_path()
+    yaml::write_yaml(list(inputs = list(x = list())), file.path(dir, "project.yaml"))
+    file.create(file.path(dir, "x.csv"))
+    writeLines("paths: [broken", file.path(dir, "inputs.local.yaml"))
+    expect_error(
+      pm::PMProject$new(dir),
+      regexp = "inputs.local.yaml|Failed to read"
+    )
+  })
+
+  it("Errors when inputs.local.yaml paths is not a YAML object", {
+    dir <- .get_good_project_path()
+    yaml::write_yaml(list(inputs = list(x = list())), file.path(dir, "project.yaml"))
+    file.create(file.path(dir, "x.csv"))
+    yaml::write_yaml(list(paths = "not_a_mapping"), file.path(dir, "inputs.local.yaml"))
+    expect_error(
+      pm::PMProject$new(dir),
+      regexp = "paths.*must be a YAML object"
+    )
+  })
+
+  it("parse_inputs errors when project.yaml is corrupted after project load", {
+    dir <- .get_good_project_path()
+    proj <- pm::PMProject$new(dir)
+    writeLines("not: valid: yaml", file.path(dir, "project.yaml"))
+    expect_error(
+      proj$parse_inputs(),
+      regexp = "project.yaml must be a YAML"
+    )
+  })
+
+  it("parse_inputs errors when inputs.local.yaml is corrupted after project load", {
+    dir <- .get_good_project_path()
+    yaml::write_yaml(list(inputs = list(a = list())), file.path(dir, "project.yaml"))
+    file.create(file.path(dir, "a.csv"))
+    yaml::write_yaml(list(paths = list(a = "a.csv")), file.path(dir, "inputs.local.yaml"))
+    proj <- pm::PMProject$new(dir)
+    writeLines("paths: [broken", file.path(dir, "inputs.local.yaml"))
+    expect_error(
+      proj$parse_inputs(),
+      regexp = "inputs.local.yaml must be a YAML"
+    )
+  })
+
+  it("Handles absolute paths in inputs.local.yaml", {
+    dir <- .get_good_project_path()
+    inputs_yaml <- list(inputs = list(abs_input = list()))
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
+    abs_file <- normalizePath(file.path(dir, "abs_data.csv"), mustWork = FALSE)
+    file.create(abs_file)
+    local_inputs_yaml <- list(paths = list(abs_input = abs_file))
+    yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
+    proj <- pm::PMProject$new(dir)
+    data_list <- proj$parse_inputs()
+    expect_equal(
+      normalizePath(data_list$abs_input$path, mustWork = FALSE),
+      normalizePath(abs_file, mustWork = FALSE)
+    )
+  })
+
+  it("Errors when input ID in project.yaml is missing from inputs.local.yaml", {
+    dir <- .get_good_project_path()
+
+    inputs_yaml <- list(
+      inputs = list(
+        defined_input = list(),
+        missing_from_local = list()
+      )
+    )
+    yaml::write_yaml(inputs_yaml, file.path(dir, "project.yaml"))
+    file.create(file.path(dir, "defined_file.csv"))
+    local_inputs_yaml <- list(
+      paths = list(
+        defined_input = "defined_file.csv"
+      )
+    )
+    yaml::write_yaml(local_inputs_yaml, file.path(dir, "inputs.local.yaml"))
+
+    expect_error(
+      pm::PMProject$new(dir),
+      regexp = "missing from inputs.local.yaml"
+    )
+  })
+
   it("Handles relative paths in inputs.local.yaml", {
     dir <- .get_good_project_path()
 

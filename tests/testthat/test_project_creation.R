@@ -73,6 +73,28 @@ describe("Creating new project with pm_create_project works", {
     expect_true(dir.exists(file.path(dir, "analyses")))
   })
 
+  it("Fails when .gitignore template copy fails", {
+    dir <- withr::local_tempdir()
+    # Mock file.copy to fail when copying .gitignore
+    orig_copy <- base::file.copy
+    mock_copy <- function(from, to, ...) {
+      if (grepl("\\.gitignore$", to)) {
+        return(FALSE)
+      }
+      orig_copy(from, to, ...)
+    }
+    testthat::with_mocked_bindings(
+      file.copy = mock_copy,
+      .package = "base",
+      {
+        expect_error(
+          pm::pm_create_project(dir),
+          regexp = "Failed to copy .gitignore"
+        )
+      }
+    )
+  })
+
   it("Fails if there is irrelevant content in the folder", {
     dir <- withr::local_tempdir()
 
