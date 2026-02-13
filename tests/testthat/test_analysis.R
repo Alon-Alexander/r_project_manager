@@ -74,6 +74,26 @@ describe("PMAnalysis class works as expected", {
     )
   })
 
+  it("Errors when accessing project from analysis not associated with project", {
+    # Create a valid analysis folder that is NOT under a project's analyses/ dir
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+    analysis <- pm$create_analysis("standalone")
+    # Copy analysis folder to a standalone path (not under analyses/)
+    standalone_path <- file.path(dirname(dir), "standalone_analysis")
+    dir.create(standalone_path, showWarnings = FALSE, recursive = TRUE)
+    for (d in c("code", "outputs", "intermediate", "logs")) {
+      dir.create(file.path(standalone_path, d), showWarnings = FALSE)
+    }
+    writeLines("# Standalone Analysis", file.path(standalone_path, "README.md"))
+    analysis_standalone <- pm::PMAnalysis$new(path = standalone_path)
+    expect_null(analysis_standalone$project_path)
+    expect_error(
+      analysis_standalone$project,
+      regexp = "not associated with a project"
+    )
+  })
+
   it("Errors when creating PMAnalysis with missing required files", {
     dir <- .get_good_project_path()
     pm <- pm::PMProject$new(dir)
