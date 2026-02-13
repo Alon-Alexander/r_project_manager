@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">pm</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.11</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.12</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,6 +38,18 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.12" id="pm-0112">pm 0.1.12<a class="anchor" aria-label="anchor" href="#pm-0112"></a></h2>
+<div class="section level3">
+<h3 id="bug-fixes-0-1-12">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-1-12"></a></h3>
+<ul><li>Fix SLURM tests so they pass under R CMD check: use full path to Rscript (R requires a path, not bare <code>"Rscript"</code>) in the mock job runner</li>
+</ul></div>
+<div class="section level3">
+<h3 id="improvements-0-1-12">Improvements<a class="anchor" aria-label="anchor" href="#improvements-0-1-12"></a></h3>
+<ul><li>Expand test coverage for SLURM, analysis, project, parse_inputs, and file writing: add tests for print status (Running/Completed/Failed), config options (store_image, slurm_flags, modules, result_id), cancel failure, parse_inputs error paths and absolute paths, schema validation, pm_write_file object_names, pm_create_project .gitignore copy failure, and analysis project access when not associated with a project</li>
+<li>Mock SLURM: when job is not done, squeue now returns <code>"PENDING"</code> so <code>is_done()</code> and print status behave correctly in tests</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.11" id="pm-0111">pm 0.1.11<a class="anchor" aria-label="anchor" href="#pm-0111"></a></h2>
 <div class="section level3">

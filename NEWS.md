@@ -1,3 +1,14 @@
+# pm 0.1.12
+
+## Bug Fixes
+
+- Fix SLURM tests so they pass under R CMD check: use full path to Rscript (R requires a path, not bare `"Rscript"`) in the mock job runner
+
+## Improvements
+
+- Expand test coverage for SLURM, analysis, project, parse_inputs, and file writing: add tests for print status (Running/Completed/Failed), config options (store_image, slurm_flags, modules, result_id), cancel failure, parse_inputs error paths and absolute paths, schema validation, pm_write_file object_names, pm_create_project .gitignore copy failure, and analysis project access when not associated with a project
+- Mock SLURM: when job is not done, squeue now returns `"PENDING"` so `is_done()` and print status behave correctly in tests
+
 # pm 0.1.11
 
 ## New Features
