@@ -332,6 +332,52 @@ cat("SD:", results$summary$sd, "\n")
 5.  **Check log files** when jobs fail to diagnose issues
 6.  **Cancel long-running jobs** if they’re no longer needed
 
+## Controlling workspace images with `store_image`
+
+When you call `run_in_slurm()`, the analysis can save an R workspace
+image that is loaded on the SLURM worker before your function runs. By
+default, the entire calling environment is saved, which can be wasteful
+if you have large intermediate objects in memory that the job does not
+actually need.
+
+You can use the `store_image` config option to save only specific
+objects. This keeps the job submission lightweight while still making
+required objects available on the SLURM node:
+
+``` r
+
+library(pm)
+
+pm <- pm_project("path/to/project")
+analysis <- pm$create_analysis("slurm_analysis")
+
+# Suppose your current R session has some large objects
+big_raw_data <- readRDS("big-raw-data.rds")      # hundreds of MB
+precomputed_lookup <- readRDS("lookup-small.rds")  # small, needed on the worker
+
+heavy_computation <- function(n) {
+  # 'precomputed_lookup' will be available on the SLURM worker
+  sample(precomputed_lookup, n, replace = TRUE)
+}
+
+slurm_run <- analysis$run_in_slurm(
+  heavy_computation,
+  n = 100000,
+  config = list(
+    time_limit = "02:00:00",
+    memory = "16G",
+    # Only save and load selected objects instead of the full workspace
+    store_image = c("precomputed_lookup")
+  )
+)
+```
+
+In this example, `big_raw_data` stays in your interactive session but is
+not serialized and sent to the SLURM job, while `precomputed_lookup` is
+saved and restored for use in `heavy_computation()`. This pattern is
+especially useful when your workspace contains large simulation results
+or raw data that are not needed by the job itself.
+
 ## Technical Details
 
 ### How It Works

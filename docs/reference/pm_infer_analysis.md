@@ -22,8 +22,8 @@ pm <- pm_create_project(empty_folder)
 pm$create_analysis("my_analysis")
 #> PMAnalysis:
 #>   Name: my_analysis
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpExUUX5/file12d596c0196de/analyses/my_analysis
-#>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpExUUX5/file12d596c0196de
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmphZL5gR/filea235599204ba/analyses/my_analysis
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmphZL5gR/filea235599204ba
 
 # Infer from analysis folder
 withr::with_dir(file.path(empty_folder, "analyses", "my_analysis"), {
@@ -32,8 +32,8 @@ withr::with_dir(file.path(empty_folder, "analyses", "my_analysis"), {
 })
 #> PMAnalysis:
 #>   Name: my_analysis
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpExUUX5/file12d596c0196de/analyses/my_analysis
-#>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpExUUX5/file12d596c0196de
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmphZL5gR/filea235599204ba/analyses/my_analysis
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmphZL5gR/filea235599204ba
 
 # Infer from code folder
 withr::with_dir(file.path(empty_folder, "analyses", "my_analysis", "code"), {
@@ -42,6 +42,6 @@ withr::with_dir(file.path(empty_folder, "analyses", "my_analysis", "code"), {
 })
 #> PMAnalysis:
 #>   Name: my_analysis
-#>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpExUUX5/file12d596c0196de/analyses/my_analysis
-#>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpExUUX5/file12d596c0196de
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmphZL5gR/filea235599204ba/analyses/my_analysis
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmphZL5gR/filea235599204ba
 ```

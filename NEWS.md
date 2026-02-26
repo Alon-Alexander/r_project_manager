@@ -1,3 +1,13 @@
+# pm 0.1.13
+
+## New Features
+
+- Enhance `store_image` SLURM config option to allow saving only selected objects (instead of the entire workspace or nothing)
+
+## Improvements
+
+- Document and exemplify the `store_image` SLURM config option in the SLURM integration vignette, including how to save only selected objects when your workspace contains large, unneeded data
+
 # pm 0.1.12
 
 ## Bug Fixes

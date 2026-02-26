@@ -9,7 +9,7 @@ Each analysis contains code, outputs, intermediate results, and logs."></head><b
 
     <a class="navbar-brand me-2" href="../index.html">pm</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.12</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.13</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -342,7 +342,7 @@ Must be provided by name if function arguments are passed positionally.</p></dd>
 <li><p><code>cpus</code>: Integer. Number of CPUs to request (default: 1).</p></li>
 <li><p><code>slurm_flags</code>: Character. Additional SLURM flags (default: "").</p></li>
 <li><p><code>modules</code>: Character vector. Modules to load (default: NULL).</p></li>
-<li><p><code>store_image</code>: Logical. Whether to save and load R workspace image (default: TRUE).</p></li>
+<li><p><code>store_image</code>: Logical, NULL, or vector. TRUE = save full workspace (default); FALSE or NULL = save no environment; a character vector or named list (or mix) = save only those objects (strings = names to look up in the calling environment, named elements = name and value as-is).</p></li>
 </ul></dd>
 
 
@@ -422,8 +422,8 @@ results &lt;- slurm_run$get_results(timeout = 60)
 <span class="r-in"><span><span class="va">analysis</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> PMAnalysis:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Name: data_preparation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpExUUX5/file12d595a1a2c84/analyses/data_preparation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpExUUX5/file12d595a1a2c84</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmphZL5gR/filea2352503cbfe/analyses/data_preparation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmphZL5gR/filea2352503cbfe</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Load an existing analysis from project</span></span></span>
 <span class="r-in"><span><span class="va">analysis</span> <span class="op">&lt;-</span> <span class="va">pm</span><span class="op">$</span><span class="fu">get_analysis</span><span class="op">(</span><span class="st">"data_preparation"</span><span class="op">)</span></span></span>
@@ -505,21 +505,21 @@ results &lt;- slurm_run$get_results(timeout = 60)
 <span class="r-in"><span><span class="va">output</span><span class="op">$</span><span class="va">id</span>    <span class="co"># "results"</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "results"</span>
 <span class="r-in"><span><span class="va">output</span><span class="op">$</span><span class="va">path</span>  <span class="co"># full path to results.csv in outputs/</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpExUUX5/file12d59d08cb67/analyses/my_analysis/outputs/results.csv"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmphZL5gR/filea23517bf72fe/analyses/my_analysis/outputs/results.csv"</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Get intermediate path without extension (will add .parquet for table type)</span></span></span>
 <span class="r-in"><span><span class="va">intermediate</span> <span class="op">&lt;-</span> <span class="va">analysis</span><span class="op">$</span><span class="fu">get_output_path</span><span class="op">(</span><span class="st">"temp_data"</span>, type <span class="op">=</span> <span class="st">"table"</span>, intermediate <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">intermediate</span><span class="op">$</span><span class="va">id</span>    <span class="co"># "temp_data"</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "temp_data"</span>
 <span class="r-in"><span><span class="va">intermediate</span><span class="op">$</span><span class="va">path</span>  <span class="co"># full path to temp_data.parquet in intermediate/</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpExUUX5/file12d59d08cb67/analyses/my_analysis/intermediate/temp_data.parquet"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmphZL5gR/filea23517bf72fe/analyses/my_analysis/intermediate/temp_data.parquet"</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Get output path with nested folders</span></span></span>
 <span class="r-in"><span><span class="va">output2</span> <span class="op">&lt;-</span> <span class="va">analysis</span><span class="op">$</span><span class="fu">get_output_path</span><span class="op">(</span><span class="st">"unique\\complex\\structure.rds"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">output2</span><span class="op">$</span><span class="va">id</span>   <span class="co"># "unique/complex/structure"</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "unique\\complex\\structure"</span>
 <span class="r-in"><span><span class="va">output2</span><span class="op">$</span><span class="va">path</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/private/var/folders/1y/16vztvbs6hx360mw9b8qdn280000gn/T/RtmpExUUX5/file12d59d08cb67/analyses/my_analysis/outputs/unique/complex/structure.rds"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmphZL5gR/filea23517bf72fe/analyses/my_analysis/outputs/unique/complex/structure.rds"</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## ------------------------------------------------</span></span></span>
 <span class="r-in"><span><span class="co">## Method `PMAnalysis$run_in_slurm`</span></span></span>

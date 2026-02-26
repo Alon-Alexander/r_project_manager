@@ -287,7 +287,6 @@ is_slurm_available <- function() {
     script_args <- c(script_args, shQuote(""))
   }
   if ("PM_IMAGE_FILE" %in% names(env_vars)) {
-    # PM_IMAGE_FILE is optional - pass empty string if not provided
     image_file <- env_vars[["PM_IMAGE_FILE"]]
     if (is.null(image_file) || image_file == "") {
       script_args <- c(script_args, shQuote(""))

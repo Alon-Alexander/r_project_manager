@@ -24,8 +24,8 @@
         script_found <- FALSE
         for (i in seq_along(args)) {
           arg <- args[i]
-          # Remove quotes if present
-          arg_clean <- gsub("^['\"]|['\"]$", "", arg)
+          # Remove quotes if present (strip all leading/trailing quote chars so paths are valid)
+          arg_clean <- gsub("^[\"']*|[\"']*$", "", arg)
           if (!startsWith(arg_clean, "--") && !startsWith(arg_clean, "-") && !script_found) {
             script_path <- arg_clean
             script_found <- TRUE
@@ -262,9 +262,8 @@
         paste0("--result-file=", result_path),
         paste0("--packages-file=", if (!is.null(job_info$packages_file) && nzchar(job_info$packages_file)) job_info$packages_file else "")
       )
-      
-      # Add image file if it exists
-      if (!is.null(job_info$image_file) && nzchar(job_info$image_file) && base::file.exists(job_info$image_file)) {
+      # Pass image file whenever we have a path (so R script can load workspace.RData)
+      if (!is.null(job_info$image_file) && nzchar(job_info$image_file)) {
         rscript_args <- c(rscript_args, paste0("--image-file=", job_info$image_file))
       }
       
@@ -684,8 +683,131 @@ describe("SLURM functionality", {
           config = list(store_image = FALSE)
         )
         expect_s3_class(slurm_run, "PMSlurmRun")
+        job_id_internal <- .mock_slurm_jobs[[paste0("numeric_", slurm_run$job_id)]]
+        job_info <- .mock_slurm_jobs[[job_id_internal]]
+        job_dir <- dirname(job_info$fun_file)
+        expect_false(file.exists(file.path(job_dir, "workspace.RData")))
         mock_run_slurm_job(slurm_run$job_id)
         expect_equal(slurm_run$get_results(), 1)
+      })
+    })
+
+    it("Accepts store_image = NULL (no env saved, same as FALSE)", {
+      dir <- .get_good_project_path()
+      pm <- pm::PMProject$new(dir)
+      analysis <- pm$create_analysis("test_analysis")
+
+      with_mock_slurm({
+        slurm_run <- analysis$run_in_slurm(
+          function() return(2),
+          config = list(store_image = NULL)
+        )
+        expect_s3_class(slurm_run, "PMSlurmRun")
+        job_id_internal <- .mock_slurm_jobs[[paste0("numeric_", slurm_run$job_id)]]
+        job_info <- .mock_slurm_jobs[[job_id_internal]]
+        job_dir <- dirname(job_info$fun_file)
+        expect_false(file.exists(file.path(job_dir, "workspace.RData")))
+        mock_run_slurm_job(slurm_run$job_id)
+        expect_equal(slurm_run$get_results(), 2)
+      })
+    })
+
+    it("With store_image = FALSE or NULL, image file (arg 8) is empty", {
+      dir <- .get_good_project_path()
+      pm <- pm::PMProject$new(dir)
+      analysis <- pm$create_analysis("test_analysis")
+
+      with_mock_slurm({
+        slurm_run <- analysis$run_in_slurm(
+          function() return(1),
+          config = list(store_image = FALSE)
+        )
+        job_id_internal <- .mock_slurm_jobs[[paste0("numeric_", slurm_run$job_id)]]
+        job_info <- .mock_slurm_jobs[[job_id_internal]]
+        expect_true(is.null(job_info$image_file) || !nzchar(job_info$image_file))
+        mock_run_slurm_job(slurm_run$job_id)
+        expect_equal(slurm_run$get_results(), 1)
+      })
+    })
+
+    it("With store_image = TRUE (default), workspace.RData exists in job dir", {
+      dir <- .get_good_project_path()
+      pm <- pm::PMProject$new(dir)
+      analysis <- pm$create_analysis("test_analysis")
+
+      with_mock_slurm({
+        slurm_run <- analysis$run_in_slurm(function() return(1))
+        job_id_internal <- .mock_slurm_jobs[[paste0("numeric_", slurm_run$job_id)]]
+        job_info <- .mock_slurm_jobs[[job_id_internal]]
+        job_dir <- dirname(job_info$fun_file)
+        expect_true(file.exists(file.path(job_dir, "workspace.RData")))
+        mock_run_slurm_job(slurm_run$job_id)
+        expect_equal(slurm_run$get_results(), 1)
+      })
+    })
+
+    it("With store_image = c('name1', 'name2'), workspace.RData contains those objects and job can use them", {
+      dir <- .get_good_project_path()
+      pm <- pm::PMProject$new(dir)
+      analysis <- pm$create_analysis("test_analysis")
+      name1 <- 10
+      name2 <- 20
+
+      with_mock_slurm({
+        slurm_run <- analysis$run_in_slurm(
+          function() name1 + name2,
+          config = list(store_image = c("name1", "name2"))
+        )
+        job_id_internal <- .mock_slurm_jobs[[paste0("numeric_", slurm_run$job_id)]]
+        job_info <- .mock_slurm_jobs[[job_id_internal]]
+        job_dir <- dirname(job_info$fun_file)
+        expect_true(file.exists(file.path(job_dir, "workspace.RData")))
+        img_env <- new.env()
+        load(file.path(job_dir, "workspace.RData"), envir = img_env)
+        expect_equal(img_env$name1, 10)
+        expect_equal(img_env$name2, 20)
+        mock_run_slurm_job(slurm_run$job_id)
+        expect_equal(slurm_run$get_results(), 30)
+      })
+    })
+
+    it("With store_image as mixed list (names and objects), workspace.RData has correct content", {
+      dir <- .get_good_project_path()
+      pm <- pm::PMProject$new(dir)
+      analysis <- pm$create_analysis("test_analysis")
+      x <- 100
+
+      with_mock_slurm({
+        slurm_run <- analysis$run_in_slurm(
+          function() x + extra,
+          config = list(store_image = list("x", extra = 42))
+        )
+        job_id_internal <- .mock_slurm_jobs[[paste0("numeric_", slurm_run$job_id)]]
+        job_info <- .mock_slurm_jobs[[job_id_internal]]
+        job_dir <- dirname(job_info$fun_file)
+        img_env <- new.env()
+        load(file.path(job_dir, "workspace.RData"), envir = img_env)
+        expect_equal(sort(names(img_env)), c("extra", "x"))
+        expect_equal(img_env$x, 100)
+        expect_equal(img_env$extra, 42)
+        mock_run_slurm_job(slurm_run$job_id)
+        expect_equal(slurm_run$get_results(), 142)
+      })
+    })
+
+    it("Fails gracefully when store_image vector references missing object name", {
+      dir <- .get_good_project_path()
+      pm <- pm::PMProject$new(dir)
+      analysis <- pm$create_analysis("test_analysis")
+
+      with_mock_slurm({
+        expect_error(
+          analysis$run_in_slurm(
+            function() 1,
+            config = list(store_image = c("nonexistent_var"))
+          ),
+          regexp = "not found in the environment"
+        )
       })
     })
 
