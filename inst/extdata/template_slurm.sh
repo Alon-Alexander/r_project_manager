@@ -33,8 +33,5 @@ cd ${PM_WORK_DIR}
 
 # Run generic R script with environment variables
 # Build Rscript command with arguments
-RSCRIPT_CMD="Rscript ${PM_R_SCRIPT_PATH} --fun-file=${PM_FUN_FILE} --args-file=${PM_ARGS_FILE} --result-file=${PM_RESULT_FILE} --packages-file=${PM_PACKAGES_FILE}"
-if [ -n "${PM_IMAGE_FILE}" ]; then
-  RSCRIPT_CMD="${RSCRIPT_CMD} --image-file=${PM_IMAGE_FILE}"
-fi
+RSCRIPT_CMD="Rscript ${PM_R_SCRIPT_PATH} --fun-file=${PM_FUN_FILE} --args-file=${PM_ARGS_FILE} --result-file=${PM_RESULT_FILE} --packages-file=${PM_PACKAGES_FILE} --image-file=${PM_IMAGE_FILE}"
 eval ${RSCRIPT_CMD}

@@ -352,7 +352,7 @@ PMAnalysis <- R6Class("PMAnalysis",
     #'   - `cpus`: Integer. Number of CPUs to request (default: 1).
     #'   - `slurm_flags`: Character. Additional SLURM flags (default: "").
     #'   - `modules`: Character vector. Modules to load (default: NULL).
-    #'   - `store_image`: Logical. Whether to save and load R workspace image (default: TRUE).
+    #'   - `store_image`: Logical, NULL, or vector. TRUE = save full workspace (default); FALSE or NULL = save no environment; a character vector or named list (or mix) = save only those objects (strings = names to look up in the calling environment, named elements = name and value as-is).
     #'
     #' @return A \code{PMSlurmRun} object with the job ID and paths.
     #'
@@ -423,12 +423,17 @@ PMAnalysis <- R6Class("PMAnalysis",
       chk::chk_character(result_id)
       chk::chk_list(config)
       
-      # Get store_image from config (default TRUE)
+      # Get store_image from config. Default TRUE only when key is absent; NULL or FALSE = no env. Allow vector of names/objects.
       store_image <- config$store_image
-      if (is.null(store_image)) {
+      if (!"store_image" %in% names(config)) {
         store_image <- TRUE
       }
-      chk::chk_flag(store_image)
+      if (is.logical(store_image)) {
+        chk::chk_flag(store_image)
+      } else if (is.null(store_image) || length(store_image) == 0) {
+        # NULL or empty vector = no env (like FALSE)
+        store_image <- FALSE
+      }
 
       # Parse config with defaults
       job_name <- config$job_name %||% self$name
@@ -506,11 +511,43 @@ PMAnalysis <- R6Class("PMAnalysis",
       packages_rds_path <- file.path(slurm_dir, "packages.rds")
       saveRDS(loaded_packages, packages_rds_path)
       
-      # Save R workspace image if requested
+      # Save environment per store_image: full image, nothing, or selected objects (all to workspace.RData)
       image_path <- NULL
-      if (store_image) {
+      if (is.logical(store_image) && isTRUE(store_image)) {
         image_path <- file.path(slurm_dir, "workspace.RData")
         save.image(file = image_path)
+      } else if (is.logical(store_image) && identical(store_image, FALSE)) {
+        # No env to save
+      } else if (length(store_image) >= 1) {
+        # Vector/list of names and/or objects: build named list from caller env, save to workspace.RData
+        parent_env <- parent.frame()
+        nms <- names(store_image)
+        if (is.null(nms)) nms <- character(length(store_image))
+        lookup_names <- character(0)
+        env_list <- list()
+        for (i in seq_along(store_image)) {
+          el <- store_image[[i]]
+          nm <- if (length(nms) >= i && nzchar(nms[i])) nms[i] else NULL
+          if (!is.null(nm)) {
+            env_list[[nm]] <- el
+          } else if (is.character(el) && length(el) == 1) {
+            lookup_names <- c(lookup_names, el)
+          } else {
+            stop("When store_image is a vector, each element must be a character name (to look up) or a named element (name and value as-is).")
+          }
+        }
+        # Validate lookup names exist
+        missing_names <- lookup_names[!vapply(lookup_names, exists, logical(1), where = parent_env, inherits = TRUE)]
+        if (length(missing_names) > 0) {
+          stop("The following object names are not found in the environment: ", paste(dQuote(missing_names), collapse = ", "))
+        }
+        for (nm in lookup_names) {
+          env_list[[nm]] <- get(nm, envir = parent_env, inherits = TRUE)
+        }
+        image_path <- file.path(slurm_dir, "workspace.RData")
+        save_env <- new.env()
+        list2env(env_list, envir = save_env)
+        save(list = names(env_list), file = image_path, envir = save_env)
       }
 
       # Get paths to template files

@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">pm</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.12</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.13</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,7 +61,7 @@
       <h1>Running Analyses with SLURM</h1>
                         <h4 data-toc-skip class="author">pm package</h4>
             
-            <h4 data-toc-skip class="date">2026-02-13</h4>
+            <h4 data-toc-skip class="date">2026-02-26</h4>
       
 
       <div class="d-none name"><code>slurm-integration.Rmd</code></div>
@@ -418,6 +418,49 @@ needed</li>
 </ol>
 </div>
 <div class="section level2">
+<h2 id="controlling-workspace-images-with-store_image">Controlling workspace images with <code>store_image</code><a class="anchor" aria-label="anchor" href="#controlling-workspace-images-with-store_image"></a>
+</h2>
+<p>When you call <code>run_in_slurm()</code>, the analysis can save an R
+workspace image that is loaded on the SLURM worker before your function
+runs. By default, the entire calling environment is saved, which can be
+wasteful if you have large intermediate objects in memory that the job
+does not actually need.</p>
+<p>You can use the <code>store_image</code> config option to save only
+specific objects. This keeps the job submission lightweight while still
+making required objects available on the SLURM node:</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://alon-alexander.github.io/r_project_manager/">pm</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">pm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pm_project.html">pm_project</a></span><span class="op">(</span><span class="st">"path/to/project"</span><span class="op">)</span></span>
+<span><span class="va">analysis</span> <span class="op">&lt;-</span> <span class="va">pm</span><span class="op">$</span><span class="fu">create_analysis</span><span class="op">(</span><span class="st">"slurm_analysis"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Suppose your current R session has some large objects</span></span>
+<span><span class="va">big_raw_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"big-raw-data.rds"</span><span class="op">)</span>      <span class="co"># hundreds of MB</span></span>
+<span><span class="va">precomputed_lookup</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"lookup-small.rds"</span><span class="op">)</span>  <span class="co"># small, needed on the worker</span></span>
+<span></span>
+<span><span class="va">heavy_computation</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="co"># 'precomputed_lookup' will be available on the SLURM worker</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">precomputed_lookup</span>, <span class="va">n</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="va">slurm_run</span> <span class="op">&lt;-</span> <span class="va">analysis</span><span class="op">$</span><span class="fu">run_in_slurm</span><span class="op">(</span></span>
+<span>  <span class="va">heavy_computation</span>,</span>
+<span>  n <span class="op">=</span> <span class="fl">100000</span>,</span>
+<span>  config <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    time_limit <span class="op">=</span> <span class="st">"02:00:00"</span>,</span>
+<span>    memory <span class="op">=</span> <span class="st">"16G"</span>,</span>
+<span>    <span class="co"># Only save and load selected objects instead of the full workspace</span></span>
+<span>    store_image <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"precomputed_lookup"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>In this example, <code>big_raw_data</code> stays in your interactive
+session but is not serialized and sent to the SLURM job, while
+<code>precomputed_lookup</code> is saved and restored for use in
+<code>heavy_computation()</code>. This pattern is especially useful when
+your workspace contains large simulation results or raw data that are
+not needed by the job itself.</p>
+</div>
+<div class="section level2">
 <h2 id="technical-details">Technical Details<a class="anchor" aria-label="anchor" href="#technical-details"></a>
 </h2>
 <div class="section level3">
@@ -464,7 +507,7 @@ function, arguments, and SLURM scripts</li>
 <h3 id="slurm-availability">SLURM Availability<a class="anchor" aria-label="anchor" href="#slurm-availability"></a>
 </h3>
 <p>The package checks for SLURM availability before submission:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Check if SLURM is available</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="fu">pm</span><span class="fu">::</span><span class="fu"><a href="../reference/is_slurm_available.html">is_slurm_available</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"SLURM is available\n"</span><span class="op">)</span></span>

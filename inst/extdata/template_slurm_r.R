@@ -28,6 +28,11 @@ if (fun_file == "" || args_file == "" || result_file == "") {
     }
   }
 }
+# Ensure image-file is parsed from args when passed (e.g. by bash)
+for (arg in args) {
+  if (startsWith(arg, "--image-file=")) image_file <- sub("--image-file=", "", arg)
+}
+
 cat("========== SLURM Job Parameters ==========\n")
 cat(sprintf("Function file:    %s\n", fun_file))
 cat(sprintf("Arguments file:   %s\n", args_file))
@@ -51,12 +56,14 @@ if (packages_file != "" && file.exists(packages_file)) {
   warning(sprintf("Couldn't load packages from file: %s (file does not exist or not specified)", packages_file))
 }
 
-# Load workspace image if provided
-if (image_file != "" && file.exists(image_file)) {
-  load(image_file, envir = .GlobalEnv)
-  cat("Workspace image loaded from:", image_file, "\n")
-} else {
-  warning(sprintf("Couldn't load workspace image from file: %s (file does not exist or not specified)", image_file))
+# Load workspace image if provided (only warn when path is non-empty but file missing)
+if (image_file != "") {
+  if (file.exists(image_file)) {
+    load(image_file, envir = .GlobalEnv)
+    cat("Workspace image loaded from:", image_file, "\n")
+  } else {
+    warning(sprintf("Couldn't load workspace image from file: %s (file does not exist)", image_file))
+  }
 }
 
 # Validate inputs
