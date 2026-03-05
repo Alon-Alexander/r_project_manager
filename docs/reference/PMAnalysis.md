@@ -411,8 +411,8 @@ analysis <- pm$create_analysis("data_preparation")
 analysis
 #> PMAnalysis:
 #>   Name: data_preparation
-#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmphZL5gR/filea2352503cbfe/analyses/data_preparation
-#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmphZL5gR/filea2352503cbfe
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpYlxyhU/file1293372abaf25/analyses/data_preparation
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpYlxyhU/file1293372abaf25
 
 # Load an existing analysis from project
 analysis <- pm$get_analysis("data_preparation")
@@ -494,21 +494,21 @@ output <- analysis$get_output_path("results.csv", type = "table")
 output$id    # "results"
 #> [1] "results"
 output$path  # full path to results.csv in outputs/
-#> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmphZL5gR/filea23517bf72fe/analyses/my_analysis/outputs/results.csv"
+#> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpYlxyhU/file129334821751a/analyses/my_analysis/outputs/results.csv"
 
 # Get intermediate path without extension (will add .parquet for table type)
 intermediate <- analysis$get_output_path("temp_data", type = "table", intermediate = TRUE)
 intermediate$id    # "temp_data"
 #> [1] "temp_data"
 intermediate$path  # full path to temp_data.parquet in intermediate/
-#> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmphZL5gR/filea23517bf72fe/analyses/my_analysis/intermediate/temp_data.parquet"
+#> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpYlxyhU/file129334821751a/analyses/my_analysis/intermediate/temp_data.parquet"
 
 # Get output path with nested folders
 output2 <- analysis$get_output_path("unique\\complex\\structure.rds")
 output2$id   # "unique/complex/structure"
 #> [1] "unique\\complex\\structure"
 output2$path
-#> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmphZL5gR/filea23517bf72fe/analyses/my_analysis/outputs/unique/complex/structure.rds"
+#> [1] "/private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpYlxyhU/file129334821751a/analyses/my_analysis/outputs/unique/complex/structure.rds"
 
 ## ------------------------------------------------
 ## Method `PMAnalysis$run_in_slurm`

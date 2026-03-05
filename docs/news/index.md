@@ -1,5 +1,14 @@
 # Changelog
 
+## pm 0.1.14
+
+### Bug Fixes
+
+- Avoid SLURM result overrides when submitting multiple jobs in a tight
+  loop by adding a 4-character UUID suffix to the auto-generated
+  `result_id` (while leaving user-specified `result_id` values
+  unchanged)
+
 ## pm 0.1.13
 
 ### New Features
