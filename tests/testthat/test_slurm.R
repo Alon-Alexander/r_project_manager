@@ -865,6 +865,34 @@ describe("SLURM functionality", {
       })
     })
 
+    it("Uses unique job directories and result paths for rapid submissions with default result_id", {
+      dir <- .get_good_project_path()
+      pm <- pm::PMProject$new(dir)
+      analysis <- pm$create_analysis("test_analysis")
+
+      with_mock_slurm({
+        runs <- vector("list", 3L)
+        for (i in seq_len(3L)) {
+          runs[[i]] <- analysis$run_in_slurm(
+            function(x) x,
+            i
+          )
+        }
+
+        # All result paths should be unique due to the UUID suffix
+        result_paths <- vapply(runs, function(r) r$result_path, character(1))
+        expect_equal(length(unique(result_paths)), length(result_paths))
+
+        # All .slurm job directories should be unique due to the UUID suffix
+        job_dirs <- vapply(runs, function(r) {
+          job_id_internal <- .mock_slurm_jobs[[paste0("numeric_", r$job_id)]]
+          job_info <- .mock_slurm_jobs[[job_id_internal]]
+          dirname(job_info$fun_file)
+        }, character(1))
+        expect_equal(length(unique(job_dirs)), length(job_dirs))
+      })
+    })
+
     it("Validates function parameter", {
       dir <- .get_good_project_path()
       pm <- pm::PMProject$new(dir)

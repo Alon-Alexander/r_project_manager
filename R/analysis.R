@@ -417,7 +417,11 @@ PMAnalysis <- R6Class("PMAnalysis",
       # Validate method parameters
       if (is.null(result_id)) {
         timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
-        result_id <- paste0("slurm_result_", timestamp)
+        # Add a short per-job UUID suffix to the auto-generated result_id so
+        # that multiple rapid submissions do not share the same artifact ID.
+        uuid_chars <- c(letters, LETTERS, 0:9)
+        uuid_suffix <- paste(sample(uuid_chars, 4L, replace = TRUE), collapse = "")
+        result_id <- paste0("slurm_result_", timestamp, "_", uuid_suffix)
       }
       chk::chk_scalar(result_id)
       chk::chk_character(result_id)
