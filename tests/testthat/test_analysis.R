@@ -1515,6 +1515,99 @@ describe("pm_infer_analysis works correctly", {
     })
   })
 
+  it("Infers correctly when Rscript is run directly from a different working directory", {
+    result_file <- file.path(tempdir(), paste0("pm_infer_result_", Sys.getpid()))
+    on.exit(unlink(result_file), add = TRUE)
+
+    pkg_root <- normalizePath(testthat::test_path("../.."))
+    load_cmd <- if (requireNamespace("pkgload", quietly = TRUE)) {
+      sprintf("pkgload::load_all(%s, quiet = TRUE)", shQuote(pkg_root))
+    } else {
+      "library(pm)"
+    }
+
+    script_path <- file.path(dir, "analyses", "data_prep", "code", "infer_analysis_direct.R")
+    writeLines(
+      c(
+        load_cmd,
+        "result <- pm::pm_infer_analysis()",
+        sprintf("writeLines(result$path, %s)", shQuote(result_file))
+      ),
+      script_path
+    )
+
+    rscript_path <- file.path(R.home(), "bin", "Rscript")
+    if (!file.exists(rscript_path)) {
+      rscript_path <- Sys.which("Rscript")
+    }
+    skip_if_not(nzchar(rscript_path) && file.exists(rscript_path), "Rscript not found")
+
+    exit_code <- system2(
+      rscript_path,
+      args = script_path,
+      stdout = FALSE,
+      stderr = FALSE,
+      wait = TRUE
+    )
+    expect_equal(exit_code, 0)
+
+    inferred_path <- readLines(result_file, n = 1, warn = FALSE)
+    expect_equal(normalizePath(inferred_path, mustWork = FALSE), expected$path)
+  })
+
+  it("Infers correctly when analysis script is sourced via Rscript from another directory", {
+    result_file <- file.path(tempdir(), paste0("pm_infer_result_", Sys.getpid()))
+    on.exit(unlink(result_file), add = TRUE)
+
+    pkg_root <- normalizePath(testthat::test_path("../.."))
+    load_cmd <- if (requireNamespace("pkgload", quietly = TRUE)) {
+      sprintf("pkgload::load_all(%s, quiet = TRUE)", shQuote(pkg_root))
+    } else {
+      "library(pm)"
+    }
+
+    script_path <- file.path(dir, "analyses", "data_prep", "code", "infer_analysis.R")
+    runner_path <- file.path(dir, "run_infer_analysis.R")
+    writeLines(
+      c(
+        load_cmd,
+        "result <- pm::pm_infer_analysis()",
+        sprintf("writeLines(result$path, %s)", shQuote(result_file))
+      ),
+      script_path
+    )
+    writeLines(sprintf("source(%s)", shQuote(script_path)), runner_path)
+
+    rscript_path <- file.path(R.home(), "bin", "Rscript")
+    if (!file.exists(rscript_path)) {
+      rscript_path <- Sys.which("Rscript")
+    }
+    skip_if_not(nzchar(rscript_path) && file.exists(rscript_path), "Rscript not found")
+
+    exit_code <- system2(
+      rscript_path,
+      args = runner_path,
+      stdout = FALSE,
+      stderr = FALSE,
+      wait = TRUE
+    )
+    expect_equal(exit_code, 0)
+
+    inferred_path <- readLines(result_file, n = 1, warn = FALSE)
+    expect_equal(normalizePath(inferred_path, mustWork = FALSE), expected$path)
+  })
+
+  it("Infers correctly when script is sourced from a different working directory", {
+    script_path <- file.path(dir, "analyses", "data_prep", "code", "infer_analysis_source.R")
+    writeLines("pm::pm_infer_analysis()", script_path)
+
+    withr::with_dir(dir, {
+      analysis <- source(script_path, local = new.env())$value
+      expect_equal(expected$path, analysis$path)
+      expect_equal(expected$name, analysis$name)
+    })
+  })
+
   it("Fails from non-analysis folders", {
     options <- list(
       dir, # Project folder

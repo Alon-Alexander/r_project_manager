@@ -644,12 +644,15 @@ PMAnalysis <- R6Class("PMAnalysis",
   )
 )
 
-#' @title Infer an analysis object based on the current directory
+#' @title Infer an analysis object based on the calling script
 #'
 #' @description
-#' Find the relevant analysis object based on the current directory.
-#' Currently supported being called from an analysis folder inside
-#' "analyses" folder, or from the code folder of an analysis.
+#' Find the relevant analysis object based on the call stack of the script
+#' that invoked this function. Supported when called from a script in an
+#' analysis folder inside the "analyses" folder, or from a script in the code
+#' folder of an analysis (including nested subfolders). Falls back to the
+#' `Rscript` entry file from command-line arguments, then to the current
+#' working directory when the caller file cannot be determined otherwise.
 #'
 #' @return \code{PMAnalysis} object representing the inferred analysis
 #'
@@ -672,23 +675,108 @@ PMAnalysis <- R6Class("PMAnalysis",
 #'
 #' @export
 pm_infer_analysis <- function() {
-  current_path <- normalizePath(getwd(), mustWork = FALSE)
-  parent <- dirname(current_path)
-
-  # Check if directly in analyses folder
-  if (basename(parent) == constants$ANALYSES_DIR) {
-    return(PMAnalysis$new(path = current_path))
-  }
-
-  # Check if in "code" folder in an analysis folder
-  if (basename(current_path) %in% constants$ANALYSIS_CODE_DIR_OPTIONS) {
-    grandparent <- dirname(parent)
-    if (basename(grandparent) == constants$ANALYSES_DIR) {
-      return(PMAnalysis$new(path = parent))
+  caller_file <- .get_caller_file()
+  if (!is.null(caller_file)) {
+    analysis <- .infer_analysis_from_path(caller_file)
+    if (!is.null(analysis)) {
+      return(analysis)
     }
   }
 
+  analysis <- .infer_analysis_from_path(getwd())
+  if (!is.null(analysis)) {
+    return(analysis)
+  }
+
   stop("Couldn't infer analysis path from current folder, please provide a direct path")
+}
+
+#' @title Get the file path of the calling script
+#'
+#' @keywords internal
+.get_caller_file <- function() {
+  caller_frames <- if (sys.nframe() > 1L) {
+    rev(seq_len(sys.nframe() - 1L))
+  } else {
+    integer()
+  }
+
+  for (i in caller_frames) {
+    ofile <- sys.frame(i)$ofile
+    if (!is.null(ofile) && nzchar(ofile)) {
+      return(normalizePath(ofile, mustWork = FALSE))
+    }
+  }
+
+  for (i in caller_frames) {
+    call <- sys.call(i)
+    if (is.call(call) && identical(call[[1]], quote(source))) {
+      filename <- call[["file"]]
+      if (is.null(filename)) {
+        filename <- call[["filename"]]
+      }
+      if (!is.null(filename) && nzchar(filename)) {
+        return(normalizePath(filename, mustWork = FALSE))
+      }
+    }
+  }
+
+  for (i in caller_frames) {
+    srcref <- tryCatch(getSrcref(sys.frame(i)), error = function(e) NULL)
+    if (!is.null(srcref)) {
+      srcfile <- attr(srcref, "srcfile")
+      if (
+        !is.null(srcfile) &&
+          isTRUE(srcfile$isFile) &&
+          !is.null(srcfile$filename) &&
+          nzchar(srcfile$filename)
+      ) {
+        return(normalizePath(srcfile$filename, mustWork = FALSE))
+      }
+    }
+  }
+
+  args <- commandArgs(trailingOnly = FALSE)
+  file_arg <- grep("^--file=", args, value = TRUE)
+  if (length(file_arg) > 0) {
+    return(normalizePath(sub("^--file=", "", tail(file_arg, 1)), mustWork = FALSE))
+  }
+
+  NULL
+}
+
+#' @title Infer an analysis from a file or directory path
+#'
+#' @keywords internal
+.infer_analysis_from_path <- function(start_path) {
+  current_path <- if (dir.exists(start_path)) {
+    normalizePath(start_path, mustWork = FALSE)
+  } else {
+    normalizePath(dirname(start_path), mustWork = FALSE)
+  }
+
+  repeat {
+    parent <- dirname(current_path)
+
+    if (basename(parent) == constants$ANALYSES_DIR) {
+      return(PMAnalysis$new(path = current_path))
+    }
+
+    if (basename(current_path) %in% constants$ANALYSIS_CODE_DIR_OPTIONS) {
+      grandparent <- dirname(parent)
+      if (basename(grandparent) == constants$ANALYSES_DIR) {
+        return(PMAnalysis$new(path = parent))
+      }
+    }
+
+    if (current_path == parent) {
+      break
+    }
+
+    current_path <- parent
+  }
+
+  NULL
 }
 
 #' @title Find the name of the code folder in an analysis
