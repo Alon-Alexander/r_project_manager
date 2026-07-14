@@ -1,8 +1,12 @@
-# Infer an analysis object based on the current directory
+# Infer an analysis object based on the calling script
 
-Find the relevant analysis object based on the current directory.
-Currently supported being called from an analysis folder inside
-"analyses" folder, or from the code folder of an analysis.
+Find the relevant analysis object based on the call stack of the script
+that invoked this function. Supported when called from a script in an
+analysis folder inside the "analyses" folder, or from a script in the
+code folder of an analysis (including nested subfolders). Falls back to
+the `Rscript` entry file from command-line arguments, then to the
+current working directory when the caller file cannot be determined
+otherwise.
 
 ## Usage
 
@@ -22,8 +26,8 @@ pm <- pm_create_project(empty_folder)
 pm$create_analysis("my_analysis")
 #> PMAnalysis:
 #>   Name: my_analysis
-#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpYlxyhU/file129332d5b2d69/analyses/my_analysis
-#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpYlxyhU/file129332d5b2d69
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpER8NpN/file83ed55add0e2/analyses/my_analysis
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpER8NpN/file83ed55add0e2
 
 # Infer from analysis folder
 withr::with_dir(file.path(empty_folder, "analyses", "my_analysis"), {
@@ -32,8 +36,8 @@ withr::with_dir(file.path(empty_folder, "analyses", "my_analysis"), {
 })
 #> PMAnalysis:
 #>   Name: my_analysis
-#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpYlxyhU/file129332d5b2d69/analyses/my_analysis
-#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpYlxyhU/file129332d5b2d69
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpER8NpN/file83ed55add0e2/analyses/my_analysis
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpER8NpN/file83ed55add0e2
 
 # Infer from code folder
 withr::with_dir(file.path(empty_folder, "analyses", "my_analysis", "code"), {
@@ -42,6 +46,6 @@ withr::with_dir(file.path(empty_folder, "analyses", "my_analysis", "code"), {
 })
 #> PMAnalysis:
 #>   Name: my_analysis
-#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpYlxyhU/file129332d5b2d69/analyses/my_analysis
-#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpYlxyhU/file129332d5b2d69
+#>   Path: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpER8NpN/file83ed55add0e2/analyses/my_analysis
+#>   Project: /private/var/folders/0t/mvk3x4hx0pl31l5lcl11krcc0000gn/T/RtmpER8NpN/file83ed55add0e2
 ```

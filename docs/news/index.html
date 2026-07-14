@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">pm</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.14</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.15</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,6 +38,26 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.15" id="pm-0115">pm 0.1.15<a class="anchor" aria-label="anchor" href="#pm-0115"></a></h2>
+<div class="section level3">
+<h3 id="new-features-0-1-15">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-1-15"></a></h3>
+<ul><li>Improve <code><a href="../reference/pm_infer_analysis.html">pm_infer_analysis()</a></code> to infer the analysis from the calling script (via call stack, <code><a href="https://rdrr.io/r/base/source.html" class="external-link">source()</a></code>, or <code>Rscript --file=</code>) rather than relying solely on the working directory; supports scripts in nested code subfolders</li>
+<li>Add <code>code/placeholder.R</code> to the analysis template as a starter script demonstrating <code><a href="../reference/pm_infer_analysis.html">pm_infer_analysis()</a></code>, reading inputs, fetching artifacts, and writing outputs</li>
+</ul></div>
+<div class="section level3">
+<h3 id="improvements-0-1-15">Improvements<a class="anchor" aria-label="anchor" href="#improvements-0-1-15"></a></h3>
+<ul><li>Auto-repair incomplete project and analysis folders during validation: create missing optional files and directories (e.g. README.md, <code>analyses/</code>, <code>code/</code>, <code>outputs/</code>, <code>intermediate/</code>, <code>logs/</code>) instead of failing</li>
+<li>Repair incomplete analysis directories when listing or retrieving analyses via <code>list_analyses()</code> and <code>get_analysis()</code>
+</li>
+<li>Better project README template.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-1-15">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-1-15"></a></h3>
+<ul><li>Suppress YAML warnings about a missing final newline when reading <code>project.yaml</code> and <code>inputs.local.yaml</code>
+</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.14" id="pm-0114">pm 0.1.14<a class="anchor" aria-label="anchor" href="#pm-0114"></a></h2>
 <div class="section level3">

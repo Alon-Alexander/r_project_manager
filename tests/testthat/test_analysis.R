@@ -1555,7 +1555,10 @@ describe("pm_infer_analysis works correctly", {
     on.exit(unlink(result_file), add = TRUE)
 
     pkg_root <- normalizePath(testthat::test_path("../.."))
-    load_cmd <- if (requireNamespace("pkgload", quietly = TRUE)) {
+    load_cmd <- if (
+      dir.exists(file.path(pkg_root, "R")) &&
+        requireNamespace("pkgload", quietly = TRUE)
+    ) {
       sprintf("pkgload::load_all(%s, quiet = TRUE)", shQuote(pkg_root))
     } else {
       "library(pm)"
@@ -1595,7 +1598,10 @@ describe("pm_infer_analysis works correctly", {
     on.exit(unlink(result_file), add = TRUE)
 
     pkg_root <- normalizePath(testthat::test_path("../.."))
-    load_cmd <- if (requireNamespace("pkgload", quietly = TRUE)) {
+    load_cmd <- if (
+      dir.exists(file.path(pkg_root, "R")) &&
+        requireNamespace("pkgload", quietly = TRUE)
+    ) {
       sprintf("pkgload::load_all(%s, quiet = TRUE)", shQuote(pkg_root))
     } else {
       "library(pm)"

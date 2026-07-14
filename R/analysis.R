@@ -702,6 +702,7 @@ pm_infer_analysis <- function() {
 
 #' @title Get the file path of the calling script
 #'
+#' @importFrom utils getSrcref tail
 #' @keywords internal
 .get_caller_file <- function() {
   caller_frames <- if (sys.nframe() > 1L) {

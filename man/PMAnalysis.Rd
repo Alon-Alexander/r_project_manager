@@ -190,6 +190,7 @@ Create a PMAnalysis object
 \subsection{Method \code{validate()}}{
 Validate the analysis folder.
 Makes sure all expected files and folders exist.
+Creates missing optional files and folders (e.g. README.md, code/, logs/).
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PMAnalysis$validate()}\if{html}{\out{</div>}}
 }
