@@ -93,8 +93,14 @@ PMProject <- R6Class("PMProject",
           constants$TEMPLATE_PROJECT_DIR,
           constants$README_FILENAME
         )
+        readme_content <- gsub(
+          "{{PROJECT_NAME}}",
+          basename(self$path),
+          readme_content,
+          fixed = TRUE
+        )
         if (length(readme_content) == 0) {
-          readme_content <- "# My Project"
+          readme_content <- paste0("# ", basename(self$path))
         }
         .ensure_file(readme_path, readme_content)
       }
@@ -496,6 +502,15 @@ pm_create_project <- function(path) {
   )
   if (!success) {
     stop("Failed to copy .gitignore template file")
+  }
+
+  # Replace {{PROJECT_NAME}} placeholder in README.md
+  project_name <- basename(normalizePath(path))
+  readme_path <- file.path(path, constants$README_FILENAME)
+  if (file.exists(readme_path)) {
+    readme_content <- readLines(readme_path)
+    readme_content <- gsub("{{PROJECT_NAME}}", project_name, readme_content, fixed = TRUE)
+    writeLines(readme_content, readme_path)
   }
 
   pm_project(path)

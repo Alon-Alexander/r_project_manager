@@ -127,6 +127,22 @@ describe("PMAnalysis class works as expected", {
     expect_true(dir.exists(file.path(analysis_path, "logs")))
   })
 
+  it("Does not copy template code files when fixing an existing analysis", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+
+    analysis_path <- file.path(dir, "analyses", "incomplete_analysis")
+    dir.create(analysis_path, recursive = TRUE)
+    dir.create(file.path(analysis_path, "code"))
+    dir.create(file.path(analysis_path, "outputs"))
+    dir.create(file.path(analysis_path, "intermediate"))
+    dir.create(file.path(analysis_path, "logs"))
+
+    expect_silent(pm::PMAnalysis$new(project = pm, name = "incomplete_analysis"))
+    expect_true(file.exists(file.path(analysis_path, "README.md")))
+    expect_false(file.exists(file.path(analysis_path, "code", "placeholder.R")))
+  })
+
   it("Creates analysis folder when using project and name", {
     dir <- .get_good_project_path()
     pm <- pm::PMProject$new(dir)
@@ -494,6 +510,7 @@ describe("Analysis template structure", {
     expect_true(dir.exists(file.path(analysis$path, "outputs")))
     expect_true(dir.exists(file.path(analysis$path, "intermediate")))
     expect_true(dir.exists(file.path(analysis$path, "logs")))
+    expect_true(file.exists(file.path(analysis$path, "code", "placeholder.R")))
   })
 
   it("dot_ prefix files are renamed correctly", {

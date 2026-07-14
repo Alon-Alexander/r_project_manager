@@ -116,6 +116,19 @@ describe("Creating new project with pm_create_project works", {
       regexp = "which exists but contains an invalid project"
     )
   })
+
+  it("README.md placeholder is replaced with project name", {
+    dir <- withr::local_tempdir()
+    project_path <- file.path(dir, "my_custom_project")
+    pm <- pm_create_project(project_path)
+
+    readme_content <- readLines(file.path(pm$path, "README.md"))
+    first_line <- readme_content[1]
+
+    expect_equal(first_line, "# my_custom_project")
+    placeholder_pattern <- "{{PROJECT_NAME}}"
+    expect_false(any(grepl(placeholder_pattern, readme_content, fixed = TRUE)))
+  })
 })
 
 describe("Input file validation in PMProject$validate()", {
