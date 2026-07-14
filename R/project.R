@@ -75,6 +75,7 @@ PMProject <- R6Class("PMProject",
     #' @description
     #' Validate the project folder.
     #' Makes sure all expected files and folder exist and are valid.
+    #' Creates missing optional files and folders (e.g. README.md, analyses/).
     #' Also validates that all input files referenced in inputs.local.yaml exist.
     validate = function() {
       chk::check_files(
@@ -85,14 +86,20 @@ PMProject <- R6Class("PMProject",
         private$at(constants$LOCAL_INPUTS_FILENAME),
         x_name = "Local inputs mapping file"
       )
-      chk::check_files(
-        private$at(constants$README_FILENAME),
-        x_name = "Readme file"
-      )
-      chk::check_dirs(
-        private$at(constants$ANALYSES_DIR),
-        x_name = "Analyses folder"
-      )
+
+      readme_path <- private$at(constants$README_FILENAME)
+      if (!file.exists(readme_path)) {
+        readme_content <- .read_template_file(
+          constants$TEMPLATE_PROJECT_DIR,
+          constants$README_FILENAME
+        )
+        if (length(readme_content) == 0) {
+          readme_content <- "# My Project"
+        }
+        .ensure_file(readme_path, readme_content)
+      }
+
+      .ensure_dir(private$at(constants$ANALYSES_DIR))
 
       # Validate input files exist
       .validate_input_files(
@@ -494,6 +501,33 @@ pm_create_project <- function(path) {
   pm_project(path)
 }
 
+
+.ensure_dir <- function(path) {
+  if (!dir.exists(path)) {
+    dir.create(path, recursive = TRUE, showWarnings = FALSE)
+  }
+  invisible(path)
+}
+
+.ensure_file <- function(path, contents = character(0)) {
+  if (!file.exists(path)) {
+    parent_dir <- dirname(path)
+    if (!dir.exists(parent_dir)) {
+      dir.create(parent_dir, recursive = TRUE, showWarnings = FALSE)
+    }
+    writeLines(contents, path, useBytes = TRUE)
+  }
+  invisible(path)
+}
+
+.read_template_file <- function(template_dir, filename) {
+  template_path <- system.file("extdata", template_dir, filename, package = "pm")
+  if (nzchar(template_path) && file.exists(template_path)) {
+    readLines(template_path, warn = FALSE)
+  } else {
+    character(0)
+  }
+}
 
 .recursive_copy <- function(from_dir, to_dir) {
   chk::check_dirs(

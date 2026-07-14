@@ -57,7 +57,10 @@ PMAnalysis <- R6Class("PMAnalysis",
         chk::check_dirs(self$path, x_name = "Analysis folder")
 
         self$name <- basename(self$path)
-        private$code_folder_name <- .find_code_folder_name(self$path)
+        private$code_folder_name <- tryCatch(
+          .find_code_folder_name(self$path),
+          error = function(e) NULL
+        )
 
         # Try to infer project path (parent of analyses directory)
         parent <- dirname(self$path)
@@ -74,28 +77,34 @@ PMAnalysis <- R6Class("PMAnalysis",
     #' @description
     #' Validate the analysis folder.
     #' Makes sure all expected files and folders exist.
+    #' Creates missing optional files and folders (e.g. README.md, code/, logs/).
     validate = function() {
-      chk::check_dirs(self$path, x_name = "Analysis folder")
-      chk::check_files(
-        file.path(self$path, constants$README_FILENAME),
-        x_name = "Analysis README file"
-      )
-      chk::check_dirs(
-        file.path(self$path, private$code_folder_name),
-        x_name = "Code folder"
-      )
-      chk::check_dirs(
-        file.path(self$path, "outputs"),
-        x_name = "Outputs folder"
-      )
-      chk::check_dirs(
-        file.path(self$path, "intermediate"),
-        x_name = "Intermediate folder"
-      )
-      chk::check_dirs(
-        file.path(self$path, "logs"),
-        x_name = "Logs folder"
-      )
+      .ensure_dir(self$path)
+
+      if (is.null(private$code_folder_name)) {
+        private$code_folder_name <- tryCatch(
+          .find_code_folder_name(self$path),
+          error = function(e) "code"
+        )
+      }
+
+      readme_path <- file.path(self$path, constants$README_FILENAME)
+      if (!file.exists(readme_path)) {
+        readme_content <- .read_template_file(
+          constants$TEMPLATE_ANALYSIS_DIR,
+          constants$README_FILENAME
+        )
+        readme_content <- gsub("{{ANALYSIS_NAME}}", self$name, readme_content, fixed = TRUE)
+        if (length(readme_content) == 0) {
+          readme_content <- paste0("# ", self$name)
+        }
+        .ensure_file(readme_path, readme_content)
+      }
+
+      .ensure_dir(file.path(self$path, private$code_folder_name))
+      .ensure_dir(file.path(self$path, constants$ANALYSIS_OUTPUT_DIR))
+      .ensure_dir(file.path(self$path, constants$ANALYSIS_INTERMEDIATE_DIR))
+      .ensure_dir(file.path(self$path, "logs"))
     },
 
     #' @description

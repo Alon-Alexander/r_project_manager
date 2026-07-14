@@ -12,8 +12,8 @@ describe("Creating project objects works as expected", {
     expect_equal(proj$path, normalizePath(dir))
   })
 
-  it("Errors when there is a missing important file", {
-    for (missing_file in c("README.md", "project.yaml", "inputs.local.yaml")) {
+  it("Errors when there is a missing required config file", {
+    for (missing_file in c("project.yaml", "inputs.local.yaml")) {
       dir <- .get_good_project_path()
 
       # Explicitly remove the missing file
@@ -30,6 +30,17 @@ describe("Creating project objects works as expected", {
         label = missing_file
       )
     }
+  })
+
+  it("Creates missing README.md and analyses/ folder during validation", {
+    dir <- .get_good_project_path()
+
+    file.remove(file.path(dir, "README.md"))
+    unlink(file.path(dir, "analyses"), recursive = TRUE)
+
+    expect_silent(pm::PMProject$new(dir))
+    expect_true(file.exists(file.path(dir, "README.md")))
+    expect_true(dir.exists(file.path(dir, "analyses")))
   })
 
   it("Fails for non existing folder", {
