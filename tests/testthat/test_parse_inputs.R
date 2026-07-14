@@ -49,6 +49,27 @@ describe("parse_inputs method works correctly", {
     expect_equal(data_list$sample_metadata$path, normalizePath(file2, mustWork = FALSE))
   })
 
+  it("Does not warn when YAML configuration files lack a trailing newline", {
+    dir <- .get_good_project_path()
+
+    for (yaml_file in c("project.yaml", "inputs.local.yaml")) {
+      path <- file.path(dir, yaml_file)
+      content <- readBin(path, "raw", file.info(path)$size)
+      if (length(content) > 0 && rawToChar(content[length(content)]) == "\n") {
+        content <- content[-length(content)]
+      }
+      con <- file(path, "wb")
+      writeBin(content, con)
+      close(con)
+    }
+
+    expect_silent({
+      proj <- pm::PMProject$new(dir)
+      data_list <- proj$parse_inputs()
+    })
+    expect_length(data_list, 2)
+  })
+
   it("Validates inputs schema array element with id-only (null value)", {
     # Array format: element is list(id_key = NULL) with no other keys -> next
     inputs_def <- list(inputs = list(list(my_input = NULL)))

@@ -121,7 +121,7 @@ PMProject <- R6Class("PMProject",
       configuration_file <- private$at(constants$CONFIGURATION_FILENAME)
       chk::check_files(configuration_file, x_name = "Project configuration file")
       inputs_def <- tryCatch(
-        yaml::read_yaml(configuration_file),
+        .read_yaml_file(configuration_file),
         error = function(e) {
           stop("project.yaml must be a YAML object (key-value pairs): ", conditionMessage(e))
         }
@@ -134,7 +134,7 @@ PMProject <- R6Class("PMProject",
       local_inputs_file <- private$at(constants$LOCAL_INPUTS_FILENAME)
       chk::check_files(local_inputs_file, x_name = "Local inputs mapping file")
       local_inputs <- tryCatch(
-        yaml::read_yaml(local_inputs_file),
+        .read_yaml_file(local_inputs_file),
         error = function(e) {
           stop("inputs.local.yaml must be a YAML object (key-value pairs): ", conditionMessage(e))
         }

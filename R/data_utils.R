@@ -1,3 +1,17 @@
+#' @title Read a YAML configuration file
+#'
+#' @description
+#' Reads YAML from a file, suppressing warnings about a missing final newline.
+#'
+#' @param file Character. Path to the YAML file.
+#'
+#' @return Parsed YAML content.
+#'
+#' @keywords internal
+.read_yaml_file <- function(file) {
+  suppressWarnings(yaml::read_yaml(file))
+}
+
 #' @title Validate project.yaml schema
 #'
 #' @description
@@ -437,7 +451,7 @@
 .validate_input_files <- function(project_path, configuration_file, local_inputs_file) {
   # Read project.yaml
   inputs_def <- tryCatch(
-    yaml::read_yaml(configuration_file),
+    .read_yaml_file(configuration_file),
     error = function(e) {
       stop("Failed to read and parse project.yaml: ", conditionMessage(e))
     }
@@ -453,7 +467,7 @@
 
   # Read inputs.local.yaml
   local_inputs <- tryCatch(
-    yaml::read_yaml(local_inputs_file),
+    .read_yaml_file(local_inputs_file),
     error = function(e) {
       stop("Failed to read and parse inputs.local.yaml: ", conditionMessage(e))
     }
