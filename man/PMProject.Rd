@@ -128,6 +128,7 @@ Print method for PMProject
 \subsection{Method \code{validate()}}{
 Validate the project folder.
 Makes sure all expected files and folder exist and are valid.
+Creates missing optional files and folders (e.g. README.md, analyses/).
 Also validates that all input files referenced in inputs.local.yaml exist.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{PMProject$validate()}\if{html}{\out{</div>}}

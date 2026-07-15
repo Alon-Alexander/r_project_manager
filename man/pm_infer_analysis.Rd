@@ -2,7 +2,7 @@
 % Please edit documentation in R/analysis.R
 \name{pm_infer_analysis}
 \alias{pm_infer_analysis}
-\title{Infer an analysis object based on the current directory}
+\title{Infer an analysis object based on the calling script}
 \usage{
 pm_infer_analysis()
 }
@@ -10,9 +10,12 @@ pm_infer_analysis()
 \code{PMAnalysis} object representing the inferred analysis
 }
 \description{
-Find the relevant analysis object based on the current directory.
-Currently supported being called from an analysis folder inside
-"analyses" folder, or from the code folder of an analysis.
+Find the relevant analysis object based on the call stack of the script
+that invoked this function. Supported when called from a script in an
+analysis folder inside the "analyses" folder, or from a script in the code
+folder of an analysis (including nested subfolders). Falls back to the
+\code{Rscript} entry file from command-line arguments, then to the current
+working directory when the caller file cannot be determined otherwise.
 }
 \examples{
 empty_folder <- withr::local_tempdir()

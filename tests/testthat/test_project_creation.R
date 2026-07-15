@@ -12,8 +12,8 @@ describe("Creating project objects works as expected", {
     expect_equal(proj$path, normalizePath(dir))
   })
 
-  it("Errors when there is a missing important file", {
-    for (missing_file in c("README.md", "project.yaml", "inputs.local.yaml")) {
+  it("Errors when there is a missing required config file", {
+    for (missing_file in c("project.yaml", "inputs.local.yaml")) {
       dir <- .get_good_project_path()
 
       # Explicitly remove the missing file
@@ -30,6 +30,17 @@ describe("Creating project objects works as expected", {
         label = missing_file
       )
     }
+  })
+
+  it("Creates missing README.md and analyses/ folder during validation", {
+    dir <- .get_good_project_path()
+
+    file.remove(file.path(dir, "README.md"))
+    unlink(file.path(dir, "analyses"), recursive = TRUE)
+
+    expect_silent(pm::PMProject$new(dir))
+    expect_true(file.exists(file.path(dir, "README.md")))
+    expect_true(dir.exists(file.path(dir, "analyses")))
   })
 
   it("Fails for non existing folder", {
@@ -104,6 +115,19 @@ describe("Creating new project with pm_create_project works", {
       pm_create_project(dir),
       regexp = "which exists but contains an invalid project"
     )
+  })
+
+  it("README.md placeholder is replaced with project name", {
+    dir <- withr::local_tempdir()
+    project_path <- file.path(dir, "my_custom_project")
+    pm <- pm_create_project(project_path)
+
+    readme_content <- readLines(file.path(pm$path, "README.md"))
+    first_line <- readme_content[1]
+
+    expect_equal(first_line, "# my_custom_project")
+    placeholder_pattern <- "{{PROJECT_NAME}}"
+    expect_false(any(grepl(placeholder_pattern, readme_content, fixed = TRUE)))
   })
 })
 

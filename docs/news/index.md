@@ -1,5 +1,35 @@
 # Changelog
 
+## pm 0.1.15
+
+### New Features
+
+- Improve
+  [`pm_infer_analysis()`](https://alon-alexander.github.io/r_project_manager/reference/pm_infer_analysis.md)
+  to infer the analysis from the calling script (via call stack,
+  [`source()`](https://rdrr.io/r/base/source.html), or
+  `Rscript --file=`) rather than relying solely on the working
+  directory; supports scripts in nested code subfolders
+- Add `code/placeholder.R` to the analysis template as a starter script
+  demonstrating
+  [`pm_infer_analysis()`](https://alon-alexander.github.io/r_project_manager/reference/pm_infer_analysis.md),
+  reading inputs, fetching artifacts, and writing outputs
+
+### Improvements
+
+- Auto-repair incomplete project and analysis folders during validation:
+  create missing optional files and directories (e.g. README.md,
+  `analyses/`, `code/`, `outputs/`, `intermediate/`, `logs/`) instead of
+  failing
+- Repair incomplete analysis directories when listing or retrieving
+  analyses via `list_analyses()` and `get_analysis()`
+- Better project README template.
+
+### Bug Fixes
+
+- Suppress YAML warnings about a missing final newline when reading
+  `project.yaml` and `inputs.local.yaml`
+
 ## pm 0.1.14
 
 ### Bug Fixes

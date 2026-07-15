@@ -94,26 +94,23 @@ describe("PMAnalysis class works as expected", {
     )
   })
 
-  it("Errors when creating PMAnalysis with missing required files", {
+  it("Creates missing README.md during validation", {
     dir <- .get_good_project_path()
     pm <- pm::PMProject$new(dir)
 
-    # Create analysis directory manually without required files
+    # Create analysis directory manually without README.md
     analysis_path <- file.path(dir, "analyses", "incomplete_analysis")
     dir.create(analysis_path, recursive = TRUE)
     dir.create(file.path(analysis_path, "code"))
     dir.create(file.path(analysis_path, "outputs"))
     dir.create(file.path(analysis_path, "intermediate"))
     dir.create(file.path(analysis_path, "logs"))
-    # Missing README.md
 
-    expect_error(
-      pm::PMAnalysis$new(project = pm, name = "incomplete_analysis"),
-      regexp = "must specify existing files"
-    )
+    expect_silent(pm::PMAnalysis$new(project = pm, name = "incomplete_analysis"))
+    expect_true(file.exists(file.path(analysis_path, "README.md")))
   })
 
-  it("Errors when creating PMAnalysis with missing required directories", {
+  it("Creates missing required directories during validation", {
     dir <- .get_good_project_path()
     pm <- pm::PMProject$new(dir)
 
@@ -124,10 +121,42 @@ describe("PMAnalysis class works as expected", {
     dir.create(file.path(analysis_path, "code"))
     # Missing outputs, intermediate, logs
 
-    expect_error(
-      pm::PMAnalysis$new(project = pm, name = "incomplete_analysis"),
-      regexp = "must specify existing directories"
-    )
+    expect_silent(pm::PMAnalysis$new(project = pm, name = "incomplete_analysis"))
+    expect_true(dir.exists(file.path(analysis_path, "outputs")))
+    expect_true(dir.exists(file.path(analysis_path, "intermediate")))
+    expect_true(dir.exists(file.path(analysis_path, "logs")))
+  })
+
+  it("Does not copy template code files when fixing an existing analysis", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+
+    analysis_path <- file.path(dir, "analyses", "incomplete_analysis")
+    dir.create(analysis_path, recursive = TRUE)
+    dir.create(file.path(analysis_path, "code"))
+    dir.create(file.path(analysis_path, "outputs"))
+    dir.create(file.path(analysis_path, "intermediate"))
+    dir.create(file.path(analysis_path, "logs"))
+
+    expect_silent(pm::PMAnalysis$new(project = pm, name = "incomplete_analysis"))
+    expect_true(file.exists(file.path(analysis_path, "README.md")))
+    expect_false(file.exists(file.path(analysis_path, "code", "placeholder.R")))
+  })
+
+  it("Creates analysis folder when using project and name", {
+    dir <- .get_good_project_path()
+    pm <- pm::PMProject$new(dir)
+
+    analysis_path <- file.path(dir, "analyses", "new_analysis")
+    expect_false(dir.exists(analysis_path))
+
+    expect_silent(pm::PMAnalysis$new(project = pm, name = "new_analysis"))
+    expect_true(dir.exists(analysis_path))
+    expect_true(file.exists(file.path(analysis_path, "README.md")))
+    expect_true(dir.exists(file.path(analysis_path, "code")))
+    expect_true(dir.exists(file.path(analysis_path, "outputs")))
+    expect_true(dir.exists(file.path(analysis_path, "intermediate")))
+    expect_true(dir.exists(file.path(analysis_path, "logs")))
   })
 
   it("Requires either project+name or path", {
@@ -227,19 +256,21 @@ describe("PMProject$create_analysis() works correctly", {
     expect_equal(analysis1$name, analysis2$name)
   })
 
-  it("Errors when analysis folder exists but is invalid", {
+  it("Repairs incomplete analysis folder when it already exists", {
     dir <- .get_good_project_path()
     pm <- pm::PMProject$new(dir)
 
-    # Create invalid analysis directory (just an empty directory)
+    # Create incomplete analysis directory (just an empty directory)
     analysis_path <- file.path(dir, "analyses", "invalid_analysis")
     dir.create(analysis_path, recursive = TRUE)
-    # Missing all required files/directories
 
-    expect_error(
-      pm$create_analysis("invalid_analysis"),
-      regexp = "already exists but is not a valid analysis|exists but is not valid"
-    )
+    analysis <- pm$create_analysis("invalid_analysis")
+    expect_s3_class(analysis, "PMAnalysis")
+    expect_true(file.exists(file.path(analysis_path, "README.md")))
+    expect_true(dir.exists(file.path(analysis_path, "code")))
+    expect_true(dir.exists(file.path(analysis_path, "outputs")))
+    expect_true(dir.exists(file.path(analysis_path, "intermediate")))
+    expect_true(dir.exists(file.path(analysis_path, "logs")))
   })
 
   it("Can create multiple analyses", {
@@ -366,22 +397,23 @@ describe("PMProject$list_analyses() works correctly", {
     expect_true("analysis3" %in% analyses)
   })
 
-  it("Only returns valid analyses", {
+  it("Repairs incomplete analysis directories when listing analyses", {
     dir <- .get_good_project_path()
     pm <- pm::PMProject$new(dir)
 
     # Create valid analysis
     pm$create_analysis("valid_analysis")
 
-    # Create invalid analysis directory
-    invalid_path <- file.path(dir, "analyses", "invalid_analysis")
-    dir.create(invalid_path, recursive = TRUE)
-    # Missing required files
+    # Create incomplete analysis directory
+    incomplete_path <- file.path(dir, "analyses", "incomplete_analysis")
+    dir.create(incomplete_path, recursive = TRUE)
 
     analyses <- pm$list_analyses()
-    expect_length(analyses, 1)
+    expect_length(analyses, 2)
     expect_true("valid_analysis" %in% analyses)
-    expect_false("invalid_analysis" %in% analyses)
+    expect_true("incomplete_analysis" %in% analyses)
+    expect_true(file.exists(file.path(incomplete_path, "README.md")))
+    expect_true(dir.exists(file.path(incomplete_path, "code")))
   })
 
   it("Returns all analyses regardless of creation order", {
@@ -424,19 +456,21 @@ describe("PMProject$get_analysis() works correctly", {
     )
   })
 
-  it("Errors when analysis exists but is invalid", {
+  it("Repairs incomplete analysis when retrieved via get_analysis", {
     dir <- .get_good_project_path()
     pm <- pm::PMProject$new(dir)
 
-    # Create invalid analysis directory (just an empty directory)
+    # Create incomplete analysis directory (just an empty directory)
     analysis_path <- file.path(dir, "analyses", "invalid_analysis")
     dir.create(analysis_path, recursive = TRUE)
-    # Missing all required files/directories
 
-    expect_error(
-      pm$get_analysis("invalid_analysis"),
-      regexp = "exists but is not valid|must specify existing"
-    )
+    retrieved_analysis <- pm$get_analysis("invalid_analysis")
+    expect_s3_class(retrieved_analysis, "PMAnalysis")
+    expect_true(file.exists(file.path(analysis_path, "README.md")))
+    expect_true(dir.exists(file.path(analysis_path, "code")))
+    expect_true(dir.exists(file.path(analysis_path, "outputs")))
+    expect_true(dir.exists(file.path(analysis_path, "intermediate")))
+    expect_true(dir.exists(file.path(analysis_path, "logs")))
   })
 
   it("Validates analysis name parameter", {
@@ -476,6 +510,7 @@ describe("Analysis template structure", {
     expect_true(dir.exists(file.path(analysis$path, "outputs")))
     expect_true(dir.exists(file.path(analysis$path, "intermediate")))
     expect_true(dir.exists(file.path(analysis$path, "logs")))
+    expect_true(file.exists(file.path(analysis$path, "code", "placeholder.R")))
   })
 
   it("dot_ prefix files are renamed correctly", {
@@ -1512,6 +1547,80 @@ describe("pm_infer_analysis works correctly", {
 
       expect_equal(expected_other$path, analysis$path)
       expect_equal(expected_other$name, analysis$name)
+    })
+  })
+
+  it("Infers correctly when Rscript is run directly from a different working directory", {
+    result_file <- file.path(dir, "pm_infer_result.txt")
+    on.exit(unlink(result_file), add = TRUE)
+
+    script_path <- file.path(dir, "analyses", "data_prep", "code", "infer_analysis_direct.R")
+    writeLines(
+      c(
+        .pm_rscript_load_cmds(),
+        "result <- pm::pm_infer_analysis()",
+        sprintf(
+          "writeLines(result$path, %s)",
+          shQuote(.pm_r_script_path(result_file))
+        )
+      ),
+      script_path
+    )
+
+    skip_if_not(
+      nzchar(.pm_rscript_path()) && file.exists(.pm_rscript_path()),
+      "Rscript not found"
+    )
+
+    exit_code <- .pm_run_rscript(script_path)
+    expect_equal(exit_code, 0)
+
+    inferred_path <- readLines(result_file, n = 1, warn = FALSE)
+    expect_equal(normalizePath(inferred_path, mustWork = FALSE), expected$path)
+  })
+
+  it("Infers correctly when analysis script is sourced via Rscript from another directory", {
+    result_file <- file.path(dir, "pm_infer_result.txt")
+    on.exit(unlink(result_file), add = TRUE)
+
+    script_path <- file.path(dir, "analyses", "data_prep", "code", "infer_analysis.R")
+    runner_path <- file.path(dir, "run_infer_analysis.R")
+    writeLines(
+      c(
+        .pm_rscript_load_cmds(),
+        "result <- pm::pm_infer_analysis()",
+        sprintf(
+          "writeLines(result$path, %s)",
+          shQuote(.pm_r_script_path(result_file))
+        )
+      ),
+      script_path
+    )
+    writeLines(
+      sprintf("source(%s)", shQuote(.pm_r_script_path(script_path))),
+      runner_path
+    )
+
+    skip_if_not(
+      nzchar(.pm_rscript_path()) && file.exists(.pm_rscript_path()),
+      "Rscript not found"
+    )
+
+    exit_code <- .pm_run_rscript(runner_path)
+    expect_equal(exit_code, 0)
+
+    inferred_path <- readLines(result_file, n = 1, warn = FALSE)
+    expect_equal(normalizePath(inferred_path, mustWork = FALSE), expected$path)
+  })
+
+  it("Infers correctly when script is sourced from a different working directory", {
+    script_path <- file.path(dir, "analyses", "data_prep", "code", "infer_analysis_source.R")
+    writeLines("pm::pm_infer_analysis()", script_path)
+
+    withr::with_dir(dir, {
+      analysis <- source(script_path, local = new.env())$value
+      expect_equal(expected$path, analysis$path)
+      expect_equal(expected$name, analysis$name)
     })
   })
 

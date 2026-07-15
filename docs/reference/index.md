@@ -15,7 +15,7 @@
 - [`pm_create_project()`](https://alon-alexander.github.io/r_project_manager/reference/pm_create_project.md)
   : Create a new project from template in the given folder
 - [`pm_infer_analysis()`](https://alon-alexander.github.io/r_project_manager/reference/pm_infer_analysis.md)
-  : Infer an analysis object based on the current directory
+  : Infer an analysis object based on the calling script
 - [`pm_project()`](https://alon-alexander.github.io/r_project_manager/reference/pm_project.md)
   : Create a PMProject object for a given project folder
 - [`pm_read_file()`](https://alon-alexander.github.io/r_project_manager/reference/pm_read_file.md)
