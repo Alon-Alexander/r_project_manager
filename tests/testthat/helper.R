@@ -38,8 +38,23 @@
   expect_equal(actual, expected)
 }
 
+.pm_r_script_path <- function(path) {
+  normalizePath(path, mustWork = FALSE, winslash = "/")
+}
+
+.pm_rscript_path <- function() {
+  rscript_path <- file.path(R.home(), "bin", "Rscript")
+  if (!file.exists(rscript_path)) {
+    alt <- Sys.which("Rscript")
+    if (nzchar(alt) && grepl("[/\\\\]", alt)) {
+      rscript_path <- alt
+    }
+  }
+  rscript_path
+}
+
 .pm_rscript_load_cmds <- function() {
-  pkg_root <- normalizePath(testthat::test_path("../.."))
+  pkg_root <- .pm_r_script_path(testthat::test_path("../.."))
   r_dir <- file.path(pkg_root, "R")
   has_r_source <- dir.exists(r_dir) &&
     length(list.files(r_dir, pattern = "[.]R$")) > 0L
@@ -48,17 +63,23 @@
     return(sprintf("pkgload::load_all(%s, quiet = TRUE)", shQuote(pkg_root)))
   }
 
-  cmds <- character()
-  lib <- Sys.getenv("R_LIBS_USER", unset = "")
-  if (nzchar(lib)) {
-    cmds <- c(
-      cmds,
-      sprintf(
-        ".libPaths(c(%s, .libPaths()))",
-        shQuote(normalizePath(lib, mustWork = FALSE))
-      )
-    )
-  }
+  pm_lib <- .pm_r_script_path(dirname(find.package("pm")))
+  c(
+    sprintf(".libPaths(c(%s, .libPaths()))", shQuote(pm_lib)),
+    "library(pm)"
+  )
+}
 
-  c(cmds, "library(pm)")
+.pm_run_rscript <- function(script_path, stdout = FALSE, stderr = FALSE) {
+  rscript_path <- .pm_rscript_path()
+  script_path <- .pm_r_script_path(script_path)
+  result <- system2(
+    rscript_path,
+    args = script_path,
+    stdout = stdout,
+    stderr = stderr,
+    wait = TRUE
+  )
+  status <- if (is.null(result)) attr(result, "status") else result
+  if (is.null(status)) 0L else as.integer(status)
 }
