@@ -1554,20 +1554,10 @@ describe("pm_infer_analysis works correctly", {
     result_file <- file.path(tempdir(), paste0("pm_infer_result_", Sys.getpid()))
     on.exit(unlink(result_file), add = TRUE)
 
-    pkg_root <- normalizePath(testthat::test_path("../.."))
-    load_cmd <- if (
-      dir.exists(file.path(pkg_root, "R")) &&
-        requireNamespace("pkgload", quietly = TRUE)
-    ) {
-      sprintf("pkgload::load_all(%s, quiet = TRUE)", shQuote(pkg_root))
-    } else {
-      "library(pm)"
-    }
-
     script_path <- file.path(dir, "analyses", "data_prep", "code", "infer_analysis_direct.R")
     writeLines(
       c(
-        load_cmd,
+        .pm_rscript_load_cmds(),
         "result <- pm::pm_infer_analysis()",
         sprintf("writeLines(result$path, %s)", shQuote(result_file))
       ),
@@ -1597,21 +1587,11 @@ describe("pm_infer_analysis works correctly", {
     result_file <- file.path(tempdir(), paste0("pm_infer_result_", Sys.getpid()))
     on.exit(unlink(result_file), add = TRUE)
 
-    pkg_root <- normalizePath(testthat::test_path("../.."))
-    load_cmd <- if (
-      dir.exists(file.path(pkg_root, "R")) &&
-        requireNamespace("pkgload", quietly = TRUE)
-    ) {
-      sprintf("pkgload::load_all(%s, quiet = TRUE)", shQuote(pkg_root))
-    } else {
-      "library(pm)"
-    }
-
     script_path <- file.path(dir, "analyses", "data_prep", "code", "infer_analysis.R")
     runner_path <- file.path(dir, "run_infer_analysis.R")
     writeLines(
       c(
-        load_cmd,
+        .pm_rscript_load_cmds(),
         "result <- pm::pm_infer_analysis()",
         sprintf("writeLines(result$path, %s)", shQuote(result_file))
       ),

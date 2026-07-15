@@ -37,3 +37,28 @@
 
   expect_equal(actual, expected)
 }
+
+.pm_rscript_load_cmds <- function() {
+  pkg_root <- normalizePath(testthat::test_path("../.."))
+  r_dir <- file.path(pkg_root, "R")
+  has_r_source <- dir.exists(r_dir) &&
+    length(list.files(r_dir, pattern = "[.]R$")) > 0L
+
+  if (has_r_source && requireNamespace("pkgload", quietly = TRUE)) {
+    return(sprintf("pkgload::load_all(%s, quiet = TRUE)", shQuote(pkg_root)))
+  }
+
+  cmds <- character()
+  lib <- Sys.getenv("R_LIBS_USER", unset = "")
+  if (nzchar(lib)) {
+    cmds <- c(
+      cmds,
+      sprintf(
+        ".libPaths(c(%s, .libPaths()))",
+        shQuote(normalizePath(lib, mustWork = FALSE))
+      )
+    )
+  }
+
+  c(cmds, "library(pm)")
+}
