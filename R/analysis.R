@@ -424,7 +424,7 @@ PMAnalysis <- R6Class("PMAnalysis",
       }
 
       # Validate method parameters
-      if (is.null(result_id)) {
+      if (is.null(result_id) || identical(result_id, "") || length(result_id) == 0) {
         timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
         # Add a short per-job UUID suffix to the auto-generated result_id so
         # that multiple rapid submissions do not share the same artifact ID.
